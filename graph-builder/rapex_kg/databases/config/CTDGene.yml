@@ -1,0 +1,9 @@
+##### HUGO Gene Nomenclature #######
+ctd_gene_url: "http://ctdbase.org/reports/CTD_genes.csv.gz"
+header:
+  - "ID"
+  - ":LABEL"
+  - "name"
+  - "entrezid"
+  - "synonyms"
+  - "taxid"

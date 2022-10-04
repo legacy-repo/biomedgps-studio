@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+VERSION=$(git describe --tags `git rev-list --tags --max-count=1`)
+
+# dynamically pull more interesting stuff from latest git commit
+HASH=$(git show-ref --head --hash=8 head)            # first 8 letters of hash should be enough; that's what GitHub uses
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+DATE=$(git log -1 --pretty=%ad --date=short)
+
+# Return the version string used to describe this version of Quartet Service.
+echo "$VERSION $HASH $BRANCH $DATE"

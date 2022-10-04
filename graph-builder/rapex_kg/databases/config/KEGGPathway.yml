@@ -1,0 +1,18 @@
+# KEGG Database
+kegg_pathways_url: "https://rapex.oss-cn-shanghai.aliyuncs.com/knowledge-graph/kegg-pathways-v20220918.tsv"
+
+pathways_header:
+  - ID
+  - ":LABEL"
+  - name
+  - description
+  - organism
+  - source
+  - linkout
+
+relationships_header:
+  - START_ID
+  - END_ID
+  - TYPE
+  - linkout
+  - source

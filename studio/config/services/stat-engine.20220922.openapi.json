@@ -1,0 +1,1042 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Rapex",
+    "description": "A Platform for Response to Air Pollution EXposure",
+    "version": "1.0.0"
+  },
+  "tags": [
+    {
+      "name": "StatEngine"
+    }
+  ],
+  "paths": {
+    "/api/v1/charts": {
+      "get": {
+        "summary": "Get Charts",
+        "x-apifox-folder": "StatEngine",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "Get all the available charts.",
+        "tags": ["StatEngine"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Which page?",
+            "required": false,
+            "example": "1",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "description": "Page size",
+            "required": false,
+            "example": "10",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartDataResponse",
+                  "x-apifox-overrides": {}
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "total": 1,
+                      "page": 1,
+                      "page_size": 1,
+                      "data": [
+                        {
+                          "name": "Correlation Plot",
+                          "version": "v0.1.0",
+                          "description": "It is used to investigate the dependence between multiple variables at the same time and to highlight the most correlated variables in a data table.",
+                          "category": "Chart",
+                          "home": "https: //github.com/tservice-plugins/corrplot",
+                          "source": "PGx",
+                          "short_name": "corrplot",
+                          "icons": [
+                            {
+                              "src": "http: //nordata-cdn.oss-cn-shanghai.aliyuncs.com/biominer/corrplot-logo-144x144.png",
+                              "type": "image/png",
+                              "sizes": "144x144"
+                            }
+                          ],
+                          "author": "Jingcheng Yang",
+                          "maintainers": ["Jingcheng Yang"],
+                          "tags": ["R", "Chart"],
+                          "readme": "http: //nordata-cdn.oss-cn-shanghai.aliyuncs.com/test.md"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://www.apifox.cn/web/project/1645899/apis/api-40790197-run"
+      }
+    },
+    "/api/v1/charts/ui-schema/{chart_name}": {
+      "get": {
+        "summary": "Get UI Schema",
+        "x-apifox-folder": "StatEngine",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "获取Chart的UI Schema",
+        "tags": ["StatEngine"],
+        "parameters": [
+          {
+            "name": "chart_name",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartSchema",
+                  "x-apifox-overrides": {}
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "readme:": "http://nordata-cdn.oss-cn-shanghai.aliyuncs.com/test.md",
+                      "schema": {
+                        "fields": [
+                          {
+                            "key": "datafile",
+                            "dataIndex": "datafile",
+                            "valueType": "select",
+                            "title": "Data File",
+                            "tooltip": "Where is the data?",
+                            "valueEnum": "#{{{toselect datafile }}}#",
+                            "formItemProps": {
+                              "rules": [
+                                {
+                                  "required": true,
+                                  "message": "Please load file firstly."
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "key": "corr_vars",
+                            "dataIndex": "corr_vars",
+                            "valueType": "select",
+                            "title": "Correlation Variables",
+                            "tooltip": "Which variables do you want to analyze?",
+                            "valueEnum": "#{{{toselect columns }}}#",
+                            "fieldProps": {
+                              "mode": "multiple"
+                            },
+                            "formItemProps": {
+                              "rules": [
+                                {
+                                  "required": true,
+                                  "message": "Please select several variables."
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "key": "method",
+                            "dataIndex": "method",
+                            "valueType": "select",
+                            "title": "Method",
+                            "tooltip": "The visualization method of correlation matrix to be used. Allowed values are square (default), circle.",
+                            "valueEnum": {
+                              "square": {
+                                "text": "Square"
+                              },
+                              "circle": {
+                                "text": "Circle"
+                              }
+                            },
+                            "formItemProps": {
+                              "initialValue": "square"
+                            }
+                          },
+                          {
+                            "key": "corr_type",
+                            "dataIndex": "corr_type",
+                            "valueType": "select",
+                            "title": "Correlation Type",
+                            "tooltip": "full (default), lower or upper display.",
+                            "valueEnum": {
+                              "full": {
+                                "text": "Full"
+                              },
+                              "lower": {
+                                "text": "Lower"
+                              },
+                              "upper": {
+                                "text": "Upper"
+                              }
+                            },
+                            "formItemProps": {
+                              "initialValue": "full"
+                            }
+                          },
+                          {
+                            "key": "hc_method",
+                            "dataIndex": "hc_method",
+                            "valueType": "select",
+                            "title": "Cluster Method",
+                            "tooltip": "The agglomeration method to be used in hclust (see ?hclust).",
+                            "valueEnum": {
+                              "ward.D": {
+                                "text": "ward.D"
+                              },
+                              "ward.D2": {
+                                "text": "ward.D2"
+                              },
+                              "single": {
+                                "text": "single"
+                              },
+                              "complete": {
+                                "text": "complete"
+                              },
+                              "average": {
+                                "text": "average"
+                              },
+                              "mcquitty": {
+                                "text": "mcquitty"
+                              },
+                              "median": {
+                                "text": "median"
+                              },
+                              "centroid": {
+                                "text": "centroid"
+                              }
+                            },
+                            "formItemProps": {
+                              "initialValue": "complete"
+                            }
+                          },
+                          {
+                            "key": "hc_order",
+                            "dataIndex": "hc_order",
+                            "valueType": "switch",
+                            "title": "Cluster Ordered",
+                            "tooltip": "Logical value. If TRUE, correlation matrix will be hc.ordered using hclust function.",
+                            "formItemProps": {
+                              "initialValue": true
+                            }
+                          },
+                          {
+                            "key": "sig_level",
+                            "dataIndex": "sig_level",
+                            "valueType": "digit",
+                            "title": "Significant Level",
+                            "tooltip": "Significant level, greater than 0 and less than 1.",
+                            "fieldProps": {
+                              "step": 0.01
+                            },
+                            "formItemProps": {
+                              "initialValue": 0.05
+                            }
+                          }
+                        ],
+                        "dataKey": {
+                          "data": "Data"
+                        },
+                        "examples": [
+                          {
+                            "title": "Example 1",
+                            "key": "example-1",
+                            "datafile": "",
+                            "arguments": {
+                              "corr_vars": [
+                                "mpg",
+                                "cyl",
+                                "disp",
+                                "hp",
+                                "drat",
+                                "wt",
+                                "qsec",
+                                "vs",
+                                "am",
+                                "gear",
+                                "carb"
+                              ],
+                              "sig_level": 0.05,
+                              "hc_order": true,
+                              "hc_method": "complete",
+                              "corr_type": "full",
+                              "method": "square"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://www.apifox.cn/web/project/1645899/apis/api-40810228-run"
+      }
+    },
+    "/api/v1/charts/{chart_name}": {
+      "post": {
+        "summary": "Create Chart",
+        "x-apifox-folder": "StatEngine",
+        "x-apifox-status": "testing",
+        "deprecated": false,
+        "description": "创建指定Chart",
+        "tags": ["StatEngine"],
+        "parameters": [
+          {
+            "name": "chart_name",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "corrplot",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "x-apifox-orders": [],
+                "x-apifox-ignore-properties": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskCreationResponse",
+                  "x-apifox-overrides": {}
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "task_id": "4d68189c-57b1-ea3b-8ee7-ee183eb90269"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://www.apifox.cn/web/project/1645899/apis/api-40816301-run"
+      }
+    },
+    "/api/v1/tasks/{id}": {
+      "get": {
+        "summary": "Get Chart Task",
+        "x-apifox-folder": "StatEngine",
+        "x-apifox-status": "released",
+        "deprecated": false,
+        "description": "获取图表运行信息",
+        "tags": ["StatEngine"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Task ID",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChartTaskResponse",
+                  "x-apifox-overrides": {}
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "response": {
+                        "log": "https://nordata-cdn.oss-cn-shanghai.aliyuncs.com/biominer/corrplot/log",
+                        "results": [
+                          "https://nordata-cdn.oss-cn-shanghai.aliyuncs.com/biominer/corrplot/README.md"
+                        ],
+                        "charts": [
+                          "https://nordata-cdn.oss-cn-shanghai.aliyuncs.com/biominer/corrplot/plotly.json"
+                        ],
+                        "response_type": "data2charts",
+                        "task_id": "4d68189c-57b1-ea3b-8ee7-ee183eb90269"
+                      },
+                      "description": "Make a correlation plot.",
+                      "finished_time": 1633340576431,
+                      "plugin_name": "corrplot",
+                      "payload": {
+                        "hc_order": true,
+                        "corr_type": "full",
+                        "datafile": "/Users/choppy/Downloads/tservice/iris.csv",
+                        "method": "square",
+                        "hc_method": "complete",
+                        "corr_vars": ["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"],
+                        "owner": null
+                      },
+                      "name": "corrplot2021-10-04 17:42:53",
+                      "plugin_type": "ChartPlugin",
+                      "percentage": 100,
+                      "status": "Finished",
+                      "id": "4d68189c-57b1-ea3b-8ee7-ee183eb90269",
+                      "started_time": 1633340573650,
+                      "plugin_version": "v0.1.0",
+                      "owner": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://www.apifox.cn/web/project/1645899/apis/api-40830726-run"
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ChartTaskResponse": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "object",
+            "properties": {
+              "log": {
+                "type": "string"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "charts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "response_type": {
+                "type": "string"
+              },
+              "task_id": {
+                "type": "string",
+                "pattern": "[a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}"
+              }
+            },
+            "required": ["log", "results", "charts", "response_type", "task_id"],
+            "x-apifox-orders": ["log", "results", "charts", "response_type", "task_id"],
+            "x-apifox-ignore-properties": []
+          },
+          "description": {
+            "type": "string"
+          },
+          "finished_time": {
+            "type": ["integer", "null"]
+          },
+          "plugin_name": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "properties": {},
+            "x-apifox-ignore-properties": [],
+            "x-apifox-orders": []
+          },
+          "name": {
+            "type": "string"
+          },
+          "plugin_type": {
+            "type": "string"
+          },
+          "percentage": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "[a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}"
+          },
+          "started_time": {
+            "type": "integer"
+          },
+          "plugin_version": {
+            "type": "string"
+          },
+          "owner": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": [
+          "response",
+          "description",
+          "finished_time",
+          "plugin_name",
+          "payload",
+          "name",
+          "plugin_type",
+          "percentage",
+          "status",
+          "id",
+          "started_time",
+          "plugin_version",
+          "owner"
+        ],
+        "x-apifox-orders": [
+          "response",
+          "description",
+          "finished_time",
+          "plugin_name",
+          "payload",
+          "name",
+          "plugin_type",
+          "percentage",
+          "status",
+          "id",
+          "started_time",
+          "plugin_version",
+          "owner"
+        ],
+        "x-apifox-ignore-properties": [],
+        "x-apifox-folder": "Schemas"
+      },
+      "TaskCreationResponse": {
+        "type": "object",
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "pattern": "[a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}",
+            "title": "任务ID"
+          }
+        },
+        "x-apifox-orders": ["task_id"],
+        "required": ["task_id"],
+        "x-apifox-ignore-properties": [],
+        "x-apifox-folder": "Schemas"
+      },
+      "ChartSchema": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "dataIndex": {
+                      "type": "string"
+                    },
+                    "valueType": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "tooltip": {
+                      "type": "string"
+                    },
+                    "valueEnum": {
+                      "type": "object",
+                      "properties": {
+                        "square": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "circle": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "full": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "lower": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "upper": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "ward.D": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "ward.D2": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "single": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "complete": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "average": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "mcquitty": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "median": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "centroid": {
+                          "type": "object",
+                          "properties": {
+                            "text": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["text"],
+                          "x-apifox-orders": ["text"],
+                          "x-apifox-ignore-properties": []
+                        }
+                      },
+                      "required": [
+                        "square",
+                        "circle",
+                        "full",
+                        "lower",
+                        "upper",
+                        "ward.D",
+                        "ward.D2",
+                        "single",
+                        "complete",
+                        "average",
+                        "mcquitty",
+                        "median",
+                        "centroid"
+                      ],
+                      "x-apifox-orders": [
+                        "square",
+                        "circle",
+                        "full",
+                        "lower",
+                        "upper",
+                        "ward.D",
+                        "ward.D2",
+                        "single",
+                        "complete",
+                        "average",
+                        "mcquitty",
+                        "median",
+                        "centroid"
+                      ],
+                      "x-apifox-ignore-properties": []
+                    },
+                    "formItemProps": {
+                      "type": "object",
+                      "properties": {
+                        "rules": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "required": {
+                                "type": "boolean"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["required", "message"],
+                            "x-apifox-orders": ["required", "message"],
+                            "x-apifox-ignore-properties": []
+                          }
+                        },
+                        "initialValue": {
+                          "type": ["string", "boolean", "number"]
+                        }
+                      },
+                      "required": ["rules", "initialValue"],
+                      "x-apifox-orders": ["rules", "initialValue"],
+                      "x-apifox-ignore-properties": []
+                    },
+                    "fieldProps": {
+                      "type": "object",
+                      "properties": {
+                        "mode": {
+                          "type": "string"
+                        },
+                        "step": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["mode", "step"],
+                      "x-apifox-orders": ["mode", "step"],
+                      "x-apifox-ignore-properties": []
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "dataIndex",
+                    "valueType",
+                    "title",
+                    "tooltip",
+                    "valueEnum",
+                    "formItemProps",
+                    "fieldProps"
+                  ],
+                  "x-apifox-orders": [
+                    "key",
+                    "dataIndex",
+                    "valueType",
+                    "title",
+                    "tooltip",
+                    "valueEnum",
+                    "formItemProps",
+                    "fieldProps"
+                  ],
+                  "x-apifox-ignore-properties": []
+                }
+              },
+              "dataKey": {
+                "type": "object",
+                "properties": {
+                  "data": {
+                    "type": "string"
+                  }
+                },
+                "required": ["data"],
+                "x-apifox-orders": ["data"],
+                "x-apifox-ignore-properties": []
+              },
+              "examples": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "datafile": {
+                      "type": "string"
+                    },
+                    "arguments": {
+                      "type": "object",
+                      "properties": {
+                        "corr_vars": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "sig_level": {
+                          "type": "number"
+                        },
+                        "hc_order": {
+                          "type": "boolean"
+                        },
+                        "hc_method": {
+                          "type": "string"
+                        },
+                        "corr_type": {
+                          "type": "string"
+                        },
+                        "method": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "corr_vars",
+                        "sig_level",
+                        "hc_order",
+                        "hc_method",
+                        "corr_type",
+                        "method"
+                      ],
+                      "x-apifox-orders": [
+                        "corr_vars",
+                        "sig_level",
+                        "hc_order",
+                        "hc_method",
+                        "corr_type",
+                        "method"
+                      ],
+                      "x-apifox-ignore-properties": []
+                    }
+                  },
+                  "x-apifox-orders": ["title", "key", "datafile", "arguments"],
+                  "required": ["title", "key", "datafile", "arguments"],
+                  "x-apifox-ignore-properties": []
+                }
+              }
+            },
+            "required": ["fields", "dataKey", "examples"],
+            "x-apifox-orders": ["fields", "dataKey", "examples"],
+            "x-apifox-ignore-properties": []
+          },
+          "readme": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "required": ["schema", "readme"],
+        "x-apifox-orders": ["schema", "readme"],
+        "x-apifox-ignore-properties": [],
+        "x-apifox-folder": "Schemas"
+      },
+      "ChartDataResponse": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "page_size": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Chart"
+            }
+          }
+        },
+        "x-apifox-orders": ["total", "page", "page_size", "data"],
+        "required": ["total", "page", "page_size", "data"],
+        "x-apifox-refs": {},
+        "x-apifox-ignore-properties": [],
+        "x-apifox-folder": "Schemas"
+      },
+      "Chart": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "home": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "short_name": {
+            "type": "string"
+          },
+          "icons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "src": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "sizes": {
+                  "type": "string"
+                }
+              },
+              "x-apifox-orders": ["src", "type", "sizes"],
+              "required": ["src", "type", "sizes"],
+              "x-apifox-ignore-properties": []
+            }
+          },
+          "author": {
+            "type": "string"
+          },
+          "maintainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "readme": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "version",
+          "description",
+          "category",
+          "home",
+          "source",
+          "short_name",
+          "icons",
+          "author",
+          "maintainers",
+          "tags",
+          "readme",
+          "id"
+        ],
+        "x-apifox-orders": [
+          "name",
+          "version",
+          "description",
+          "category",
+          "home",
+          "source",
+          "short_name",
+          "icons",
+          "author",
+          "maintainers",
+          "tags",
+          "readme",
+          "id"
+        ],
+        "x-apifox-ignore-properties": [],
+        "x-apifox-folder": "Schemas"
+      }
+    }
+  }
+}

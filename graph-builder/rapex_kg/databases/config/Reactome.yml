@@ -1,0 +1,24 @@
+###### Reactome Database #######
+reactome_urls:
+  "pathway": "https://reactome.org/download/current/ReactomePathways.txt"
+  "hierarchy": "https://reactome.org/download/current/ReactomePathwaysRelation.txt"
+
+pathway_header:
+  - "ID"
+  - ":LABEL"
+  - "name"
+  - "description"
+  - "type"
+  - "linkout"
+  - "source"
+
+relationships_header:
+  "pathway":
+    - "START_ID"
+    - "END_ID"
+    - "TYPE"
+    - "source"
+
+linkout_url: "https://reactome.org/PathwayBrowser/#/PATHWAY"
+organisms:
+  "Mus musculus": 10090

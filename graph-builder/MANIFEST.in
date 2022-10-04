@@ -1,0 +1,4 @@
+include CODE_OF_CONDUCT.md CODE_OF_CONDUCT.rst CONTRIBUTING.rst README.md AUTHORS.rst config.py LICENSE.rst requirements.txt
+recursive-include rapex_kg *
+
+global-exclude *.py[co] .DS_Store __pycache__

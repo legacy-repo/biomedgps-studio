@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Java options
+JAVA_OPTS="$JAVA_OPTS -XX:+IgnoreUnrecognizedVMOptions" # Don't barf if we see an option we don't understand (e.g. Java 9 option on Java 7/8)
+JAVA_OPTS="$JAVA_OPTS -Djava.awt.headless=true"         # don't try to start AWT. Not sure this does anything but better safe than wasting memory
+JAVA_OPTS="$JAVA_OPTS -Dfile.encoding=UTF-8"            # Use UTF-8
+
+echo "Using these JAVA_OPTS: ${JAVA_OPTS}"
+
+# Auto migrate database schema
+if [ ! -z "$MIGRATE_DB" ];then
+    java $JAVA_OPTS -jar ./target/uberjar/rapex.jar migrate
+fi
+
+# if [ ! -z "ENABLE_RSERVE" ] && [ ! -z "RSERVE_PORT" ];then
+#     echo "Launch Rserve on port ${RSERVE_PORT}"
+#     R -e "Rserve::Rserve(port=${RSERVE_PORT})"
+# fi
+
+exec java $JAVA_OPTS -jar ./target/uberjar/rapex.jar

@@ -1,0 +1,52 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"calva.showDocstringInParameterHelp": true,
+		"calva.testOnSave": true,
+		"calva.useTestExplorer": true,
+		"testExplorer.addToEditorContextMenu": true,
+		"testExplorer.mergeSuites": true,
+		"testExplorer.showOnRun": true,
+		"problems.showCurrentInStatus": false
+	},
+	"extensions": {
+		"recommendations": [
+			"borkdude.clj-kondo",
+			"betterthantomorrow.calva",
+			"hbenl.vscode-test-explorer",
+			"ritwickdey.LiveServer"
+		]
+	},
+	"tasks": {
+		// See https://go.microsoft.com/fwlink/?LinkId=733558
+		// for the documentation about the tasks.json format
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Run Unittest and Generage a Coverage Report",
+				"type": "shell",
+				"command": "cd biomedgps && clj -X:test",
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "Open the Coverage Report",
+				"type": "shell",
+				"command": "Chrome",
+				"osx": {
+					"command": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+				},
+				"args": [
+					"http://127.0.0.1:5500/biomedgps/target/coverage/index.html"
+				]
+			}
+		]
+	}
+}

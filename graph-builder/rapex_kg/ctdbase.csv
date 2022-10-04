@@ -1,0 +1,21 @@
+http://ctdbase.org/reports/CTD_chem_gene_ixns.csv.gz,Chemical–gene interactions
+http://ctdbase.org/reports/CTD_chem_gene_ixn_types.csv,Chemical–gene interaction types
+http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz,Chemical–disease associations
+http://ctdbase.org/reports/CTD_chem_go_enriched.csv.gz,Chemical–GO enriched associations
+http://ctdbase.org/reports/CTD_chem_pathways_enriched.csv.gz,Chemical–pathway enriched associations
+http://ctdbase.org/reports/CTD_genes_diseases.csv.gz,Gene–disease associations
+http://ctdbase.org/reports/CTD_genes_pathways.csv.gz,Gene–pathway associations
+http://ctdbase.org/reports/CTD_diseases_pathways.csv.gz,Disease–pathway associations
+http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz,Chemical–phenotype interactions
+http://ctdbase.org/reports/CTD_exposure_studies.csv.gz,Exposure–study associations
+http://ctdbase.org/reports/CTD_exposure_events.csv.gz,Exposure–event associations
+http://ctdbase.org/reports/CTD_Phenotype-Disease_biological_process_associations.csv.gz,Phenotype (GO)–Disease Inference Networks
+http://ctdbase.org/reports/CTD_Phenotype-Disease_cellular_component_associations.csv.gz,Phenotype (GO)–Disease Inference Networks
+http://ctdbase.org/reports/CTD_Phenotype-Disease_molecular_function_associations.csv.gz,Phenotype (GO)–Disease Inference Networks
+http://ctdbase.org/reports/CTD_chemicals.csv.gz,Chemical vocabulary
+http://ctdbase.org/reports/CTD_diseases.obo.gz,Disease vocabulary (MEDIC)
+http://ctdbase.org/reports/CTD_diseases.csv.gz,Disease vocabulary (MEDIC)
+http://ctdbase.org/reports/CTD_anatomy.csv.gz,Anatomy vocabulary
+http://ctdbase.org/reports/CTD_genes.csv.gz,Gene vocabulary
+http://ctdbase.org/reports/CTD_pathways.csv.gz,Pathway vocabulary
+http://ctdbase.org/reports/CTD_exposure_ontology.obo,Exposure Ontology (ExO)
