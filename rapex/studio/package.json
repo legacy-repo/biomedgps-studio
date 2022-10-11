@@ -1,9 +1,10 @@
 {
-  "name": "ant-design-pro",
-  "version": "5.2.0",
+  "name": "rapex-studio",
+  "version": "0.1.0",
   "private": true,
-  "description": "An out-of-box UI solution for enterprise applications",
+  "description": "A studio for discovering Response to Air Pollution EXposure",
   "scripts": {
+    "publish-code": "npm run build && cp -R ./dist/* ../resources/public/",
     "analyze": "cross-env ANALYZE=1 umi build",
     "build": "cross-env UMI_APP_API_PREFIX=https://prophet-backend.3steps.cn/rapex umi build",
     "deploy": "npm run build && npm run gh-pages",

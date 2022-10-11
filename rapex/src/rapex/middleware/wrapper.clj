@@ -3,6 +3,8 @@
    [ring-ttl-session.core :refer [ttl-memory-store]]
    [ring.middleware.cors :refer [wrap-cors]]
    [ring.middleware.x-headers :refer [wrap-frame-options]]
+   [ring.middleware.resource :refer [wrap-resource]]
+   [ring.middleware.content-type :refer [wrap-content-type]]
    [ring.middleware.defaults :refer [site-defaults wrap-defaults]]))
 
 (defn enable-wrap-cors
@@ -23,5 +25,7 @@
        (-> site-defaults
            (assoc-in [:security :anti-forgery] false)
            (assoc-in  [:session :store] (ttl-memory-store (* 60 30)))))
+      (wrap-resource "public")
+      (wrap-content-type)
       (enable-wrap-cors :enable-cors enable-cors :cors-origins cors-origins)
       (wrap-frame-options {:allow-from "*"})))
