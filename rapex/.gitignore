@@ -22,3 +22,4 @@ pom.xml.asc
 !/examples/data/.gitkeep
 /log
 /dev-config.edn
+.DS_Store

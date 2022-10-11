@@ -1,4 +1,4 @@
-(ns rapex.R.core
+(ns rapex.rwrapper.rserve
   (:require [rapex.config :refer [env]]
             [rojure.core :as rojure :refer [r-eval]]
             [clojure.tools.logging :as log]

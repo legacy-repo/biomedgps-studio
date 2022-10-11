@@ -39,7 +39,7 @@
   (ring/ring-handler
    (ring/router
     [["/" {:get
-           {:handler (constantly {:status 301 :headers {"Location" "/api/api-docs/index.html"}})}}]
+           {:handler (constantly {:status 301 :headers {"Location" "/index.html"}})}}]
      (app-routes/routes)]
 
     {:validate  rs/validate

@@ -16,6 +16,8 @@ ENV LC_CTYPE en_US.UTF-8
 # make:    backend building
 # gettext: translations
 RUN apt-get update && apt-get install -y coreutils bash git wget make gettext
+RUN curl -sL https://rpm.nodesource.com/setup_16.x | bash -
+RUN apt install -y nodejs
 
 # lein:    backend dependencies and building
 ADD ./bin/lein /usr/local/bin/lein
@@ -30,6 +32,9 @@ RUN lein deps
 
 # add the rest of the source
 ADD . .
+
+# build the studio
+RUN cd studio && npm run publish-code
 
 # build the app
 RUN bin/build
@@ -51,13 +56,10 @@ WORKDIR /app
 
 RUN echo "**** Install dev packages ****" && \
     apt-get update && \
-    apt-get install -y bash wget git curl r-base python3 python3-pip && \
+    apt-get install -y bash wget curl && \
     \
     echo "*** Install common development dependencies" && \
-    apt-get install -y libmariadb-dev python3-dev libxml2-dev libcurl4-openssl-dev libssl-dev && \
-    \
-    echo "**** Install R development dependencies ****" && \
-    Rscript -e 'install.packages("renv")' && \
+    apt-get install -y libmariadb-dev libxml2-dev libcurl4-openssl-dev libssl-dev && \
     \
     echo "**** Cleanup ****" && \
     apt-get clean

@@ -25,7 +25,7 @@
                   :exclusions [org.clojure/java.jdbc
                                org.clojure/clojure]]
 
-                                  ;; Web Middleware
+                 ;; Web Middleware
                  [ring-cors "0.1.13"]
                  [luminus-transit "0.1.2"]
                  [luminus/ring-ttl-session "0.3.3"]
@@ -46,8 +46,10 @@
                  [com.github.yjcyxky/local-fs "0.1.5"]
                  [com.github.yjcyxky/remote-fs "0.2.5"]
                  [com.github.yjcyxky/tservice-core "0.2.3"]
-
+                 
+                 ;; R
                  [rojure "0.2.0"]
+                 [opencpu-clj "0.3.1"]
 
                  ;; JSON/YAML/CSV
                  [com.fasterxml.jackson.core/jackson-core "2.11.0"]

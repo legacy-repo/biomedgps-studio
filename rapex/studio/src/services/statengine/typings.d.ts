@@ -30,21 +30,7 @@ declare namespace StatEngineAPI {
         valueType?: string;
         title?: string;
         tooltip?: string;
-        valueEnum: {
-          square: { text?: string };
-          circle: { text?: string };
-          full: { text?: string };
-          lower: { text?: string };
-          upper: { text?: string };
-          'ward.D': { text?: string };
-          'ward.D2': { text?: string };
-          single: { text?: string };
-          complete: { text?: string };
-          average: { text?: string };
-          mcquitty: { text?: string };
-          median: { text?: string };
-          centroid: { text?: string };
-        };
+        valueEnum?: Record<string, any>;
         formItemProps: { rules?: { required?: boolean; message?: string }[]; initialValue?: any };
         fieldProps: { mode?: string; step?: number };
       }[];
@@ -53,14 +39,16 @@ declare namespace StatEngineAPI {
         title?: string;
         key?: string;
         datafile?: string;
-        arguments: {
-          corr_vars?: string[];
-          sig_level?: number;
-          hc_order?: boolean;
-          hc_method?: string;
-          corr_type?: string;
-          method?: string;
-        };
+        // Such as the following type definition.
+        // {
+        //   corr_vars?: string[];
+        //   sig_level?: number;
+        //   hc_order?: boolean;
+        //   hc_method?: string;
+        //   corr_type?: string;
+        //   method?: string;
+        // }
+        arguments: Record<string, any>;
       }[];
     };
     readme: string;

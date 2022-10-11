@@ -8,8 +8,7 @@
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [rapex.tasks :as tasks]
-            [mount.core :as mount]
-            [rapex.R.core :as rcore]))
+            [mount.core :as mount]))
 
 ;; log uncaught exceptions in threads
 (Thread/setDefaultUncaughtExceptionHandler
@@ -26,12 +25,6 @@
 (mount/defstate ^{:no-reload :noop} event-listener
   :start (tasks/start-tasks!)
   :stop (tasks/stop-tasks!))
-
-;; (mount/defstate ^{:on-reload :noop} r-server
-;;   :start
-;;   (rcore/start-r!)
-;;   :stop
-;;   (rcore/stop-r! r-server))
 
 (mount/defstate ^{:on-reload :noop} http-server
   :start
