@@ -61,3 +61,19 @@ export async function getChartTask(
     ...(options || {}),
   });
 }
+
+/** 获取Plotly Data/Result for Chart GET /api/download */
+export async function getFile(
+  params: {
+      filelink: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<any>(`/api/v1/download`, {
+      method: 'GET',
+      params: {
+          ...params,
+      },
+      ...(options || {}),
+  });
+}

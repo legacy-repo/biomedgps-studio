@@ -1,4 +1,4 @@
-import { getPlotlyData } from '@/services/swagger/Charts';
+import { getFile } from '../../services/StatEngine';
 import * as plotly from 'plotly.js/dist/plotly';
 import React, { memo, useEffect, useState } from 'react';
 import PlotlyEditor from 'react-chart-editor';
@@ -6,7 +6,7 @@ import PlotlyChart from 'react-plotly.js';
 import { getLocale } from 'umi';
 
 import * as localeDictionary from 'plotly.js/lib/locales/zh-cn';
-import type { Data, Frames, Layout, PlotlyEditorState } from './data';
+import type { Data, Frames, Layout, PlotlyEditorState, PlotlyChart as PlotlyChartType } from './data';
 
 import 'react-chart-editor/lib/react-chart-editor.css';
 import './index.less';
@@ -42,10 +42,10 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
   useEffect(() => {
     if (plotlyId) {
       // Need to set autorange to true
-      getPlotlyData({ filelink: plotlyId }).then((response) => {
+      getFile({ filelink: plotlyId }).then((response: PlotlyChartType) => {
         setData(response.data);
         setLayout(response.layout);
-        setFrames(response.frames);
+        setFrames(response.frames || []);
       });
     }
   }, [plotlyId]);

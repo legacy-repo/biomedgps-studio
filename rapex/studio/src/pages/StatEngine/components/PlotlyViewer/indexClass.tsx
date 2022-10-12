@@ -4,9 +4,9 @@ import PlotlyEditor from 'react-chart-editor';
 import PlotlyChart from 'react-plotly.js';
 import { getLocale } from 'umi';
 
-import { getPlotlyData } from '@/services/swagger/Charts';
+import { getFile } from '../../services/StatEngine';
 import * as localeDictionary from 'plotly.js/lib/locales/zh-cn';
-import type { Data, Frames, Layout, PlotlyEditorState } from './data';
+import type { Data, Frames, Layout, PlotlyEditorState, PlotlyChart as PlotlyChartType } from './data';
 
 import 'react-chart-editor/lib/react-chart-editor.css';
 import './index.less';
@@ -40,11 +40,11 @@ export default class ChartEditor extends React.PureComponent<ChartEditorProps, C
 
   UNSAFE_componentWillMount() {
     if (this.props.plotlyId && this.props.plotlyId.length > 0) {
-      getPlotlyData({ filelink: this.props.plotlyId }).then((response) => {
+      getFile({ filelink: this.props.plotlyId }).then((response: PlotlyChartType) => {
         this.setState({
           data: response.data,
           layout: response.layout,
-          frames: response.frames,
+          frames: response.frames || [],
         });
       });
     }

@@ -15,7 +15,7 @@ import LogViewer from '../LogViewer/indexLog';
 import MarkdownViewer from '../MarkdownViewer';
 import PlotlyViewer from '../PlotlyViewer/indexClass';
 
-import { getPlotlyData } from '@/services/swagger/Charts';
+import { getFile } from '../../services/StatEngine';
 import type { ChartResult } from '../ChartList/data';
 
 import './index.less';
@@ -56,7 +56,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   useEffect(() => {
     if (charts.length > 0) {
       console.log('Chart Task: ', taskId);
-      getPlotlyData({ filelink: charts[0] }).then((response) => {
+      getFile({ filelink: charts[0] }).then((response: any) => {
         setDataSources(response);
         setDataSourceOptions(
           Object.keys(response).map((name) => ({

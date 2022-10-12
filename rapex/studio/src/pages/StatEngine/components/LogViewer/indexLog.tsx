@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { getPlotlyData } from '@/services/swagger/Charts';
+import { getFile } from '../../services/StatEngine';
 import { DownloadOutlined, SyncOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Space, Spin } from 'antd';
 import { memo, useEffect, useState } from 'react';
@@ -54,7 +54,7 @@ const LogViewer: React.FC<LogProps> = (props) => {
   const loadLog = () => {
     if (url.length > 0) {
       const interval = setInterval(() => {
-        getPlotlyData({
+        getFile({
           filelink: url,
         }).then((response) => {
           console.log('Load Log: ', response);
