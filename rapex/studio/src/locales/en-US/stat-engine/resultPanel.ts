@@ -1,6 +1,6 @@
 export default {
   'stat-engine.result-panel.arguments': 'Arguments',
-  'stat-engine.result-panel.figure': 'Figure',
+  'stat-engine.result-panel.figure': 'Interactive Chart',
   'stat-engine.result-panel.results': 'Results',
   'stat-engine.result-panel.log': 'Log',
   'stat-engine.result-panel.edit': 'Edit',

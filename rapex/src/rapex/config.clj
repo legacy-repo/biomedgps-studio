@@ -7,7 +7,8 @@
    [clojure.string :as clj-str]
    [clojure.tools.logging :as log]
    [clojure.java.io :refer [file]]
-   [mount.core :refer [args defstate]]))
+   [mount.core :refer [args defstate]]
+   [local-fs.core :as fs-lib]))
 
 (defstate env
   :start (load-config :merge [(args)
@@ -77,6 +78,15 @@
   (let [minio-rootdir (get-minio-rootdir env)
         trimmed (str (clj-str/replace minio-rootdir #"/$" "") "/")]
     (clj-str/replace abspath (re-pattern trimmed) "minio://")))
+
+(defn get-real-path
+  "Replace a minio link to an absolute path."
+  [object-link]
+  (let [minio-rootdir (get-minio-rootdir env)
+        trimmed (clj-str/replace object-link #"minio://(/|./)?|file://(/|./)?" "")]
+    (if (= trimmed object-link)
+      (throw (ex-info "Not a valid link." {}))
+      (fs-lib/join-paths minio-rootdir trimmed))))
 
 (defn get-workdir
   []

@@ -129,11 +129,24 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         <TabPane
           tab={
             <span>
+              <SnippetsOutlined />
+              {uiContext.results}
+            </span>
+          }
+          key="1"
+        >
+          <Col id="result-container" className="result-container">
+            <MarkdownViewer url={resultMarkdownLink} />
+          </Col>
+        </TabPane>
+        <TabPane
+          tab={
+            <span>
               <BarChartOutlined />
               {uiContext.figure}
             </span>
           }
-          key="1"
+          key="2"
         >
           <Col
             id="graph-container"
@@ -159,19 +172,6 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
               key={charts[0]}
               mode={plotlyEditorMode}
             ></PlotlyViewer>
-          </Col>
-        </TabPane>
-        <TabPane
-          tab={
-            <span>
-              <SnippetsOutlined />
-              {uiContext.results}
-            </span>
-          }
-          key="2"
-        >
-          <Col id="result-container" className="result-container">
-            <MarkdownViewer url={resultMarkdownLink} />
           </Col>
         </TabPane>
         <TabPane

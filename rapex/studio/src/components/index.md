@@ -103,7 +103,7 @@ export default () => {
 | visible         | 输入框是否显示                     | `boolean`                    | -      |
 | onVisibleChange | 输入框显示隐藏的回调函数           | `(visible: boolean) => void` | -      |
 
-## NoticeIcon 通知工具
+<!-- ## NoticeIcon 通知工具
 
 通知工具提供一个展示多种通知信息的界面。
 
@@ -223,7 +223,7 @@ export interface NoticeIconData {
   extra: any;
   status: string;
 }
-```
+``` -->
 
 ## RightContent
 

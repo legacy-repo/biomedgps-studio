@@ -46,7 +46,7 @@
         path: '/custom-analysis/differential-expression-analysis',
         name: 'diff-genes',
         icon: 'smile',
-        component: './Welcome',
+        component: './StatEngine',
       },
       {
         path: '/custom-analysis/gene-expression-profile',

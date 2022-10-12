@@ -8,33 +8,33 @@ const request = extend({
   credentials: 'same-origin', // 默认请求是否带上cookie
 });
 
-export async function getPlotlyData(
-  params: {
-    filelink: string;
-  },
-  options?: { [key: string]: any },
-) {
-  return request<API.PlotlyChart>(params.filelink, {
-    method: 'GET',
-    ...(options || {}),
-  });
-}
+// export async function getPlotlyData(
+//   params: {
+//     filelink: string;
+//   },
+//   options?: { [key: string]: any },
+// ) {
+//   return request<API.PlotlyChart>(params.filelink, {
+//     method: 'GET',
+//     ...(options || {}),
+//   });
+// }
 
 /** 获取Plotly Data/Result for Chart GET /api/download */
-// export async function getPlotlyData(
-//     params: {
-//         filelink: string;
-//     },
-//     options?: { [key: string]: any },
-// ) {
-//     return request<API.PlotlyChart>(`/api/v1/download`, {
-//         method: 'GET',
-//         params: {
-//             ...params,
-//         },
-//         ...(options || {}),
-//     });
-// }
+export async function getPlotlyData(
+    params: {
+        filelink: string;
+    },
+    options?: { [key: string]: any },
+) {
+    return request<API.PlotlyChart>(`/api/v1/download`, {
+        method: 'GET',
+        params: {
+            ...params,
+        },
+        ...(options || {}),
+    });
+}
 
 /** 获取Chart Schema GET /api/chart/<plugin_name>-ui-schema */
 export async function getChartSchema(chartName: string, options?: { [key: string]: any }) {

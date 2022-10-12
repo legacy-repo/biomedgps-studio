@@ -90,7 +90,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
   const draggleRef: React.RefObject<HTMLDivElement> = React.createRef();
 
   useEffect(() => {
-    setCurrentChart('corrplot');
+    setCurrentChart('boxplot');
   }, []);
 
   const onModalStart = (event: any, uiData: any) => {

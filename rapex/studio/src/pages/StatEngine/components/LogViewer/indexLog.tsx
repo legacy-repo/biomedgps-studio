@@ -76,7 +76,7 @@ const LogViewer: React.FC<LogProps> = (props) => {
 
   if (log) {
     return (
-      <Col class="log-container">
+      <Col className="log-container">
         <ReactAnsi bodyStyle={{ height: height, overflowY: 'auto' }} log={log} />
         {buttons}
       </Col>

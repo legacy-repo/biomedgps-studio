@@ -44,8 +44,8 @@
 
 (s/def ::filelink
   (st/spec
-   {:spec                #(some? (re-matches #"^\/.*" %))
-    :description         "File link, such as /40644dec-1abd-489f-a7a8-1011a86f40b0/log"
+   {:spec                #(some? (re-matches #"^(?:(?:minio://)|(?:file://)|(:?file:///)|(:?file://./))[^/].*" %))
+    :description         "File link, such as minio://40644dec-1abd-489f-a7a8-1011a86f40b0/log"
     :swagger/default     ""
     :swagger/type        "string"
     :reason              "The filelink must be a string."}))

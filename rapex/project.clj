@@ -41,6 +41,7 @@
                  [ring/ring-servlet "1.7.1"]
 
                  ;; Utility
+                 [clj-http "3.9.1"]
                  [org.clojure/tools.reader "1.3.6"]
                  [danlentz/clj-uuid "0.1.9"]
                  [com.github.yjcyxky/local-fs "0.1.5"]

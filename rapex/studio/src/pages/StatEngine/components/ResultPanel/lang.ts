@@ -3,7 +3,7 @@ import type { LangData } from '../Common/data';
 export const langData: LangData = {
   figure: {
     id: 'stat-engine.result-panel.figure',
-    defaultMessage: '图表',
+    defaultMessage: '交互图表',
   },
   results: {
     id: 'stat-engine.result-panel.results',
