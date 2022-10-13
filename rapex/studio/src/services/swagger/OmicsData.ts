@@ -8,7 +8,7 @@ export async function getDegs(
   params: API.getDegsParams,
   options?: { [key: string]: any },
 ) {
-  return request<{ total: number; page: number; page_size: number; data: any }>('/api/degs', {
+  return request<{ total: number; page: number; page_size: number; data: any }>('/api/v1/degs', {
     method: 'GET',
     params: {
       ...params,
@@ -23,7 +23,7 @@ export async function getOmicsData(
   params: API.getOmicsDataParams,
   options?: { [key: string]: any },
 ) {
-  return request<{ total: number; page: number; page_size: number; data: any }>('/api/omics-data', {
+  return request<{ total: number; page: number; page_size: number; data: any }>('/api/v1/omics-data', {
     method: 'GET',
     params: {
       ...params,
@@ -38,7 +38,7 @@ export async function getPathways(
   params: API.getPathwaysParams,
   options?: { [key: string]: any },
 ) {
-  return request<{ total: number; page: number; page_size: number; data: any }>('/api/pathways', {
+  return request<{ total: number; page: number; page_size: number; data: any }>('/api/v1/pathways', {
     method: 'GET',
     params: {
       ...params,

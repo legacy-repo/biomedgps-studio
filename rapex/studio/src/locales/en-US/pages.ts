@@ -1,19 +1,28 @@
 export default {
+  // KEGGPathway Page
   'pages.KEGGPathway.pathwayId': 'Pathway ID',
   'pages.KEGGPathway.pathwayName': 'Pathway Name',
   'pages.KEGGPathway.geneSymbol': 'Gene Symbol',
   'pages.KEGGPathway.ensemblId': 'Ensembl ID',
-  'pages.KEGGPathway.entrezId': 'Entrez ID',
+  'pages.KEGGPathway.entrezId': 'Gene ID',
+
+  // GeneList Page
   'pages.GeneList.ensemblId': 'Ensembl ID',
-  'pages.GeneList.entrezId': 'Entrez ID',
-  'pages.GeneList.geneSymbol': 'Gene Symbol',
-  'pages.GeneList.pAdj': 'Adjusted Pvalue',
+  'pages.GeneList.entrezId': 'Gene ID',
+  'pages.GeneList.geneSymbol': 'Symbol',
+  'pages.GeneList.organ': 'Organ',
+  'pages.GeneList.method': 'Method',
+  'pages.GeneList.datatype': 'DataType',
+  'pages.GeneList.dataset': 'DataSet',
+  'pages.GeneList.pAdj': 'AdjPvalue',
   'pages.GeneList.pvalue': 'Pvalue',
   'pages.GeneList.logfc': 'logFC',
-  'pages.GeneList.direction': 'direction',
+  'pages.GeneList.direction': 'Direction',
 
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',
+
+  
   'pages.login.accountLogin.tab': 'Account Login',
   'pages.login.accountLogin.errorMessage': 'Incorrect username/password(admin/ant.design)',
   'pages.login.failure': 'Login failed, please try again!',
@@ -41,6 +50,8 @@ export default {
   'pages.admin.subPage.title': 'This page can only be viewed by Admin',
   'pages.admin.subPage.alertMessage':
     'Umi ui is now released, welcome to use npm run ui to start the experience.',
+
+
   'pages.searchTable.createForm.newRule': 'New Rule',
   'pages.searchTable.updateForm.ruleConfig': 'Rule configuration',
   'pages.searchTable.updateForm.basicConfig': 'Basic Information',
