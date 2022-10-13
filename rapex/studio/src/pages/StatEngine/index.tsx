@@ -51,7 +51,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
     uiContext[key] = intl.formatMessage(langData[key]);
   });
 
-  const [leftSpan, setLeftSpan] = useState<number>(12);
+  const [leftSpan, setLeftSpan] = useState<number>(8);
   const [resizeBtnActive, setResizeBtnActive] = useState<boolean>(false);
 
   // Left Panel
@@ -168,6 +168,11 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
     setCurrentActiveKey(key);
   };
 
+  // For debug
+  // useEffect(() => {
+  //   autoFetchTask("f318ff50-4ad3-11ed-a5b3-c6aea7bb5ffb")
+  // }, true)
+
   const autoFetchTask = (taskId: string) => {
     const interval = setInterval(() => {
       if (taskId.length > 0) {
@@ -184,6 +189,12 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
               message.success('Load chart...');
               clearInterval(interval);
             } else if (resp.status === 'Failed') {
+              setResultData({
+                results: resp.response.results,
+                charts: resp.response.charts,
+                log: resp.response.log,
+                taskId: resp.response.task_id,
+              });
               setResultLoading(false);
               message.error('Something wrong, please check the log for more details.');
               clearInterval(interval);
@@ -306,7 +317,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
                     key="arguments"
                   >
                     <ArgumentForm
-                      labelSpan={12}
+                      labelSpan={24}
                       height="calc(100% - 62px)"
                       onSubmit={onSubmit}
                       columns={argumentColumns}

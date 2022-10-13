@@ -84,7 +84,7 @@
 
 (defn read-log!
   [resp]
-  (read-output resp #"/ocpu/tmp/.*/console"))
+  (read-output resp #"/ocpu/tmp/.*/console" :as-file? false))
 
 (defn read-plot!
   [resp filepath]

@@ -61,6 +61,10 @@ const LogViewer: React.FC<LogProps> = (props) => {
           setLog(response.msg);
           // setStatus(response.status);
           clearInterval(interval);
+        }).catch(error => {
+          console.log(`Fetch log error, the reason is ${error}`);
+          setLog('Cannot get the log, please retry later.');
+          clearInterval(interval);
         });
       }, 1000);
     }

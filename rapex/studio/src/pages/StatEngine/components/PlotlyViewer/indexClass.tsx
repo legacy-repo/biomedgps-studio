@@ -3,6 +3,7 @@ import * as React from 'react';
 import PlotlyEditor from 'react-chart-editor';
 import PlotlyChart from 'react-plotly.js';
 import { getLocale } from 'umi';
+import { message } from 'antd';
 
 import { getFile } from '../../services/StatEngine';
 import * as localeDictionary from 'plotly.js/lib/locales/zh-cn';
@@ -43,9 +44,20 @@ export default class ChartEditor extends React.PureComponent<ChartEditorProps, C
       getFile({ filelink: this.props.plotlyId }).then((response: PlotlyChartType) => {
         this.setState({
           data: response.data,
-          layout: response.layout,
+          layout: {
+            ...response.layout,
+            // Reset the margin
+            margin: {
+              "t": 50,
+              "r": 0,
+              "b": 0,
+              "l": 0
+            }
+          },
           frames: response.frames || [],
         });
+      }).catch(error => {
+        message.warn("Cannot fetch the plotly result, please retry later.")
       });
     }
   }
@@ -86,7 +98,7 @@ export default class ChartEditor extends React.PureComponent<ChartEditorProps, C
       scrollZoom: false,
       displaylogo: false,
       displayModeBar: true,
-      showTips: false,
+      showTips: true,
       responsive: true,
       // @ts-ignore
       locales: { 'zh-CN': localeDictionary },
@@ -106,6 +118,16 @@ export default class ChartEditor extends React.PureComponent<ChartEditorProps, C
         data={data}
         layout={layout}
         config={config}
+        onInitialized={(figure) => this.setState({
+          data: figure.data,
+          layout: figure.layout,
+          frames: figure.frames || []
+        })}
+        onUpdate={(figure) => this.setState({
+          data: figure.data,
+          layout: figure.layout,
+          frames: figure.frames || []
+        })}
       />
     ) : (
       <div className="plotly-editor">

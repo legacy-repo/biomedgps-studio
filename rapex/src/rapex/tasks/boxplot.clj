@@ -51,10 +51,11 @@
    :schema
    {:fields  [{:key "gene_symbol"
                :dataIndex "gene_symbol"
-               :required true
+               :valueType "gene_searcher"
                :title "Gene Symbol"
                :tooltip "Which gene do you want to query?"
-               :formItemProps {:initialValue "ENSMUSG00000028180"}}
+               :formItemProps {:rules [{:required true
+                                        :message "gene_symbol filed is required."}]}}
               {:key "method"
                :dataIndex "method"
                :valueType "select"
@@ -62,7 +63,9 @@
                :tooltip "The statistical test method to be used. Allowed values are t.test (default) wilcox.test anova kruskal.test"
                :valueEnum {:t.test {:text "T Test"} :wilcox.test {:text "Wilcox Test"}
                            :anova {:text "Anova"} :kruskal.test {:text "Kruskal Test"}}
-               :formItemProps {:initialValue "t.test"}}
+               :formItemProps {:initialValue "t.test"
+                               :rules [{:required true
+                                        :message "gene_symbol filed is required."}]}}
               {:key "log_scale"
                :dataIndex "log_scale"
                :valueType "switch"

@@ -32,6 +32,11 @@
    (s/keys :req-un [::query_str]
            :opt-un [::page ::page_size])))
 
+(s/def ::DuckDBDataQueryParams
+  (st/spec
+   (s/keys :req-un [::query_str]
+           :opt-un [])))
+
 (s/def ::total
   (st/spec
    {:spec                nat-int?
@@ -70,6 +75,11 @@
 (s/def ::DuckDBItems
   (st/spec
    (s/keys :req-un [::page ::page_size ::data ::total ::data]
+           :opt-un [])))
+
+(s/def ::DuckDBDataItems
+  (st/spec
+   (s/keys :req-un [::data]
            :opt-un [])))
 
 (def duckdb-error-body

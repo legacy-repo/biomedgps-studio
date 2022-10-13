@@ -6,7 +6,7 @@ import {
   IssuesCloseOutlined,
   SnippetsOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Drawer, Row, Space, Tabs, Tooltip } from 'antd';
+import { Button, Col, Drawer, message, Row, Space, Tabs, Tooltip } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
 import { useIntl } from 'umi';
 
@@ -15,7 +15,7 @@ import LogViewer from '../LogViewer/indexLog';
 import MarkdownViewer from '../MarkdownViewer';
 import PlotlyViewer from '../PlotlyViewer/indexClass';
 
-import { getFile } from '../../services/StatEngine';
+// import { getFile } from '../../services/StatEngine';
 import type { ChartResult } from '../ChartList/data';
 
 import './index.less';
@@ -53,20 +53,22 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   const [dataSources, setDataSources] = useState<object>({});
   const [dataSourceOptions, setDataSourceOptions] = useState<object[]>([]);
 
-  useEffect(() => {
-    if (charts.length > 0) {
-      console.log('Chart Task: ', taskId);
-      getFile({ filelink: charts[0] }).then((response: any) => {
-        setDataSources(response);
-        setDataSourceOptions(
-          Object.keys(response).map((name) => ({
-            value: name,
-            label: name,
-          })),
-        );
-      });
-    }
-  }, [results, charts]);
+  // useEffect(() => {
+  //   if (charts.length > 0) {
+  //     console.log('Chart Task: ', taskId);
+  //     getFile({ filelink: charts[0] }).then((response: any) => {
+  //       setDataSources(response);
+  //       setDataSourceOptions(
+  //         Object.keys(response).map((name) => ({
+  //           value: name,
+  //           label: name,
+  //         })),
+  //       );
+  //     }).catch(error => {
+  //       message.warn("Cannot fetch the result, please retry later.")
+  //     });
+  //   }
+  // }, [results, charts]);
 
   useEffect(() => {
     if (results.length > 0) {
@@ -129,24 +131,11 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         <TabPane
           tab={
             <span>
-              <SnippetsOutlined />
-              {uiContext.results}
-            </span>
-          }
-          key="1"
-        >
-          <Col id="result-container" className="result-container">
-            <MarkdownViewer url={resultMarkdownLink} />
-          </Col>
-        </TabPane>
-        <TabPane
-          tab={
-            <span>
               <BarChartOutlined />
               {uiContext.figure}
             </span>
           }
-          key="2"
+          key="1"
         >
           <Col
             id="graph-container"
@@ -172,6 +161,19 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
               key={charts[0]}
               mode={plotlyEditorMode}
             ></PlotlyViewer>
+          </Col>
+        </TabPane>
+        <TabPane
+          tab={
+            <span>
+              <SnippetsOutlined />
+              {uiContext.results}
+            </span>
+          }
+          key="2"
+        >
+          <Col id="result-container" className="result-container">
+            <MarkdownViewer url={resultMarkdownLink} />
           </Col>
         </TabPane>
         <TabPane

@@ -40,6 +40,26 @@
                      (log/debug "Error: " e)
                      (get-error-response e))))})
 
+(defn fetch-genes
+  [title dbname]
+  {:summary    title
+   :parameters {:query ::ds/DuckDBDataQueryParams}
+   :responses  {200 {:body ::ds/DuckDBDataItems}
+                404 {:body ds/duckdb-error-body}
+                400 {:body ds/duckdb-error-body}
+                500 {:body ds/duckdb-error-body}}
+   :handler    (fn [{{{:keys [query_str]} :query} :parameters
+                     {:as headers} :headers}]
+                 (try
+                   (let [query-map (qd/read-string-as-map query_str)
+                         dbpath (qd/get-db-path dbname)]
+                     (log/info "database:" dbpath "query-map:" query-map)
+                     (ok {:data (qd/get-results dbpath query-map)}))
+                   (catch Exception e
+                     (log/debug "Error: " e)
+                     (get-error-response e))))})
+
+
 (def routes
   [""
    {:swagger {:tags ["Omics Data"]}}
@@ -49,6 +69,9 @@
 
    ["/degs"
     {:get  (get-results "Get DEGs" "rapex_degs")}]
+
+   ["/genes"
+    {:get (fetch-genes "Get genes" "rapex_degs")}]
 
    ["/pathways"
     {:get  (get-results "Get Pathways" "rapex_pathway")}]])

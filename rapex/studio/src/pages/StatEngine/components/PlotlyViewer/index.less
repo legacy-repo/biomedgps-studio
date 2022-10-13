@@ -1,6 +1,6 @@
 .plotly-viewer {
   width: 100%;
-  height: calc(100vh - 120px);
+  height: calc(100vh - 150px);
 }
 
 .plotly-editor {
@@ -36,5 +36,18 @@
 
   .panel__content {
     overflow: scroll;
+  }
+}
+
+// 元素遮盖导致事件无法传递
+.plotly-editor, .plotly-viewer {
+  .shapelayer {
+    .cursor-sw-resize, path {
+      pointer-events: none !important;
+    }
+  }
+
+  .plot-container {
+    height: 100%;
   }
 }

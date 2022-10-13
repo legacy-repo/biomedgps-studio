@@ -2,7 +2,8 @@ import { getFile } from '../../services/StatEngine';
 import * as plotly from 'plotly.js/dist/plotly';
 import React, { memo, useEffect, useState } from 'react';
 import PlotlyEditor from 'react-chart-editor';
-import PlotlyChart from 'react-plotly.js';
+import Plot from 'react-plotly.js';
+import { message } from 'antd';
 import { getLocale } from 'umi';
 
 import * as localeDictionary from 'plotly.js/lib/locales/zh-cn';
@@ -44,8 +45,19 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       // Need to set autorange to true
       getFile({ filelink: plotlyId }).then((response: PlotlyChartType) => {
         setData(response.data);
-        setLayout(response.layout);
+        setLayout({
+          ...response.layout,
+          // Reset the margin
+          margin: {
+            "t": 50,
+            "r": 0,
+            "b": 0,
+            "l": 0
+          }
+        });
         setFrames(response.frames || []);
+      }).catch(error => {
+        message.warn("Cannot fetch the plotly result, please retry later.")
       });
     }
   }, [plotlyId]);
@@ -66,7 +78,7 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
     scrollZoom: false,
     displaylogo: false,
     displayModeBar: true,
-    showTips: false,
+    showTips: true,
     responsive: true,
     // @ts-ignore
     locales: { 'zh-CN': localeDictionary },
@@ -77,7 +89,7 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
 
   // mode: ["Plotly", "PlotlyEditor"]
   return mode === 'Plotly' ? (
-    <PlotlyChart
+    <Plot
       ref={(plotlyRef: PlotlyEditor) => {
         setRef(plotlyRef);
       }}
@@ -86,6 +98,16 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       data={data}
       layout={layout}
       config={config}
+      onInitialized={(figure) => {
+        setData(figure.data)
+        setLayout(figure.layout)
+        setFrames(figure.frames || [])
+      }}
+      onUpdate={(figure) => {
+        setData(figure.data)
+        setLayout(figure.layout)
+        setFrames(figure.frames || [])
+      }}
     />
   ) : (
     <div className="plotly-editor">

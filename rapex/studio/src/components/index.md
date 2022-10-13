@@ -269,3 +269,15 @@ RightContent 是以上几个组件的组合，同时新增了 plugins 的 `Selec
   <SelectLang className={styles.action} />
 </Space>
 ```
+
+## GeneSearcher
+
+```tsx
+/**
+ * background: '#f0f2f5'
+ */
+import GeneSearcher from '@/components/GeneSearcher';
+import React from 'react';
+
+export default () => <GeneSearcher placeholder="Enter gene symbol, entrez id or ensembl id" style={{ width: 300 }} />;
+```
