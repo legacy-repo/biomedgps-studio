@@ -5,7 +5,7 @@ export default {
   'menu.multiple-genes': 'Multiple Genes Analysis',
   'menu.custom-analysis': 'Custom Analysis',
   'menu.custom-analysis.diff-genes': 'Differential Genes',
-  'menu.custom-analysis.gene-exp-profile': 'Gene Expression Profile',
+  'menu.custom-analysis.gene-exp-profile-boxplot': 'Gene Expression Profile [BoxPlot]',
   'menu.custom-analysis.across-organs': 'Gene Expression Across Organs',
   'menu.custom-analysis.across-species': 'Gene Expression Across Species',
   'menu.custom-analysis.multiple-genes-comparison': 'Multiple Genes Comparison',

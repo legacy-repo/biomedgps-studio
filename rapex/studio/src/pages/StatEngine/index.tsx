@@ -27,7 +27,6 @@ import ResultPanel from './components/ResultPanel';
 // Custom DataType
 import type { ChartResult, DataItem, DataKey } from './components/ChartList/data';
 import type { DataLoader } from './components/Common/data';
-import type { StatEngineAPI } from './services/typings';
 import type { Bound } from './data';
 type UIContext = Record<string, any>;
 
@@ -42,7 +41,7 @@ import { render as renderTemplate } from './util';
 
 const { TabPane } = Tabs;
 
-const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => {
+const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (props) => {
   const intl = useIntl();
 
   console.log('StatEngine Props: ', props);
@@ -91,8 +90,14 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
   const draggleRef: React.RefObject<HTMLDivElement> = React.createRef();
 
   useEffect(() => {
-    setCurrentChart('boxplot');
-  }, []);
+    // More details on https://v3.umijs.org/docs/routing#routing-component-parameters
+    const chart = props.route.chart;
+    if (chart) {
+      setCurrentChart(chart);
+    } else {
+      setCurrentChart('boxplot');
+    }
+  }, [props.route.chart]);
 
   const onModalStart = (event: any, uiData: any) => {
     const { clientWidth, clientHeight } = window?.document?.documentElement;

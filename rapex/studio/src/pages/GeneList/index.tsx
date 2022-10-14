@@ -70,18 +70,6 @@ const GeneList: React.FC = () => {
       sorter: true,
       width: '180px',
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.entrezId" defaultMessage="Entrez ID" />,
@@ -89,18 +77,6 @@ const GeneList: React.FC = () => {
       sorter: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.geneSymbol" defaultMessage="Gene Symbol" />,
@@ -108,18 +84,6 @@ const GeneList: React.FC = () => {
       dataIndex: 'gene_symbol',
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.organ" defaultMessage="Organ" />,
@@ -127,37 +91,30 @@ const GeneList: React.FC = () => {
       dataIndex: 'organ',
       sorter: true,
       tip: 'Organ name.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      valueType: 'select',
+      valueEnum: {
+        gut: { text: "Gut" },
+        kdn: { text: "Kidney" },
+        hrt: { text: "Heart" },
+        lng: { text: "Lung" },
+        lvr: { text: "Liver" },
+        tst: { text: "Testis" },
+        tyr: { text: "Thyroid" },
+        brn: { text: "Brain" }
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.method" defaultMessage="Method" />,
       align: 'center',
       dataIndex: 'method',
       sorter: true,
-      tip: 'Stat method, such as ttest, wilcox.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      valueType: 'select',
+      valueEnum: {
+        ttest: { text: "T Test" },
+        wilcox: { text: "Wilcox Test" },
+        limma: { text: "Limma" }
+      },
+      tip: 'Stat method, such as ttest, wilcox.'
     },
     {
       title: <FormattedMessage id="pages.GeneList.datatype" defaultMessage="Data Type" />,
@@ -165,57 +122,28 @@ const GeneList: React.FC = () => {
       dataIndex: 'datatype',
       sorter: true,
       tip: 'Data type, such as FPKM, TPM, Counts.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      valueType: 'select',
+      valueEnum: {
+        fpkm: { text: "FPKM" },
+        tpm: { text: "TPM" },
+        counts: { text: "Counts" }
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.dataset" defaultMessage="Dataset" />,
       align: 'center',
       dataIndex: 'dataset',
-      sorter: true,
-      tip: 'Dataset ID.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      valueType: 'select',
+      valueEnum: {
+        0: { text: "rapex_000000" }
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.pAdj" defaultMessage="AdjPvalue" />,
       align: 'center',
       hideInSearch: true,
       dataIndex: 'padj',
-      sorter: true,
-      // tip: 'Adjusted Pvalue.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      sorter: true
     },
     {
       title: <FormattedMessage id="pages.GeneList.pvalue" defaultMessage="Pvalue" />,
@@ -223,20 +151,7 @@ const GeneList: React.FC = () => {
       hideInSearch: true,
       dataIndex: 'pvalue',
       width: '80px',
-      sorter: true,
-      // tip: 'A p-value is a statistical measurement used to validate a hypothesis against observed data.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      sorter: true
     },
     {
       title: <FormattedMessage id="pages.GeneList.logfc" defaultMessage="LogFC" />,
@@ -246,18 +161,6 @@ const GeneList: React.FC = () => {
       sorter: true,
       width: '80px',
       tip: 'Log fold change = log(FC) Usually, the transformation is log at base 2, so the interpretation is straightforward: a log(FC) of 1 means twice as expressed.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.direction" defaultMessage="Direction" />,
@@ -266,18 +169,12 @@ const GeneList: React.FC = () => {
       sorter: true,
       width: '100px',
       tip: '`Up` means up-regulated, `Down` means down-regulated and `No` means no difference.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      valueType: 'select',
+      valueEnum: {
+        up: { text: "Up" },
+        down: { text: "Down" },
+        no: { text: "No" }
+      },
     },
   ];
 

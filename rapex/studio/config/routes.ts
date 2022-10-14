@@ -1,18 +1,4 @@
 ﻿export default [
-  // {
-  //   path: '/user',
-  //   layout: false,
-  //   routes: [
-  //     {
-  //       name: 'login',
-  //       path: '/user/login',
-  //       component: './user/Login',
-  //     },
-  //     {
-  //       component: './404',
-  //     },
-  //   ],
-  // },
   {
     path: '/welcome',
     name: 'welcome',
@@ -45,20 +31,22 @@
       {
         path: '/custom-analysis/differential-expression-analysis',
         name: 'diff-genes',
-        icon: 'smile',
-        component: './StatEngine',
+        icon: 'table',
+        component: './DataSet',
       },
       {
-        path: '/custom-analysis/gene-expression-profile',
-        name: 'gene-exp-profile',
+        path: '/custom-analysis/gene-expression-profile/boxplot',
+        name: 'gene-exp-profile-boxplot',
         icon: 'smile',
-        component: './Welcome',
+        component: './StatEngine',
+        chart: 'boxplot'
       },
       {
         path: '/custom-analysis/across-organs',
         name: 'across-organs',
         icon: 'smile',
-        component: './Welcome',
+        component: './StatEngine',
+        chart: 'boxplot-organs'
       },
       {
         path: '/custom-analysis/across-species',
@@ -96,7 +84,7 @@
     name: 'datasets',
     icon: 'table',
     path: '/datasets',
-    component: './DataSet',
+    component: './Welcome',
   },
   {
     name: 'about',
