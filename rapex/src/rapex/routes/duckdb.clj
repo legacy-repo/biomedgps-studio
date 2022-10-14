@@ -37,7 +37,7 @@
                           :page_size page_size
                           :data (qd/get-results dbpath query-map)}))
                    (catch Exception e
-                     (log/debug "Error: " e)
+                     (log/error "Error: " e)
                      (get-error-response e))))})
 
 (defn fetch-genes
@@ -56,7 +56,7 @@
                      (log/info "database:" dbpath "query-map:" query-map)
                      (ok {:data (qd/get-results dbpath query-map)}))
                    (catch Exception e
-                     (log/debug "Error: " e)
+                     (log/error "Error: " e)
                      (get-error-response e))))})
 
 

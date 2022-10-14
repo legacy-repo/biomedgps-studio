@@ -136,7 +136,7 @@
                             (let [filename (:filename file)
                                   tempfile (:tempfile file)
                                   to-path (fs-lib/join-paths to-dir filename)]
-                              (log/debug "Upload file: " filename)
+                              (log/info "Upload file: " filename)
                               (fs-lib/create-directories! to-dir)
                               (fs-lib/copy tempfile to-path)))
                           {:status 201

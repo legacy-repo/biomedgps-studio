@@ -9,7 +9,8 @@
             [clojure.tools.logging :as log]
             [rapex.tasks :as tasks]
             [rapex.rwrapper.opencpu :as opencpu]
-            [mount.core :as mount]))
+            [mount.core :as mount]
+            [rapex.db.query-duckdb :as duckdb]))
 
 ;; log uncaught exceptions in threads
 (Thread/setDefaultUncaughtExceptionHandler
@@ -67,6 +68,7 @@
   ; Load configuration from system-props & env
   (mount/start #'rapex.config/env)
   (check-config env)
+  (duckdb/setup-datadir (:datadir env))
   (opencpu/setup-ocpu-api-service (or (:ocpu-api-service env) "http://localhost:5656"))
   (cond
     ;; Run a command like `java -jar rapex.jar init-*`

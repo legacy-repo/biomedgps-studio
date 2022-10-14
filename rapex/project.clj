@@ -46,7 +46,7 @@
                  [danlentz/clj-uuid "0.1.9"]
                  [com.github.yjcyxky/local-fs "0.1.5"]
                  [com.github.yjcyxky/remote-fs "0.2.5"]
-                 [com.github.yjcyxky/tservice-core "0.2.3"]
+                 [com.github.yjcyxky/tservice-core "0.2.4"]
                  
                  ;; R
                  [rojure "0.2.0"]

@@ -30,7 +30,7 @@
   [table ensembl-id]
   (try
     (let [query-map {:select [:*]
-                     :from (keyword table)
+                     :from [(keyword table)]
                      :where [:= :ensembl_id ensembl-id]}
           ;; "gut_000000_fpkm" -> ["gut" "000000" "fpkm"]
           organ (first (clj-str/split table #"_"))
@@ -71,24 +71,24 @@
   "Automatically called during startup; start event listener for boxplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "boxplot" draw-boxplot!))
+  (make-events-init "boxplot_organs" draw-boxplot!))
 
 (def manifest
-  {:name "Box Plot"
+  {:name "Boxplot for multiple organs"
    :version "v0.1.0"
    :description ""
    :category "Chart"
    :home "https://github.com/rapex-lab/rapex/tree/master/rapex/src/rapex/tasks"
    :source "Rapex Team"
-   :short_name "boxplot"
+   :short_name "boxplot-organs"
    :icons [{:src ""
             :type "image/png"
             :sizes "144x144"}]
    :author "Jingcheng Yang"
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
-   :readme "https://rapex.prophetdb.org/README/boxplot.md"
-   :id "boxplot"})
+   :readme "https://rapex.prophetdb.org/README/boxplot-organs.md"
+   :id "boxplot-organs"})
 
 (s/def ::gene_symbol string?)
 (s/def ::organ (s/coll-of #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn"}))
@@ -114,7 +114,7 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "boxplot" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn "boxplot_organs" payload :owner (or (get headers "x-auth-users") "default")))})
 
 (def ui-schema
   {:readme "https://rapex.prophetdb.org/README/boxplot.md"

@@ -172,7 +172,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
             ></PlotlyViewer>
           </Col>
         </TabPane>
-        <TabPane
+        {/* <TabPane
           tab={
             <span>
               <SnippetsOutlined />
@@ -184,7 +184,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
           <Col id="result-container" className="result-container">
             <MarkdownViewer url={resultMarkdownLink} />
           </Col>
-        </TabPane>
+        </TabPane> */}
         <TabPane
           tab={
             <span>

@@ -18,6 +18,12 @@
 (def ro-prop (doto (new Properties)
                (.setProperty "duckdb.read_only" "true")))
 
+(def datadir (atom (:datadir env)))
+
+(defn setup-datadir
+  [path]
+  (reset! datadir path))
+
 (defn get-connection
   [^String database]
   (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop))
@@ -28,7 +34,7 @@
   [^String dbpath ^PersistentArrayMap sqlmap]
   (try
     (let [sqlstr (sql/format sqlmap)]
-      (log/debug "Query String:" sqlstr)
+      (log/info "Query String:" sqlstr)
       (with-open [con (get-connection dbpath)]
         (jdbc/execute! con sqlstr)))
     (catch Exception e
@@ -99,7 +105,7 @@
   "Get the absolute path of a database file.
   "
   ^String [^String dbname]
-  (let [datadir (:datadir env)
+  (let [datadir @datadir
         dbs (memoized-list-db datadir)
         db-path ((keyword dbname) dbs)]
     (if db-path

@@ -42,7 +42,7 @@
             :parameters {:body specs/task-body}
             :responses  {201 {:body {:message specs/task-id}}}
             :handler    (fn [{{:keys [body]} :parameters}]
-                          (log/debug "Create an task: " body)
+                          (log/info "Create an task: " body)
                           (created (str "/tasks/" (:id body))
                                    {:message (db-handler/create-task! body)}))}}]
 
@@ -51,7 +51,7 @@
               :parameters {:path specs/task-id}
               :responses  {200 {:body map?}}
               :handler    (fn [{{{:keys [id]} :path} :parameters}]
-                            (log/debug "Get task: " id)
+                            (log/info "Get task: " id)
                             (ok (db-handler/convert-record (db-handler/search-task id))))}
 
      :delete {:summary    "Delete a task."

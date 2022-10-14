@@ -6,7 +6,8 @@
             [clojure.spec.alpha :as s]
             [rapex.tasks.util :refer [draw-chart-fn]]
             [rapex.db.query-duckdb :as duckdb]
-            [clojure.string :as clj-str]))
+            [clojure.string :as clj-str]
+            [clojure.tools.logging :as log]))
 
 (defn boxplot-demo-data
   []
@@ -31,6 +32,18 @@
   (->> (map convert-record-map results)
        (apply concat)))
 
+(defn- prepare-data
+  [ensembl_id organ dataset datatype]
+  (let [query-map {:select [:*]
+                   :from [(keyword (format "%s_%s_%s" organ dataset datatype))]}
+        query-map (if (coll? ensembl_id)
+                    (merge query-map {:where [:in :ensembl_id ensembl_id]})
+                    (merge query-map {:where [:= :ensembl_id ensembl_id]}))
+        results (duckdb/get-results (duckdb/get-db-path "rapex_expr") query-map)
+          ;; [{:ensembl_id "xxx" :Gut_PM_2_A18 1212 ...}]
+        d (convert-db-results results)]
+    d))
+
 (defn draw-boxplot!
   [{:keys [plot-json-path plot-path task-id log-path payload]}]
   (try
@@ -41,21 +54,13 @@
           organ (or (:organ payload) "gut")
           dataset (or (:dataset payload) "000000")
           ensembl_id (:gene_symbol payload)
-          query-map {:select [:*]
-                     :from (keyword (format "%s_%s_%s" organ dataset datatype))}
-          query-map (if (coll? ensembl_id)
-                      (merge query-map {:where [:in :ensembl_id ensembl_id]})
-                      (merge query-map {:where [:= :ensembl_id ensembl_id]}))
-          results (duckdb/get-results (duckdb/get-db-path "rapex_expr") query-map)
-          ;; [{:ensembl_id "xxx" :Gut_PM_2_A18 1212 ...}]
-          d (convert-db-results results)
+          d (prepare-data ensembl_id organ dataset datatype)
           resp (ocpu/draw-plot! "boxplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
                                                      :method method :jitter_size jitter_size
-                                                     :log_scale log_scale})
-          out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
+                                                     :log_scale log_scale})]
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
-      (spit log-path out-log)
+      (spit log-path (json/write-str {:status "Success" :msg (ocpu/read-log! resp)}))
       (update-task! {:id task-id :status "Finished"}))
     (catch Exception e
       (spit log-path (json/write-str {:status "Failed" :msg (.toString e)}))

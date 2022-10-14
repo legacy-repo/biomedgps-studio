@@ -116,7 +116,7 @@
          metadata {:total     (or (:count ((:count-func func-map) params)) 0)
                    :page      page
                    :page_size page-size}]
-     (log/debug "Query db by: " params, (merge metadata {:data ((:query-func func-map) params)}))
+     (log/info "Query db by: " params, (merge metadata {:data ((:query-func func-map) params)}))
      (merge metadata {:data ((:query-func func-map) params)}))))
 
 (defn- search-entity

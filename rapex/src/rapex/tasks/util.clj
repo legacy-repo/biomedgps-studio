@@ -19,7 +19,7 @@
 
 (defn draw-chart-fn
   [chart_name payload & {:keys [owner] :or {owner "default"}}]
-  (log/debug (format "Create %s: %s" chart_name payload))
+  (log/info (format "Create %s: %s" chart_name payload))
   (let [workdir (get-workdir)
         uuid (fs-lib/basename workdir)
         log-path (fs-lib/join-paths workdir "log.json")
@@ -50,6 +50,6 @@
                          :payload payload})
         (created "" {:task_id task-id}))
       (catch Exception e
-        (log/debug "Error: " e)
+        (log/error "Error: " e)
         (spit log-path (json/write-str {:status "Failed" :msg (.toString e)}))
         (get-error-response e)))))

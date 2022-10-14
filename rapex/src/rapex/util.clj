@@ -107,7 +107,7 @@
 (defn unzip-file
   [zip-file to-dir]
   (log/infof "Extracting %s" zip-file)
-  (log/debug "  to:" to-dir)
+  (log/info "  to:" to-dir)
   (with-open [zipf (ZipFile. (io/file zip-file))]
     (doseq [entry (enumeration-seq (.getEntries zipf))
             :when (not (.isDirectory ^ZipArchiveEntry entry))
