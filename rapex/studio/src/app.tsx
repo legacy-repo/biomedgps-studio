@@ -6,6 +6,7 @@ import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
 import { history, Link, RequestConfig, useIntl } from 'umi';
 import defaultSettings from '../config/defaultSettings';
+import { RequestOptionsInit } from 'umi-request';
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
@@ -73,13 +74,36 @@ const ComponentLink: React.FC = () => {
 
 console.log('apiPrefix', process.env);
 
+const addHeader = (url: string, options: RequestOptionsInit) => {
+  const visitorId = localStorage.getItem('rapex-visitor-id')
+  let headers = {}
+  if (visitorId) {
+    headers = { "x-auth-users": visitorId }
+  } else {
+    headers = {}
+  }
+  return ({
+    url: url,
+    options: { ...options, headers: headers }
+  })
+}
+
 export const request: RequestConfig = {
   timeout: 30000,
   // More details on ./config/proxy.ts or ./config/config.cloud.ts
   prefix: apiPrefix,
-  errorConfig: {},
+  errorConfig: {
+    adaptor: (resData) => {
+      return {
+        ...resData,
+        success: resData.ok,
+        showType: 0,
+        errorMessage: resData.message,
+      };
+    },
+  },
   middlewares: [],
-  requestInterceptors: [],
+  requestInterceptors: [addHeader],
   responseInterceptors: [],
 };
 
@@ -139,11 +163,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     },
     links: isDev
       ? [
-          <DocLink></DocLink>,
-          <ExampleLink></ExampleLink>,
-          <OpenAPILink></OpenAPILink>,
-          <ComponentLink></ComponentLink>,
-        ]
+        <DocLink></DocLink>,
+        <ExampleLink></ExampleLink>,
+        <OpenAPILink></OpenAPILink>,
+        <ComponentLink></ComponentLink>,
+      ]
       : [<DocLink></DocLink>, <ExampleLink></ExampleLink>],
     menuHeaderRender: undefined,
     // 自定义 403 页面

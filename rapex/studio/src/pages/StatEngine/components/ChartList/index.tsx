@@ -113,7 +113,7 @@ const ChartList: React.FC<ChartListProps> = (props) => {
         >
           <List.Item.Meta
             title={titleLink(item.name, item.version)}
-            description={item.maintainer}
+            description={item.maintainers}
           />
           <span className="description">{item.description}</span>
           {item.tags.map((tag) => {

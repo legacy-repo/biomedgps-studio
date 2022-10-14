@@ -1,6 +1,7 @@
 import argumentForm from './argumentForm';
 import chartList from './chartList';
 import resultPanel from './resultPanel';
+import historyTable from './historyTable';
 
 export default {
   'stat-engine.reset': '重置',
@@ -13,4 +14,5 @@ export default {
   ...argumentForm,
   ...resultPanel,
   ...chartList,
+  ...historyTable
 };

@@ -27,6 +27,7 @@ import ResultPanel from './components/ResultPanel';
 // Custom DataType
 import type { ChartResult, DataItem, DataKey } from './components/ChartList/data';
 import type { DataLoader } from './components/Common/data';
+import type { StatEngineAPI } from './services/typings';
 import type { Bound } from './data';
 type UIContext = Record<string, any>;
 
@@ -76,7 +77,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
   const [resultData, setResultData] = useState<ChartResult | undefined>({
     results: [],
     charts: [],
-    taskId: '',
+    task_id: '',
     log: '',
   });
 
@@ -183,7 +184,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
                 results: resp.response.results,
                 charts: resp.response.charts,
                 log: resp.response.log,
-                taskId: resp.response.task_id,
+                task_id: resp.response.task_id,
               });
               setResultLoading(false);
               message.success('Load chart...');
@@ -193,7 +194,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
                 results: resp.response.results,
                 charts: resp.response.charts,
                 log: resp.response.log,
-                taskId: resp.response.task_id,
+                task_id: resp.response.task_id,
               });
               setResultLoading(false);
               message.error('Something wrong, please check the log for more details.');
@@ -318,7 +319,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
                   >
                     <ArgumentForm
                       labelSpan={24}
-                      height="calc(100% - 62px)"
+                      height="calc(100% - 10px)"
                       onSubmit={onSubmit}
                       columns={argumentColumns}
                     ></ArgumentForm>
@@ -379,7 +380,7 @@ const StatEngine: React.FC<RouteComponentProps<{}, StaticContext>> = (props) => 
               <ResultPanel
                 results={resultData?.results || []}
                 charts={resultData?.charts || []}
-                taskId={resultData?.taskId || ''}
+                taskId={resultData?.task_id || ''}
                 responsiveKey={leftSpan}
                 logLink={resultData?.log || ''}
                 onClickItem={selectItem}

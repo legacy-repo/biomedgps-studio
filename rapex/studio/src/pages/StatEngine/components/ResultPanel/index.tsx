@@ -6,7 +6,7 @@ import {
   IssuesCloseOutlined,
   SnippetsOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Drawer, message, Row, Space, Tabs, Tooltip } from 'antd';
+import { Button, Col, Drawer, Row, Space, Tabs, Tooltip } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
 import { useIntl } from 'umi';
 
@@ -14,9 +14,12 @@ import ChartList from '../ChartList';
 import LogViewer from '../LogViewer/indexLog';
 import MarkdownViewer from '../MarkdownViewer';
 import PlotlyViewer from '../PlotlyViewer/indexClass';
+import HistoryTable from '../HistoryTable';
+import { JsonViewer } from '@textea/json-viewer'
 
 // import { getFile } from '../../services/StatEngine';
 import type { ChartResult } from '../ChartList/data';
+import type { StatEngineAPI } from '../../services/typings'
 
 import './index.less';
 import { langData } from './lang';
@@ -24,7 +27,7 @@ import { langData } from './lang';
 const { TabPane } = Tabs;
 
 export type ResultPanelProps = {
-  onClickItem: (chart: string, result?: ChartResult) => void;
+  onClickItem: (chart: string, result?: ChartResult, task?: StatEngineAPI.TaskListItem) => void;
   taskId: string;
   logLink: string;
   results: string[];
@@ -44,14 +47,16 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
 
   const { onClickItem, logLink, responsiveKey, taskId, results, charts } = props;
 
+  const [chartTask, setChartTask] = useState<StatEngineAPI.TaskListItem | undefined>(undefined);
   const [plotlyEditorMode, setPlotlyEditorMode] = useState<string>('Plotly');
   const [chartsVisible, setChartsVisible] = useState<boolean>(false);
   const [editBtnActive, setEditBtnActive] = useState<boolean>(false);
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
+  const [activeKey, setActiveKey] = useState<string>("chart");
 
   const [resultMarkdownLink, setResultMarkdownLink] = useState<string | null>(null);
-  const [dataSources, setDataSources] = useState<object>({});
-  const [dataSourceOptions, setDataSourceOptions] = useState<object[]>([]);
+  // const [dataSources, setDataSources] = useState<object>({});
+  // const [dataSourceOptions, setDataSourceOptions] = useState<object[]>([]);
 
   // useEffect(() => {
   //   if (charts.length > 0) {
@@ -89,6 +94,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
       <Tooltip title="Edit the Chart">
         <Button
           disabled={!editBtnActive}
+          style={activeKey === 'chart' ? {} : { display: 'none' }}
           type="primary"
           icon={<EditOutlined />}
           onClick={() => {
@@ -111,7 +117,6 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
       </Tooltip>
       <Tooltip title="List all history">
         <Button
-          style={{ display: 'none' }}
           onClick={() => {
             setHistoryVisible(true);
           }}
@@ -127,7 +132,11 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
 
   return (
     <Row className="result-panel">
-      <Tabs defaultActiveKey="1" className="tabs-result" tabBarExtraContent={resultOperations}>
+      <Tabs
+        onChange={(activeKey) => { setActiveKey(activeKey) }}
+        activeKey={activeKey}
+        className="tabs-result"
+        tabBarExtraContent={resultOperations}>
         <TabPane
           tab={
             <span>
@@ -135,7 +144,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
               {uiContext.figure}
             </span>
           }
-          key="1"
+          key="chart"
         >
           <Col
             id="graph-container"
@@ -155,8 +164,8 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
             ) : null}
             <PlotlyViewer
               responsiveKey={responsiveKey}
-              dataSources={dataSources}
-              dataSourceOptions={dataSourceOptions}
+              dataSources={{}}
+              dataSourceOptions={[]}
               plotlyId={charts[0]}
               key={charts[0]}
               mode={plotlyEditorMode}
@@ -170,7 +179,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
               {uiContext.results}
             </span>
           }
-          key="2"
+          key="results"
         >
           <Col id="result-container" className="result-container">
             <MarkdownViewer url={resultMarkdownLink} />
@@ -183,10 +192,21 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
               {uiContext.log}
             </span>
           }
-          key="3"
+          key="log"
         >
           <LogViewer height="calc(100vh - 200px)" url={logLink} />
         </TabPane>
+        {chartTask ? (<TabPane
+          tab={
+            <span>
+              <IssuesCloseOutlined />
+              {uiContext.metadata}
+            </span>
+          }
+          key="metadata"
+        >
+          <JsonViewer value={chartTask} />
+        </TabPane>) : null}
       </Tabs>
       <Drawer
         title="Chart Store"
@@ -216,12 +236,15 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         }}
         visible={historyVisible}
       >
-        {/* <HistoryTable
-          onClickItem={(chart, result) => {
-            onClickItem(chart, result);
+        <HistoryTable
+          forceUpdateKey={`${historyVisible}`}
+          pluginName={ chartTask?.plugin_name }
+          onClickItem={(chart_name, result, task) => {
+            onClickItem(chart_name, result, task);
             setHistoryVisible(false);
+            setChartTask(task)
           }}
-        ></HistoryTable> */}
+        ></HistoryTable>
       </Drawer>
     </Row>
   );

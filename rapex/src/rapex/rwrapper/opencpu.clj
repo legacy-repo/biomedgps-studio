@@ -38,7 +38,11 @@
 
 (defn format-params
   [^IPersistentMap params]
-  (->> (map (fn [key] [key (json/write-str (get params key))]) (keys params))
+  (->> (map (fn [key] (let [value (get params key)
+                            formated-value (cond (number? value) value
+                                                 (boolean? value) value
+                                                 :else (json/write-str value))]
+                        [key formated-value])) (keys params))
        (into (hash-map))))
 
 (defn check-params
@@ -67,11 +71,12 @@
            (java.io.File. filepath)))
 
 (defn- read-output
-  [resp pattern & {:keys [as-file? filepath] :or {as-file? true}}]
+  [resp pattern & {:keys [as-file? filepath] :or {as-file? false}}]
   (try
     (let [result (check-status resp)
           outs (filter (fn [item] (re-matches pattern item)) result)
           output-file (if (== 1 (count outs)) (first outs) nil)]
+      (log/info (format "Get output from %s" output-file))
       (if as-file?
         (let [filelink (str @ocpu-api-service "/" (clj-str/replace output-file #"^/" ""))
               filepath (or filepath (fs-lib/basename filelink))]
@@ -88,15 +93,15 @@
 
 (defn read-plot!
   [resp filepath]
-  (read-output resp #"/ocpu/tmp/.*/files/plotly.json" :filepath filepath))
+  (read-output resp #"/ocpu/tmp/.*/files/plotly.json" :filepath filepath :as-file? true))
 
 (defn read-pdf!
   [resp filepath]
-  (read-output resp #"/ocpu/tmp/.*/files/plotly.pdf" :filepath filepath))
+  (read-output resp #"/ocpu/tmp/.*/files/plotly.pdf" :filepath filepath :as-file? true))
 
 (defn read-png!
   [resp filepath]
-  (read-output resp #"/ocpu/tmp/.*/files/plotly.png" :filepath filepath))
+  (read-output resp #"/ocpu/tmp/.*/files/plotly.png" :filepath filepath :as-file? true))
 
 (comment
   (service-ok?)

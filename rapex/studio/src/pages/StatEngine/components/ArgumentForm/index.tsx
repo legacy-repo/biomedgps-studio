@@ -60,7 +60,11 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
             gene_searcher: {
               render: (text: any) => <a>{text}</a>,
               renderFormItem: (text: any, props: any) => (
-                <GeneSearcher placeholder="Enter gene symbol, entrez id or ensembl id" {...props?.fieldProps} style={{ width: '100%' }} />
+                <GeneSearcher placeholder="Enter gene symbol, entrez id or ensembl id"
+                  initialValue={props?.formItemProps?.initialValue}
+                  {...props?.fieldProps}
+                  mode={props?.fieldProps?.mode} 
+                  style={{ width: '100%' }} />
               ),
             }
           },

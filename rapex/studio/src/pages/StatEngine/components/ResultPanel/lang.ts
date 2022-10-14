@@ -9,6 +9,10 @@ export const langData: LangData = {
     id: 'stat-engine.result-panel.results',
     defaultMessage: '结果',
   },
+  metadata: {
+    id: 'stat-engine.result-panel.metadata',
+    defaultMessage: '元数据',
+  },
   log: {
     id: 'stat-engine.result-panel.log',
     defaultMessage: '日志',

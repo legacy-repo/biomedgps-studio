@@ -64,14 +64,6 @@ def write_csv(data, file="data.csv"):
               type=click.Path(exists=True, dir_okay=True),
               help="The directory which saved the database file.")
 def degdb(data_dir, output_dir):
-    # read_only=True
-    dbfile = os.path.join(output_dir, "rapex_degs.duckdb")
-
-    if os.path.exists(dbfile):
-        raise Exception("%s exists, please delete it and retry." % dbfile)
-
-    conn = duckdb.connect(dbfile)
-
     files = os.listdir(data_dir)
     pattern = r"[a-z]{3}_[0-9]+_(fpkm_wilcox|fpkm_ttest|tpm_wilcox|tpm_ttest|counts_limma).csv"
     expected_files = [os.path.join(data_dir, filename)
@@ -82,11 +74,35 @@ def degdb(data_dir, output_dir):
             "Cannot find any expected data files in %s." % data_dir)
 
     data = format_deg_table(expected_files)
+    
     datafile = os.path.join(output_dir, "rapex_degs.csv")
     write_csv(data, file=datafile)
 
+    # read_only=True
+    dbfile = os.path.join(output_dir, "rapex_degs.duckdb")
+
+    if os.path.exists(dbfile):
+        raise Exception("%s exists, please delete it and retry." % dbfile)
+    conn = duckdb.connect(dbfile)
     conn.execute(
-        "CREATE TABLE data AS SELECT * FROM read_csv_auto('%s');" % datafile)
+        "CREATE TABLE data AS SELECT * FROM read_csv_auto('%s', HEADER=TRUE);" % datafile)
+
+    conn.close()
+    
+    genes = map(lambda item: {
+        "ensembl_id": item.get("ensembl_id"),
+        "entrez_id": item.get("entrez_id"),
+        "gene_symbol": item.get("gene_symbol")
+    }, data)
+    genefile = os.path.join(output_dir, "rapex_genes.csv")
+    write_csv(list({v['ensembl_id']:v for v in genes}.values()), file=genefile)
+    
+    dbfile = os.path.join(output_dir, "rapex_genes.duckdb")
+    if os.path.exists(dbfile):
+        raise Exception("%s exists, please delete it and retry." % dbfile)
+    conn = duckdb.connect(dbfile)
+    conn.execute(
+        "CREATE TABLE data AS SELECT * FROM read_csv_auto('%s', HEADER=TRUE);" % genefile)
 
     conn.close()
 
@@ -117,8 +133,9 @@ def exprdb(data_dir, output_dir):
 
     for datafile in expected_files:
         id = datafile.split('.')[0]
+        datafile = os.path.join(data_dir, datafile)
         results = conn.execute(
-            "CREATE TABLE %s AS SELECT * FROM read_csv_auto('%s');" % (id, datafile))
+            "CREATE TABLE %s AS SELECT * FROM read_csv_auto('%s', HEADER=TRUE);" % (id, datafile))
 
     conn.close()
 
@@ -146,7 +163,7 @@ def pathwaydb(data_dir, output_dir):
             "%s doesn't exists, please prepare it and retry." % datafile)
 
     results = conn.execute(
-        "CREATE TABLE kegg_pathway AS SELECT * FROM read_csv_auto('%s');" % datafile)
+        "CREATE TABLE kegg_pathway AS SELECT * FROM read_csv_auto('%s', HEADER=TRUE);" % datafile)
 
     conn.close()
 

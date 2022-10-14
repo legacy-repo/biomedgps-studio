@@ -61,7 +61,7 @@
 
 (defn make-where-clause
   [table-name query-map & more]
-  (let [clauses (map (fn [key] [:is (keyword (str table-name "." (name key))) (get query-map key)])
+  (let [clauses (map (fn [key] [:= (keyword (str table-name "." (name key))) (get query-map key)])
                      (keys (filter-query-map query-map)))
         all (concat clauses more)]
     (if (> (count all) 1)

@@ -16,7 +16,7 @@ export function makeQueryStr(
     filter: Record<string, React.ReactText[] | null>,
 ): string {
     console.log('makeQueryStr filter: ', filter);
-    const query_str = `:select-distinct-on [[:ensembl_id] :gene_symbol :entrez_id :ensembl_id] :from [:${table}]`;
+    const query_str = `:select [:gene_symbol :entrez_id :ensembl_id] :from [:${table}]`;
     let sort_clause = '';
     let query_clause = '';
     if (sort) {
@@ -105,13 +105,14 @@ const GeneSearcher: React.FC<any & { onChange?: (value: string) => void } & { st
             showSearch
             value={value}
             placeholder={props?.placeholder}
-            defaultValue={props?.fieldProps?.initialValue}
+            defaultValue={props?.initialValue}
             style={props.style}
             defaultActiveFirstOption={false}
             showArrow={true}
             filterOption={false}
             onSearch={handleSearch}
             onChange={handleChange}
+            mode={props?.mode}
             notFoundContent={<Empty description="Searching ..." />}
         >
             {options}

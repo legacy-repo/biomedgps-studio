@@ -71,7 +71,7 @@
     {:get  (get-results "Get DEGs" "rapex_degs")}]
 
    ["/genes"
-    {:get (fetch-genes "Get genes" "rapex_degs")}]
+    {:get (fetch-genes "Get Genes" "rapex_genes")}]
 
    ["/pathways"
     {:get  (get-results "Get Pathways" "rapex_pathway")}]])

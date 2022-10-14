@@ -1,6 +1,25 @@
 import { Button, message, notification } from 'antd';
 import { useIntl } from 'umi';
 import defaultSettings from '../config/defaultSettings';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
+
+const getIdentity = async () => {
+  let visitorId = localStorage.getItem('rapex-visitor-id')
+
+  if (!visitorId) {
+    const fpPromise = FingerprintJS.load();
+    // Get the visitor identifier when you need it.
+    const fp = await fpPromise
+    const result = await fp.get()
+
+    visitorId = result.visitorId
+  }
+
+  return visitorId
+}
+
+const visitorId = await getIdentity();
+localStorage.setItem('rapex-visitor-id', visitorId);
 
 const { pwa } = defaultSettings;
 const isHttps = document.location.protocol === 'https:';

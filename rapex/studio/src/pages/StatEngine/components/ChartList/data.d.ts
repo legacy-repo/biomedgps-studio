@@ -51,6 +51,6 @@ export declare type ChartData = {
 export declare type ChartResult = {
   results: string[];
   charts: string[];
-  taskId: string;
+  task_id: string;
   log: string;
 };
