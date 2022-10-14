@@ -8,6 +8,7 @@
             [clojure.tools.cli :refer [parse-opts]]
             [clojure.tools.logging :as log]
             [rapex.tasks :as tasks]
+            [rapex.rwrapper.opencpu :as opencpu]
             [mount.core :as mount]))
 
 ;; log uncaught exceptions in threads
@@ -66,6 +67,7 @@
   ; Load configuration from system-props & env
   (mount/start #'rapex.config/env)
   (check-config env)
+  (opencpu/setup-ocpu-api-service (or (:ocpu-api-service env) "http://localhost:5656"))
   (cond
     ;; Run a command like `java -jar rapex.jar init-*`
     ;; Initializes the database using the script specified by the :init-script key opts
