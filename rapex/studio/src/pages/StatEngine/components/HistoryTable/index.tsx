@@ -89,6 +89,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
       dataIndex: 'name',
       hideInSearch: true,
       hideInForm: true,
+      hideInTable: true,
       tip: 'The task name is the unique key',
       render: (dom, entity) => {
         return (
