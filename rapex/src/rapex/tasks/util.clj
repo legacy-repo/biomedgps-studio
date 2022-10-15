@@ -1,8 +1,9 @@
 (ns rapex.tasks.util
-  (:require [ring.util.http-response :refer [created ok not-found bad-request internal-server-error]]
+  (:require [ring.util.http-response :refer [created not-found bad-request internal-server-error]]
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
-            [tservice-core.plugins.env :refer [get-workdir create-task! make-remote-link]]
+            [tservice-core.plugins.util :as util]
+            [tservice-core.plugins.env :refer [update-task! get-workdir create-task! make-remote-link]]
             [tservice-core.tasks.async :refer [publish-event!]]
             [local-fs.core :as fs-lib]))
 
@@ -53,3 +54,15 @@
         (log/error "Error: " e)
         (spit log-path (json/write-str {:status "Failed" :msg (.toString e)}))
         (get-error-response e)))))
+
+(defn update-process!
+  [^String task-id ^Integer percentage]
+  (let [record (cond
+                 (= percentage 100) {:status "Finished"
+                                     :percentage 100
+                                     :finished_time (util/time->int (util/now))}
+                 (= percentage -1) {:status "Failed"
+                                    :finished_time (util/time->int (util/now))}
+                 :else {:percentage percentage})
+        record (merge {:id task-id} record)]
+    (update-task! record)))

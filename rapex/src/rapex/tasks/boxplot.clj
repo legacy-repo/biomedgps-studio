@@ -1,13 +1,11 @@
 (ns rapex.tasks.boxplot
   (:require [clojure.data.json :as json]
-            [tservice-core.plugins.env :refer [update-task!]]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn]]
-            [rapex.db.query-duckdb :as duckdb]
-            [clojure.string :as clj-str]
-            [clojure.tools.logging :as log]))
+            [rapex.tasks.util :refer [draw-chart-fn update-process!]]
+            [rapex.db.query-duckdb :as duckdb] 
+            [clojure.string :as clj-str]))
 
 (defn boxplot-demo-data
   []
@@ -61,10 +59,10 @@
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path (json/write-str {:status "Success" :msg (ocpu/read-log! resp)}))
-      (update-task! {:id task-id :status "Finished"}))
+      (update-process! task-id 100))
     (catch Exception e
       (spit log-path (json/write-str {:status "Failed" :msg (.toString e)}))
-      (update-task! {:id task-id :status "Failed"}))))
+      (update-process! task-id -1))))
 
 (def events-init
   "Automatically called during startup; start event listener for boxplot events.

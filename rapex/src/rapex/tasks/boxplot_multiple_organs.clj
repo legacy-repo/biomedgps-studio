@@ -1,10 +1,9 @@
 (ns rapex.tasks.boxplot-multiple-organs
   (:require [clojure.data.json :as json]
-            [tservice-core.plugins.env :refer [update-task!]]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn]]
+            [rapex.tasks.util :refer [draw-chart-fn update-process!]]
             [rapex.db.query-duckdb :as duckdb]
             [clojure.string :as clj-str]))
 
@@ -62,10 +61,10 @@
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path out-log)
-      (update-task! {:id task-id :status "Finished"}))
+      (update-process! task-id 100))
     (catch Exception e
       (spit log-path (json/write-str {:status "Failed" :msg (.toString e)}))
-      (update-task! {:id task-id :status "Failed"}))))
+      (update-process! task-id -1))))
 
 (def events-init
   "Automatically called during startup; start event listener for boxplot events.
