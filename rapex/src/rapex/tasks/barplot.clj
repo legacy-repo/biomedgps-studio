@@ -1,13 +1,13 @@
-(ns rapex.tasks.boxplot
+(ns rapex.tasks.barplot
   (:require [clojure.data.json :as json]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
             [rapex.tasks.util :refer [draw-chart-fn update-process!]]
-            [rapex.db.query-duckdb :as duckdb] 
+            [rapex.db.query-duckdb :as duckdb]
             [clojure.string :as clj-str]))
 
-(defn boxplot-demo-data
+(defn barplot-demo-data
   []
   (let [d1 (map (fn [gene] {:gene_symbol gene :group "Control" :value (first (repeatedly #(rand-int 100)))}) (repeat 12 "TP53"))
         d2 (map (fn [gene] {:gene_symbol gene :group "Test" :value (first (repeatedly #(rand-int 100)))}) (repeat 12 "TP53"))]
@@ -42,20 +42,18 @@
         d (convert-db-results results)]
     d))
 
-(defn draw-boxplot!
+(defn draw-barplot!
   [{:keys [plot-json-path plot-path task-id log-path payload]}]
   (try
-    (let [method (or (:method payload) "t.test")
+    (let [position (or (:position payload) "dodge")
           datatype (or (:datatype payload) "fpkm")
           log_scale (:log_scale payload)
-          jitter_size (or (:jitter_size payload) 0.4)
           organ (or (:organ payload) "gut")
           dataset (or (:dataset payload) "000000")
           ensembl_id (:gene_symbol payload)
           d (prepare-data ensembl_id organ dataset datatype)
-          resp (ocpu/draw-plot! "boxplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
-                                                     :method method :jitter_size jitter_size
-                                                     :log_scale log_scale})]
+          resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
+                                                     :position position :log_scale log_scale})]
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path (json/write-str {:status "Success" :msg (ocpu/read-log! resp)}))
@@ -65,42 +63,41 @@
       (update-process! task-id -1))))
 
 (def events-init
-  "Automatically called during startup; start event listener for boxplot events.
+  "Automatically called during startup; start event listener for barplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "boxplot" draw-boxplot!))
+  (make-events-init "barplot" draw-barplot!))
 
 (def manifest
-  {:name "Box Plot"
+  {:name "BarPlot"
    :version "v0.1.0"
    :description ""
    :category "Chart"
    :home "https://github.com/rapex-lab/rapex/tree/master/rapex/src/rapex/tasks"
    :source "Rapex Team"
-   :short_name "boxplot"
+   :short_name "barplot"
    :icons [{:src ""
             :type "image/png"
             :sizes "144x144"}]
    :author "Jingcheng Yang"
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
-   :readme "https://rapex.prophetdb.org/README/boxplot.md"
-   :id "boxplot"})
+   :readme "https://rapex.prophetdb.org/README/barplot.md"
+   :id "barplot"})
 
 (s/def ::gene_symbol (s/or :string string? :list (s/coll-of string?)))
 (s/def ::organ #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn"})
 (s/def ::dataset #{"000000"})
 (s/def ::datatype #{"fpkm" "tpm" "counts"})
-(s/def ::method #{"t.test" "wilcox.test" "anova" "kruskal.test"})
+(s/def ::position #{"dodge" "stack" "fill"})
 (s/def ::log_scale boolean?)
-(s/def ::jitter_size number?)
 
 (def schema (s/keys :req-un [::gene_symbol ::organ ::dataset ::datatype]
-                    :opt-un [::method ::log_scale ::jitter_size]))
+                    :opt-un [::position ::log_scale]))
 
-(defn post-boxplot!
+(defn post-barplot!
   []
-  {:summary    "Draw a boxplot."
+  {:summary    "Draw a barplot."
    :parameters {:body schema}
    :responses  {201 {:body {:task_id string?}}
                 404 {:body {:msg string?
@@ -111,10 +108,10 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "boxplot" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn "barplot" payload :owner (or (get headers "x-auth-users") "default")))})
 
 (def ui-schema
-  {:readme "https://rapex.prophetdb.org/README/boxplot.md"
+  {:readme "https://rapex.prophetdb.org/README/barplot.md"
    :schema
    {:fields  [{:key "gene_symbol"
                :dataIndex "gene_symbol"
@@ -155,35 +152,27 @@
                :formItemProps {:initialValue "fpkm"
                                :rules [{:required true
                                         :message "datatype filed is required."}]}}
-              {:key "method"
-               :dataIndex "method"
+              {:key "position"
+               :dataIndex "position"
                :valueType "select"
-               :title "Method"
-               :tooltip "The statistical test method to be used. Allowed values are t.test (default) wilcox.test anova kruskal.test"
-               :valueEnum {:t.test {:text "T Test"} :wilcox.test {:text "Wilcox Test"}
-                           :anova {:text "Anova"} :kruskal.test {:text "Kruskal Test"}}
-               :formItemProps {:initialValue "t.test"
+               :title "Position"
+               :tooltip "Allowed values are dodge (default), stack, fill."
+               :valueEnum {:dodge {:text "Dodge"} :stack {:text "Stack"}
+                           :fill {:text "Fill"}}
+               :formItemProps {:initialValue "dodge"
                                :rules [{:required true
-                                        :message "method filed is required."}]}}
+                                        :message "position filed is required."}]}}
               {:key "log_scale"
                :dataIndex "log_scale"
                :valueType "switch"
                :title "Log Scale"
                :tooltip
                "Logical value. If TRUE input data will be transformation using log2 function."
-               :formItemProps {:initialValue true}}
-              {:key "jitter_size"
-               :dataIndex "jitter_size"
-               :valueType "digit"
-               :title "Jitter Size"
-               :tooltip "Jitter size greater than 0 and less than 1."
-               :fieldProps {:step 0.1}
-               :formItemProps {:initialValue 0.4}}]
+               :formItemProps {:initialValue true}}]
     :dataKey {:data "Data"}
     :examples [{:title "Example 1"
                 :key "example-1"
                 :datafile ""
-                :arguments {:method "t.test"
+                :arguments {:position "dodge"
                             :log_scale false
-                            :jitter_size 0.4
                             :datatype "FPKM"}}]}})

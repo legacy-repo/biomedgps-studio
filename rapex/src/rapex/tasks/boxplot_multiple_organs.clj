@@ -165,7 +165,7 @@
                            :anova {:text "Anova"} :kruskal.test {:text "Kruskal Test"}}
                :formItemProps {:initialValue "t.test"
                                :rules [{:required true
-                                        :message "gene_symbol filed is required."}]}}
+                                        :message "method filed is required."}]}}
               {:key "log_scale"
                :dataIndex "log_scale"
                :valueType "switch"

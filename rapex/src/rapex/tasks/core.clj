@@ -3,14 +3,20 @@
             [ring.util.http-response :refer [ok not-found]]
             ;; Chats
             [rapex.tasks.boxplot :as boxplot]
-            [rapex.tasks.boxplot-multiple-organs :as boxplot-multiple-organs]))
+            [rapex.tasks.boxplot-multiple-organs :as boxplot-multiple-organs]
+            [rapex.tasks.barplot :as barplot]
+            [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs]))
 
 (def ^:private chart-manifests (atom [boxplot/manifest
-                                      boxplot-multiple-organs/manifest]))
+                                      boxplot-multiple-organs/manifest
+                                      barplot/manifest
+                                      barplot-multiple-organs/manifest]))
 
 
 (def ^:private chart-ui-schemas (atom {:boxplot boxplot/ui-schema
-                                       :boxplot-organs boxplot-multiple-organs/ui-schema}))
+                                       :boxplot-organs boxplot-multiple-organs/ui-schema
+                                       :barplot barplot/ui-schema
+                                       :barplot-organs barplot-multiple-organs/ui-schema}))
 
 (defn list-charts
   []
@@ -64,4 +70,10 @@
     {:post (boxplot/post-boxplot!)}]
 
    ["/charts/boxplot-organs"
-    {:post (boxplot-multiple-organs/post-boxplot!)}]])
+    {:post (boxplot-multiple-organs/post-boxplot!)}]
+
+   ["/charts/barplot"
+    {:post (barplot/post-barplot!)}]
+
+   ["/charts/barplot-organs"
+    {:post (barplot-multiple-organs/post-barplot!)}]])

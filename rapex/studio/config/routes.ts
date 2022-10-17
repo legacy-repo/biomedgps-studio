@@ -35,18 +35,46 @@
         component: './DataSet',
       },
       {
-        path: '/custom-analysis/gene-expression-profile/boxplot',
-        name: 'gene-exp-profile-boxplot',
-        icon: 'smile',
-        component: './StatEngine',
-        chart: 'boxplot'
+        path: '/custom-analysis/gene-expression-profile',
+        name: 'gene-exp-profile',
+        icon: 'table',
+        routes: [
+          {
+            path: '/custom-analysis/gene-expression-profile/boxplot',
+            name: 'boxplot',
+            icon: 'smile',
+            component: './StatEngine',
+            chart: 'boxplot'
+          },
+          {
+            path: '/custom-analysis/gene-expression-profile/barplot',
+            name: 'barplot',
+            icon: 'smile',
+            component: './StatEngine',
+            chart: 'barplot'
+          },
+        ]
       },
       {
         path: '/custom-analysis/across-organs',
         name: 'across-organs',
-        icon: 'smile',
-        component: './StatEngine',
-        chart: 'boxplot-organs'
+        icon: 'table',
+        routes: [
+          {
+            path: '/custom-analysis/across-organs/boxplot-organs',
+            name: 'boxplot',
+            icon: 'smile',
+            component: './StatEngine',
+            chart: 'boxplot-organs'
+          },
+          {
+            path: '/custom-analysis/across-organs/barplot-organs',
+            name: 'barplot',
+            icon: 'smile',
+            component: './StatEngine',
+            chart: 'barplot-organs'
+          },
+        ]
       },
       {
         path: '/custom-analysis/across-species',
@@ -98,22 +126,5 @@
   },
   {
     component: './404',
-  },
-  // {
-  //   path: '/admin',
-  //   name: 'admin',
-  //   icon: 'crown',
-  //   access: 'canAdmin',
-  //   routes: [
-  //     {
-  //       path: '/admin/sub-page',
-  //       name: 'sub-page',
-  //       icon: 'smile',
-  //       component: './Welcome',
-  //     },
-  //     {
-  //       component: './404',
-  //     },
-  //   ],
-  // },
+  }
 ];
