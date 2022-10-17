@@ -1,4 +1,4 @@
-(ns rapex.routes.duckdb-specs
+(ns rapex.routes.database-specs
   (:require [clojure.spec.alpha :as s]
             [spec-tools.core :as st]))
 
@@ -27,12 +27,12 @@
     :swagger/default     10
     :reason              "The page_size parameter can't be none."}))
 
-(s/def ::DuckDBQueryParams
+(s/def ::DBQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
            :opt-un [::page ::page_size])))
 
-(s/def ::DuckDBDataQueryParams
+(s/def ::DBDataQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
            :opt-un [])))
@@ -72,17 +72,17 @@
     :swagger/default     ""
     :reason              "The msg parameter can't be none."}))
 
-(s/def ::DuckDBItems
+(s/def ::DBItems
   (st/spec
    (s/keys :req-un [::page ::page_size ::data ::total ::data]
            :opt-un [])))
 
-(s/def ::DuckDBDataItems
+(s/def ::DBDataItems
   (st/spec
    (s/keys :req-un [::data]
            :opt-un [])))
 
-(def duckdb-error-body
+(def database-error-body
   "A spec for the body."
   (s/keys :req-un [::context ::msg]
           :opt-un []))

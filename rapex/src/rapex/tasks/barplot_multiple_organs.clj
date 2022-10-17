@@ -4,7 +4,7 @@
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
             [rapex.tasks.util :refer [draw-chart-fn update-process!]]
-            [rapex.db.query-duckdb :as duckdb]
+            [rapex.db.query-data :as qd]
             [clojure.string :as clj-str]))
 
 (defn- convert-record-map
@@ -33,7 +33,7 @@
                      :where [:= :ensembl_id ensembl-id]}
           ;; "gut_000000_fpkm" -> ["gut" "000000" "fpkm"]
           organ (first (clj-str/split table #"_"))
-          results (duckdb/get-results (duckdb/get-db-path "rapex_expr") query-map)]
+          results (qd/get-results (qd/get-db-path "rapex_expr") query-map)]
       (convert-db-results organ results))
     ;; TODO: Need to record the message into a log file.
     (catch Exception e

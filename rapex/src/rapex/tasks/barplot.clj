@@ -4,7 +4,7 @@
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
             [rapex.tasks.util :refer [draw-chart-fn update-process!]]
-            [rapex.db.query-duckdb :as duckdb]
+            [rapex.db.query-data :as qd]
             [clojure.string :as clj-str]))
 
 (defn barplot-demo-data
@@ -37,7 +37,7 @@
         query-map (if (coll? ensembl_id)
                     (merge query-map {:where [:in :ensembl_id ensembl_id]})
                     (merge query-map {:where [:= :ensembl_id ensembl_id]}))
-        results (duckdb/get-results (duckdb/get-db-path "rapex_expr") query-map)
+        results (qd/get-results (qd/get-db-path "rapex_expr") query-map)
           ;; [{:ensembl_id "xxx" :Gut_PM_2_A18 1212 ...}]
         d (convert-db-results results)]
     d))

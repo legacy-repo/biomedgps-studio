@@ -17,7 +17,8 @@
                  ;; Database
                  [com.github.seancorfield/next.jdbc "1.3.828"]
                  [com.github.seancorfield/honeysql "2.3.928"]
-                 [org.duckdb/duckdb_jdbc "0.5.0"]
+                 [org.duckdb/duckdb_jdbc "0.5.1"]
+                 [org.xerial/sqlite-jdbc "3.34.0"]
                  [org.postgresql/postgresql "42.2.8"]
                  [luminus-migrations "0.6.6" :exclusions [org.clojure/clojure]]
                  [cheshire "5.9.0" :exclusions [org.clojure/clojure]]

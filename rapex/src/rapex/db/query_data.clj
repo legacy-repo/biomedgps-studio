@@ -1,9 +1,10 @@
-(ns rapex.db.query-duckdb
+(ns rapex.db.query-data
   (:require [next.jdbc :as jdbc]
             [honey.sql :as sql]
             [rapex.config :refer [env]]
             [clojure.tools.logging :as log]
-            [local-fs.core :as fs-lib])
+            [local-fs.core :as fs-lib]
+            [clojure.string :as clj-str])
   (:import [org.duckdb DuckDBDriver]
            [java.sql DriverManager SQLException]
            [java.lang IllegalStateException IllegalArgumentException]
@@ -15,18 +16,25 @@
   (ex-info msg
            (merge {:code code} info-map)))
 
-(def ro-prop (doto (new Properties)
-               (.setProperty "duckdb.read_only" "true")))
-
 (def datadir (atom (:datadir env)))
+(def dbtype (atom (:dbtype env)))
 
 (defn setup-datadir
   [path]
   (reset! datadir path))
 
+(defn setup-default-dbtype
+  [default-dbtype]
+  (reset! dbtype default-dbtype))
+
+(def ro-prop (doto (new Properties)
+               (.setProperty "duckdb.read_only" "true")))
+
 (defn get-connection
   [^String database]
-  (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop))
+  (if (clj-str/ends-with? database "duckdb")
+    (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop)
+    (DriverManager/getConnection (format "jdbc:sqlite:%s" database))))
 
 (defn get-results
   "Get records based on user's query string.
@@ -81,7 +89,7 @@
                               :error (.getMessage e)})))))
 
 (comment
-  (def db "/Users/codespace/Documents/Code/Rapex/rapex/db/rapex_expr.duckdb")
+  (def db "./examples/db/rapex_expr.sqlite")
   (def sqlmap {:select [:*]
                :from   [:gut_000000_counts]
                :limit 10})
@@ -95,8 +103,8 @@
   "
   ^PersistentArrayMap [^String datadir]
   (let [allfiles (map #(.getPath %) (fs-lib/list-dir datadir))
-        alldbs (filter #(re-matches #".*.duckdb$" %) allfiles)
-        db-map-lst (map (fn [dbpath] {(keyword (fs-lib/base-name dbpath true)) dbpath}) alldbs)]
+        alldbs (filter #(re-matches #".*.(duckdb|sqlite)$" %) allfiles)
+        db-map-lst (map (fn [dbpath] {(keyword (fs-lib/base-name dbpath false)) dbpath}) alldbs)]
     (into {} db-map-lst)))
 
 (def memoized-list-db (memoize list-db))
@@ -104,10 +112,10 @@
 (defn get-db-path
   "Get the absolute path of a database file.
   "
-  ^String [^String dbname]
+  ^String [^String dbname & {:keys [dbtype] :or {dbtype "duckdb"}}]
   (let [datadir @datadir
         dbs (memoized-list-db datadir)
-        db-path ((keyword dbname) dbs)]
+        db-path ((keyword (format "%s.%s" dbname dbtype)) dbs)]
     (if db-path
       db-path
       (throw (custom-ex-info (format "Cannot find the database %s." dbname)
@@ -116,5 +124,6 @@
                               :available-databases dbs})))))
 
 (comment
-  (list-db "/Users/codespace/Documents/Code/Rapex/rapex/db")
-  (get-db-path "rapex_expr"))
+  (list-db "./examples/db")
+  (setup-datadir "./examples/db")
+(get-db-path "rapex_expr" :dbtype "sqlite"))

@@ -1,8 +1,8 @@
-(ns rapex.routes.duckdb
+(ns rapex.routes.database
   (:require [ring.util.http-response :refer [ok not-found bad-request internal-server-error]]
-            [rapex.db.query-duckdb :as qd]
+            [rapex.db.query-data :as qd]
             [clojure.tools.logging :as log]
-            [rapex.routes.duckdb-specs :as ds]))
+            [rapex.routes.database-specs :as ds]))
 
 (defn get-error-response
   [e]
@@ -18,11 +18,11 @@
 (defn get-results
   [title dbname]
   {:summary    title
-   :parameters {:query ::ds/DuckDBQueryParams}
-   :responses  {200 {:body ::ds/DuckDBItems}
-                404 {:body ds/duckdb-error-body}
-                400 {:body ds/duckdb-error-body}
-                500 {:body ds/duckdb-error-body}}
+   :parameters {:query ::ds/DBQueryParams}
+   :responses  {200 {:body ::ds/DBItems}
+                404 {:body ds/database-error-body}
+                400 {:body ds/database-error-body}
+                500 {:body ds/database-error-body}}
    :handler    (fn [{{{:keys [page page_size query_str]} :query} :parameters
                      {:as headers} :headers}]
                  (try
@@ -43,11 +43,11 @@
 (defn fetch-genes
   [title dbname]
   {:summary    title
-   :parameters {:query ::ds/DuckDBDataQueryParams}
-   :responses  {200 {:body ::ds/DuckDBDataItems}
-                404 {:body ds/duckdb-error-body}
-                400 {:body ds/duckdb-error-body}
-                500 {:body ds/duckdb-error-body}}
+   :parameters {:query ::ds/DBDataQueryParams}
+   :responses  {200 {:body ::ds/DBDataItems}
+                404 {:body ds/database-error-body}
+                400 {:body ds/database-error-body}
+                500 {:body ds/database-error-body}}
    :handler    (fn [{{{:keys [query_str]} :query} :parameters
                      {:as headers} :headers}]
                  (try

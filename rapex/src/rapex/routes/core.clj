@@ -20,7 +20,7 @@
             [rapex.middleware.exception :as exception]
             [rapex.middleware.formats :as formats]
             [rapex.routes.task :as task-route]
-            [rapex.routes.duckdb :as duckdb-route]
+            [rapex.routes.database :as db-route]
             [rapex.tasks.core :as tasks-route]
             [remote-fs.route :as fs-route]
             [rapex.version :as v]
@@ -147,5 +147,5 @@
    ["/v1" {:no-doc false}
     task-route/routes
     fs-route/routes
-    duckdb-route/routes
+    db-route/routes
     tasks-route/routes]])
