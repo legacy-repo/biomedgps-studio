@@ -173,7 +173,7 @@ def degdb(data_dir, output_dir, db):
     write_csv(list({v['ensembl_id']:v for v in genes}.values()), file=genefile)
     
     dbfile = os.path.join(output_dir, "rapex_genes.%s" % db)
-    func_map.get(db)(datafile, dbfile, "data")
+    func_map.get(db)(genefile, dbfile, "data")
 
 
 @database.command(help="Parse data files and make a expr database.")

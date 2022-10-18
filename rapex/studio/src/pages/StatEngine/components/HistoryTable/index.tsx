@@ -108,6 +108,18 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
       title: <FormattedMessage id="stat-engine.history-table.pluginName" defaultMessage="Chart Name" />,
       dataIndex: 'plugin_name',
       valueType: 'text',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="stat-engine.history-table.pluginVersion" defaultMessage="Version" />,

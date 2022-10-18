@@ -13,7 +13,7 @@ export function fetchMarkdown(url: string): Promise<string> {
   } else {
     try {
       return axios(url).then((response) => {
-        if (response.statusText !== 'OK') {
+        if (response.status !== 200) {
           return 'No Content.';
         }
         return response.data;

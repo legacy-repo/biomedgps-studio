@@ -15,7 +15,7 @@
                  [expound "0.8.9"]
 
                  ;; Database
-                 [com.github.seancorfield/next.jdbc "1.3.828"]
+                 [com.github.seancorfield/next.jdbc "1.3.834"]
                  [com.github.seancorfield/honeysql "2.3.928"]
                  [org.duckdb/duckdb_jdbc "0.5.1"]
                  [org.xerial/sqlite-jdbc "3.34.0"]

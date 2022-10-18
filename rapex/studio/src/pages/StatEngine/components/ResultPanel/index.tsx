@@ -4,7 +4,7 @@ import {
   FullscreenExitOutlined,
   HistoryOutlined,
   IssuesCloseOutlined,
-  SnippetsOutlined,
+  // SnippetsOutlined,
 } from '@ant-design/icons';
 import { Button, Col, Drawer, Row, Space, Tabs, Tooltip } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ import { useIntl } from 'umi';
 
 import ChartList from '../ChartList';
 import LogViewer from '../LogViewer/indexLog';
-import MarkdownViewer from '../MarkdownViewer';
+// import MarkdownViewer from '../MarkdownViewer';
 import PlotlyViewer from '../PlotlyViewer/indexClass';
 import HistoryTable from '../HistoryTable';
 import { JsonViewer } from '@textea/json-viewer'
@@ -32,6 +32,7 @@ export type ResultPanelProps = {
   logLink: string;
   results: string[];
   charts: string[];
+  currentChart: string | null;
   responsiveKey: number | string;
 };
 
@@ -45,7 +46,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
     uiContext[key] = intl.formatMessage(langData[key]);
   });
 
-  const { onClickItem, logLink, responsiveKey, taskId, results, charts } = props;
+  const { onClickItem, logLink, responsiveKey, currentChart, taskId, results, charts } = props;
 
   const [chartTask, setChartTask] = useState<StatEngineAPI.TaskListItem | undefined>(undefined);
   const [plotlyEditorMode, setPlotlyEditorMode] = useState<string>('Plotly');
@@ -54,7 +55,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
   const [activeKey, setActiveKey] = useState<string>("chart");
 
-  const [resultMarkdownLink, setResultMarkdownLink] = useState<string | null>(null);
+  // const [resultMarkdownLink, setResultMarkdownLink] = useState<string | null>(null);
   // const [dataSources, setDataSources] = useState<object>({});
   // const [dataSourceOptions, setDataSourceOptions] = useState<object[]>([]);
 
@@ -75,11 +76,11 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   //   }
   // }, [results, charts]);
 
-  useEffect(() => {
-    if (results.length > 0) {
-      setResultMarkdownLink(results[0]);
-    }
-  }, [results]);
+  // useEffect(() => {
+  //   if (results.length > 0) {
+  //     setResultMarkdownLink(results[0]);
+  //   }
+  // }, [results]);
 
   useEffect(() => {
     if (logLink.length > 0) {
@@ -238,7 +239,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
       >
         <HistoryTable
           forceUpdateKey={`${historyVisible}`}
-          pluginName={ chartTask?.plugin_name }
+          pluginName={ currentChart || undefined }
           onClickItem={(chart_name, result, task) => {
             onClickItem(chart_name, result, task);
             setHistoryVisible(false);

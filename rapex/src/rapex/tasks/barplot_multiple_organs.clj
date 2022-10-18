@@ -148,8 +148,7 @@
                :valueType "select"
                :title "Data Type"
                :tooltip "Which datatype do you want to query?"
-               :valueEnum {:fpkm {:text "FPKM"} :counts {:text "Counts"}
-                           :tpm {:text "TPM"}}
+               :valueEnum {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}
                :formItemProps {:initialValue "fpkm"
                                :rules [{:required true
                                         :message "datatype filed is required."}]}}

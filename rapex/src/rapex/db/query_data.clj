@@ -4,7 +4,8 @@
             [rapex.config :refer [env]]
             [clojure.tools.logging :as log]
             [local-fs.core :as fs-lib]
-            [clojure.string :as clj-str])
+            [clojure.string :as clj-str]
+            [next.jdbc.result-set :as rs])
   (:import [org.duckdb DuckDBDriver]
            [java.sql DriverManager SQLException]
            [java.lang IllegalStateException IllegalArgumentException]
@@ -16,16 +17,16 @@
   (ex-info msg
            (merge {:code code} info-map)))
 
-(def datadir (atom (:datadir env)))
-(def dbtype (atom (:dbtype env)))
+(def default-datadir (atom (:datadir env)))
+(def default-dbtype (atom (:dbtype env)))
 
 (defn setup-datadir
   [path]
-  (reset! datadir path))
+  (reset! default-datadir path))
 
 (defn setup-default-dbtype
-  [default-dbtype]
-  (reset! dbtype default-dbtype))
+  [dbtype]
+  (reset! default-dbtype dbtype))
 
 (def ro-prop (doto (new Properties)
                (.setProperty "duckdb.read_only" "true")))
@@ -34,17 +35,20 @@
   [^String database]
   (if (clj-str/ends-with? database "duckdb")
     (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop)
-    (DriverManager/getConnection (format "jdbc:sqlite:%s" database))))
+    (jdbc/get-connection (format "jdbc:sqlite:%s" database))))
 
 (defn get-results
   "Get records based on user's query string.
+   
+   Known Issues:
+     1. The duckdb will returns all data when we use order-by clause with limit and offset.
   "
   [^String dbpath ^PersistentArrayMap sqlmap]
   (try
     (let [sqlstr (sql/format sqlmap)]
       (log/info "Query String:" sqlstr)
       (with-open [con (get-connection dbpath)]
-        (jdbc/execute! con sqlstr)))
+        (jdbc/execute! con sqlstr {:builder-fn rs/as-unqualified-maps})))
     (catch Exception e
       (condp (fn [cs t] (some #(instance? % t) cs)) e
 
@@ -98,8 +102,8 @@
 (defn list-db
   "List all database in a directory.
    
-   {:rapex_degs \"/Users/codespace/Documents/Code/Rapex/rapex/db/rapex_degs.duckdb\"
-    :rapex_expr \"/Users/codespace/Documents/Code/Rapex/rapex/db/rapex_expr.duckdb\"}
+   {:rapex_degs \"./examples/db/rapex_degs.duckdb\"
+    :rapex_expr \"./examples/db/rapex_expr.duckdb\"}
   "
   ^PersistentArrayMap [^String datadir]
   (let [allfiles (map #(.getPath %) (fs-lib/list-dir datadir))
@@ -112,8 +116,11 @@
 (defn get-db-path
   "Get the absolute path of a database file.
   "
-  ^String [^String dbname & {:keys [dbtype] :or {dbtype "duckdb"}}]
-  (let [datadir @datadir
+  ^String [^String dbname & {:keys [dbtype datadir]
+                             :or {dbtype "duckdb"
+                                  datadir "./examples/db/"}}]
+  (let [datadir (or @default-datadir datadir)
+        dbtype (or @default-dbtype dbtype)
         dbs (memoized-list-db datadir)
         db-path ((keyword (format "%s.%s" dbname dbtype)) dbs)]
     (if db-path
@@ -126,4 +133,4 @@
 (comment
   (list-db "./examples/db")
   (setup-datadir "./examples/db")
-(get-db-path "rapex_expr" :dbtype "sqlite"))
+  (get-db-path "rapex_expr" :dbtype "sqlite"))
