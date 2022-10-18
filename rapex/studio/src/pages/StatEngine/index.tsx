@@ -13,9 +13,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import './index.less';
 
 // Custom Component
-import ArgumentForm from './components/ArgumentForm';
-import MarkdownViewer from './components/MarkdownViewer';
-import Resizer from './components/Resizer';
+import ArgumentForm from '@/components/ArgumentForm';
+import MarkdownViewer from '@/components/MarkdownViewer';
+import Resizer from '@/components/Resizer';
 import ResultPanel from './components/ResultPanel';
 
 // Custom DataType

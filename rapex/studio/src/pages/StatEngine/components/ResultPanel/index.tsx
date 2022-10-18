@@ -6,19 +6,20 @@ import {
   IssuesCloseOutlined,
   // SnippetsOutlined,
 } from '@ant-design/icons';
-import { Button, Col, Drawer, Row, Space, Tabs, Tooltip } from 'antd';
+import { Button, Col, Drawer, Row, Space, Tabs, Tooltip, message } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
 import { useIntl } from 'umi';
 
 import ChartList from '../ChartList';
-import LogViewer from '../LogViewer/indexLog';
+import LogViewer from '@/components/LogViewer/indexLog';
 // import MarkdownViewer from '../MarkdownViewer';
-import PlotlyViewer from '../PlotlyViewer/indexClass';
+import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
 import HistoryTable from '../HistoryTable';
 import { JsonViewer } from '@textea/json-viewer'
 
-// import { getFile } from '../../services/StatEngine';
+import { getFile } from '../../services/StatEngine';
 import type { ChartResult } from '../ChartList/data';
+import type { PlotlyChart } from '@/components/PlotlyViewer/data';
 import type { StatEngineAPI } from '../../services/typings'
 
 import './index.less';
@@ -55,32 +56,22 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
   const [activeKey, setActiveKey] = useState<string>("chart");
 
-  // const [resultMarkdownLink, setResultMarkdownLink] = useState<string | null>(null);
-  // const [dataSources, setDataSources] = useState<object>({});
-  // const [dataSourceOptions, setDataSourceOptions] = useState<object[]>([]);
+  const [plotlyData, setPlotlyData] = useState<PlotlyChart | null>(null);
 
-  // useEffect(() => {
-  //   if (charts.length > 0) {
-  //     console.log('Chart Task: ', taskId);
-  //     getFile({ filelink: charts[0] }).then((response: any) => {
-  //       setDataSources(response);
-  //       setDataSourceOptions(
-  //         Object.keys(response).map((name) => ({
-  //           value: name,
-  //           label: name,
-  //         })),
-  //       );
-  //     }).catch(error => {
-  //       message.warn("Cannot fetch the result, please retry later.")
-  //     });
-  //   }
-  // }, [results, charts]);
-
-  // useEffect(() => {
-  //   if (results.length > 0) {
-  //     setResultMarkdownLink(results[0]);
-  //   }
-  // }, [results]);
+  useEffect(() => {
+    if (charts.length > 0) {
+      console.log('Chart Task: ', taskId);
+      getFile({ filelink: charts[0] }).then((response: any) => {
+        setPlotlyData({
+          data: response.data,
+          layout: response.layout,
+          frames: response.frames || undefined
+        });
+      }).catch(error => {
+        message.warn("Cannot fetch the result, please retry later.")
+      });
+    }
+  }, [results, charts]);
 
   useEffect(() => {
     if (logLink.length > 0) {
@@ -165,27 +156,12 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
             ) : null}
             <PlotlyViewer
               responsiveKey={responsiveKey}
-              dataSources={{}}
-              dataSourceOptions={[]}
-              plotlyId={charts[0]}
+              plotlyData={plotlyData}
               key={charts[0]}
               mode={plotlyEditorMode}
             ></PlotlyViewer>
           </Col>
         </TabPane>
-        {/* <TabPane
-          tab={
-            <span>
-              <SnippetsOutlined />
-              {uiContext.results}
-            </span>
-          }
-          key="results"
-        >
-          <Col id="result-container" className="result-container">
-            <MarkdownViewer url={resultMarkdownLink} />
-          </Col>
-        </TabPane> */}
         <TabPane
           tab={
             <span>
@@ -239,8 +215,8 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
       >
         <HistoryTable
           forceUpdateKey={`${historyVisible}`}
-          pluginName={ currentChart || undefined }
-          onClickItem={(chart_name, result, task) => {
+          pluginName={currentChart || undefined}
+          onClickItem={(chart_name: any, result: any, task: any) => {
             onClickItem(chart_name, result, task);
             setHistoryVisible(false);
             setChartTask(task)

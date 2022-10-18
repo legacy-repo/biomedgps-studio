@@ -1,9 +1,7 @@
-import { getFile } from '../../services/StatEngine';
 import * as plotly from 'plotly.js/dist/plotly';
-import React, { memo, useEffect, useState } from 'react';
+import React, { memo, useState } from 'react';
 import PlotlyEditor from 'react-chart-editor';
 import Plot from 'react-plotly.js';
-import { message } from 'antd';
 import { getLocale } from 'umi';
 
 import * as localeDictionary from 'plotly.js/lib/locales/zh-cn';
@@ -13,19 +11,14 @@ import 'react-chart-editor/lib/react-chart-editor.css';
 import './index.less';
 
 export type PlotlyViewerProps = {
-  dataSources?: object;
-  dataSourceOptions?: object[];
+  plotlyData: PlotlyChartType | null,
   handleUpdate?: (state: PlotlyEditorState) => void;
   mode?: string;
-  plotlyId: string;
 };
 
 const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
-  const { dataSources, handleUpdate, mode, plotlyId } = props;
+  const { plotlyData, handleUpdate, mode } = props;
 
-  const [data, setData] = useState<Data>([]);
-  const [layout, setLayout] = useState<Layout>({});
-  const [frames, setFrames] = useState<Frames>([]);
   const [ref, setRef] = useState<PlotlyEditor>();
 
   const onUpdate = (newData: Data, newLayout: Layout, newFrames: Frames) => {
@@ -39,32 +32,6 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       handleUpdate({ data: newData, layout: newLayout, frames: newFrames });
     }
   };
-
-  useEffect(() => {
-    if (plotlyId) {
-      // Need to set autorange to true
-      getFile({ filelink: plotlyId }).then((response: PlotlyChartType) => {
-        setData(response.data);
-        setLayout({
-          ...response.layout,
-          // Reset the margin
-          margin: {
-            "t": 50,
-            "r": 0,
-            "b": 0,
-            "l": 0
-          }
-        });
-        setFrames(response.frames || []);
-      }).catch(error => {
-        message.warn("Cannot fetch the plotly result, please retry later.")
-      });
-    }
-  }, [plotlyId]);
-
-  // const handleResize = () => {
-  //   if (ref.state.graphDiv instanceof HTMLElement) plotly.Plots.resize(ref.state.graphDiv);
-  // };
 
   const config = {
     toImageButtonOptions: {
@@ -85,7 +52,12 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
     locale: getLocale(),
   };
 
-  console.log('PlotlyViewer updated: ', mode, ref, dataSources);
+  console.log('PlotlyViewer updated: ', props);
+
+  const { data, layout, frames } = plotlyData || {
+    data: [],
+    layout: {}
+  };
 
   // mode: ["Plotly", "PlotlyEditor"]
   return mode === 'Plotly' ? (
@@ -98,16 +70,7 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       data={data}
       layout={layout}
       config={config}
-      onInitialized={(figure) => {
-        setData(figure.data)
-        setLayout(figure.layout)
-        setFrames(figure.frames || [])
-      }}
-      onUpdate={(figure) => {
-        setData(figure.data)
-        setLayout(figure.layout)
-        setFrames(figure.frames || [])
-      }}
+      frames={frames}
     />
   ) : (
     <div className="plotly-editor">

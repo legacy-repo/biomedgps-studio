@@ -6,7 +6,7 @@ import GeneSearcher from '@/components/GeneSearcher';
 import FormItem from 'antd/lib/form/FormItem';
 import React, { memo, useContext, useState } from 'react';
 import { useIntl } from 'umi';
-import type { ChartResult } from '../ChartList/data';
+import type { ChartResult } from './data';
 
 import './index.less';
 

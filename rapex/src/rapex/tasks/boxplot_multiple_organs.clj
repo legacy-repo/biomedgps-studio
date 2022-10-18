@@ -70,7 +70,7 @@
   "Automatically called during startup; start event listener for boxplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "boxplot_organs" draw-boxplot!))
+  (make-events-init "boxplot-organs" draw-boxplot!))
 
 (def manifest
   {:name "Boxplot for multiple organs"
@@ -113,7 +113,7 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "boxplot_organs" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn "boxplot-organs" payload :owner (or (get headers "x-auth-users") "default")))})
 
 (def ui-schema
   {:readme "https://rapex.prophetdb.org/README/boxplot.md"
@@ -178,11 +178,9 @@
                :title "Jitter Size"
                :tooltip "Jitter size greater than 0 and less than 1."
                :fieldProps {:step 0.1}
-               :formItemProps {:initialValue 0.4}}]
-    :dataKey {:data "Data"}
+               :formItemProps {:initialValue 0.4}}] 
     :examples [{:title "Example 1"
                 :key "example-1"
-                :datafile ""
                 :arguments {:method "t.test"
                             :log_scale false
                             :jitter_size 0.4

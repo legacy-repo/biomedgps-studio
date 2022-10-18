@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { getFile } from '../../services/StatEngine';
+import { getFile } from '@/pages/StatEngine/services/StatEngine';
 import { DownloadOutlined, SyncOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Space, Spin } from 'antd';
 import { memo, useEffect, useState } from 'react';

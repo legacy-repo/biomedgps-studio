@@ -1,13 +1,13 @@
 import axios from 'axios';
-import { getFile } from '../../services/StatEngine'
+import { getFile } from '@/pages/StatEngine/services/StatEngine'
 
 export function fetchMarkdown(url: string): Promise<string> {
   if (url.match(/^minio:\/\//)) {
     return getFile({
       filelink: url
-    }).then(response => {
+    }).then((response: any) => {
       return response
-    }).catch(error => {
+    }).catch((error: any) => {
       return error.data.msg ? error.data.msg : error.data
     })
   } else {

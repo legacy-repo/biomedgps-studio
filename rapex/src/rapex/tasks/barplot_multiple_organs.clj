@@ -68,7 +68,7 @@
   "Automatically called during startup; start event listener for barplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "barplot_organs" draw-barplot!))
+  (make-events-init "barplot-organs" draw-barplot!))
 
 (def manifest
   {:name "Barplot for multiple organs"
@@ -110,7 +110,7 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "barplot_organs" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn "barplot-organs" payload :owner (or (get headers "x-auth-users") "default")))})
 
 (def ui-schema
   {:readme "https://rapex.prophetdb.org/README/barplot.md"
@@ -169,10 +169,8 @@
                :tooltip
                "Logical value. If TRUE input data will be transformation using log2 function."
                :formItemProps {:initialValue true}}]
-    :dataKey {:data "Data"}
     :examples [{:title "Example 1"
                 :key "example-1"
-                :datafile ""
                 :arguments {:log_scale false
                             :position "dodge"
                             :datatype "FPKM"}}]}})

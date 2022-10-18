@@ -65,14 +65,14 @@
             name: 'boxplot',
             icon: 'smile',
             component: './StatEngine',
-            chart: 'boxplot_organs'
+            chart: 'boxplot-organs'
           },
           {
             path: '/custom-analysis/across-organs/barplot-organs',
             name: 'barplot',
             icon: 'smile',
             component: './StatEngine',
-            chart: 'barplot_organs'
+            chart: 'barplot-organs'
           },
         ]
       },
