@@ -61,10 +61,21 @@ export default class ChartEditor extends React.PureComponent<ChartEditorProps> {
 
     console.log('PlotlyViewer updated: ', this.props.mode);
 
-    const { data, layout, frames } = this.props.plotlyData || {
+    let { data, layout, frames } = this.props.plotlyData || {
       data: [],
       layout: {}
     };
+
+    layout = {
+      ...layout,
+      // Reset the margin
+      margin: {
+        "t": 50,
+        "r": 50,
+        "b": 50,
+        "l": 50
+      }
+    }
 
     // mode: ["Plotly", "PlotlyEditor"]
     return this.props.mode === 'Plotly' ? (

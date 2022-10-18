@@ -31,6 +31,15 @@ export JAVA_OPTS='-Dconf=./example-conf.edn'
 bash bin/start
 ```
 
+### Launch frontend
+
+```bash
+cd studio && yarn start:local-dev
+
+# Release it to GitHub
+cd studio && yarn build && yarn gh-pages
+```
+
 ## Usage
 
 FIXME: explanation

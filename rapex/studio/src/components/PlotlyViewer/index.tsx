@@ -54,10 +54,21 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
 
   console.log('PlotlyViewer updated: ', props);
 
-  const { data, layout, frames } = plotlyData || {
+  let { data, layout, frames } = plotlyData || {
     data: [],
     layout: {}
   };
+
+  layout = {
+    ...layout,
+    // Reset the margin
+    margin: {
+      "t": 50,
+      "r": 50,
+      "b": 50,
+      "l": 50
+    }
+  }
 
   // mode: ["Plotly", "PlotlyEditor"]
   return mode === 'Plotly' ? (
