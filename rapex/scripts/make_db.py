@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from operator import delitem
 import re
 import os
 import sys
@@ -8,6 +7,7 @@ import click
 import duckdb
 import csv
 import sqlite3
+import tempfile
 
 def db_init(reader:csv.DictReader, cur:sqlite3.Cursor, filein, table) -> list:
     line = next(reader)
@@ -101,7 +101,7 @@ def format_deg_table(expected_files):
     idx = 1
     for file in expected_files:
         filename = os.path.basename(file)
-        organ, dataset, datatype, method = os.path.splitext(filename)[0].split('_')
+        organ, datatype, method = os.path.splitext(filename)[0].split('_')
         csv_reader = read_csv(file)
         for item in csv_reader:
             data.append({
@@ -111,7 +111,6 @@ def format_deg_table(expected_files):
                 "gene_symbol": item.get("gene_symbol"),
                 "organ": organ,
                 "method": method,
-                "dataset": dataset,
                 "datatype": datatype,
                 "padj": item.get("padj"),
                 "pvalue": item.get("pvalue"),
@@ -134,7 +133,7 @@ def write_csv(data, file="data.csv"):
             writer.writerow(item)
 
 
-@database.command(help="Parse data files and make a degs database.")
+@database.command(help="Parse data files and make a dataset database.")
 @click.option('--data-dir', '-d', required=True,
               type=click.Path(exists=True, dir_okay=True),
               help="The directory which saved the data files.")
@@ -144,87 +143,63 @@ def write_csv(data, file="data.csv"):
 @click.option('--db', '-b', required=False, default="duckdb",
               type=click.Choice(["sqlite", "duckdb"]),
               help="Which type of database.")
-def degdb(data_dir, output_dir, db):
-    files = os.listdir(data_dir)
-    pattern = r"[a-z]{3}_[0-9]+_(fpkm_wilcox|fpkm_ttest|tpm_wilcox|tpm_ttest|counts_limma).csv"
-    expected_files = [os.path.join(data_dir, filename)
+def dataset(data_dir, output_dir, db):
+    dataset_id = os.path.basename(data_dir)
+    dbfile = os.path.join(output_dir, "%s.%s" % (dataset_id, db))
+
+    # DEGs
+    deg_dir = os.path.join(data_dir, "degs")
+    files = os.listdir(deg_dir)
+    pattern = r"[a-z]{3}_(fpkm_wilcox|fpkm_ttest|tpm_wilcox|tpm_ttest|counts_limma).csv"
+    expected_files = [os.path.join(deg_dir, filename)
                       for filename in files if re.match(pattern, filename)]
 
     if len(expected_files) == 0:
         raise Exception(
-            "Cannot find any expected data files in %s." % data_dir)
+            "Cannot find any expected data files in %s." % deg_dir)
 
     data = format_deg_table(expected_files)
     
-    datafile = os.path.join(output_dir, "rapex_degs.csv")
+    tempdir = tempfile.mkdtemp()
+    datafile = os.path.join(tempdir, "rapex_degs.csv")
     write_csv(data, file=datafile)
 
-    # read_only=True
-    dbfile = os.path.join(output_dir, "rapex_degs.%s" % db)
-
-    func_map.get(db)(datafile, dbfile, "data")
+    func_map.get(db)(datafile, dbfile, "degs")
     
+    # Genes
     genes = map(lambda item: {
         "ensembl_id": item.get("ensembl_id"),
         "entrez_id": item.get("entrez_id"),
         "gene_symbol": item.get("gene_symbol")
     }, data)
-    genefile = os.path.join(output_dir, "rapex_genes.csv")
+    genefile = os.path.join(data_dir, "genes.csv")
     write_csv(list({v['ensembl_id']:v for v in genes}.values()), file=genefile)
+
+    func_map.get(db)(genefile, dbfile, "genes", skip=True)
     
-    dbfile = os.path.join(output_dir, "rapex_genes.%s" % db)
-    func_map.get(db)(genefile, dbfile, "data")
-
-
-@database.command(help="Parse data files and make a expr database.")
-@click.option('--data-dir', '-d', required=True,
-              type=click.Path(exists=True, dir_okay=True),
-              help="The directory which saved the data files.")
-@click.option('--output-dir', '-o', required=True,
-              type=click.Path(exists=True, dir_okay=True),
-              help="The directory which saved the database file.")
-@click.option('--db', '-b', required=False, default="duckdb",
-              type=click.Choice(["sqlite", "duckdb"]),
-              help="Which type of database.")
-def exprdb(data_dir, output_dir, db):
-    # read_only=True
-    dbfile = os.path.join(output_dir, "rapex_expr.%s" % db)
-
-    files = os.listdir(data_dir)
+    # Expr
+    expr_dir = os.path.join(data_dir, "expr")
+    files = os.listdir(expr_dir)
     expected_files = [filename for filename in files if re.match(
-        r"[a-z]{3}_[0-9]+_(fpkm|tpm|counts).csv", filename)]
+        r"[a-z]{3}_(fpkm|tpm|counts).csv", filename)]
 
     if len(expected_files) == 0:
         raise Exception(
             "Cannot find any expected data files in %s." % data_dir)
 
     for datafile in expected_files:
-        id = datafile.split('.')[0]
-        datafile = os.path.join(data_dir, datafile)
+        id = "expr_%s" % datafile.split('.')[0]
+        datafile = os.path.join(expr_dir, datafile)
         func_map.get(db)(datafile, dbfile, id, skip=True)
-
-
-@database.command(help="Parse data files and make a pathway database.")
-@click.option('--data-dir', '-d', required=True,
-              type=click.Path(exists=True, dir_okay=True),
-              help="The directory which saved the data files.")
-@click.option('--output-dir', '-o', required=True,
-              type=click.Path(exists=True, dir_okay=True),
-              help="The directory which saved the database file.")
-@click.option('--db', '-b', required=False, default="duckdb",
-              type=click.Choice(["sqlite", "duckdb"]),
-              help="Which type of database.")
-def pathwaydb(data_dir, output_dir, db):
-    # read_only=True
-    dbfile = os.path.join(output_dir, "rapex_pathway.%s" % db)
-
+        
+    # Pathways
     datafile = os.path.join(data_dir, "pathways.tsv")
 
     if not os.path.exists(datafile):
         raise Exception(
             "%s doesn't exists, please prepare it and retry." % datafile)
 
-    func_map.get(db)(datafile, dbfile, "kegg_pathway")
+    func_map.get(db)(datafile, dbfile, "pathways", skip=True)
 
 
 if __name__ == '__main__':

@@ -71,7 +71,7 @@
 (defn get-total
   "Get total number of records based on user's query string.
    
-   (get-total \"./rapex_expr.duckdb\" {:select [:*] :from :gut_000000_fpkm})
+   (get-total \"./examples/db/000000.duckdb\" {:select [:*] :from :gut_fpkm})
   "
   ^Integer [^String dbpath ^PersistentArrayMap sqlmap]
   (let [sqlmap (merge sqlmap {:select [[:%count.* :total]]})
@@ -93,17 +93,16 @@
                               :error (.getMessage e)})))))
 
 (comment
-  (def db "./examples/db/rapex_expr.sqlite")
+  (def db "./examples/db/000000.sqlite")
   (def sqlmap {:select [:*]
-               :from   [:gut_000000_counts]
+               :from   [:gut_counts]
                :limit 10})
   (get-results db sqlmap))
 
 (defn list-db
   "List all database in a directory.
    
-   {:rapex_degs \"./examples/db/rapex_degs.duckdb\"
-    :rapex_expr \"./examples/db/rapex_expr.duckdb\"}
+   {:00000 \"./examples/db/000000.duckdb\"}
   "
   ^PersistentArrayMap [^String datadir]
   (let [allfiles (map #(.getPath %) (fs-lib/list-dir datadir))
@@ -133,4 +132,4 @@
 (comment
   (list-db "./examples/db")
   (setup-datadir "./examples/db")
-  (get-db-path "rapex_expr" :dbtype "sqlite"))
+  (get-db-path "000000" :dbtype "sqlite"))

@@ -1,11 +1,16 @@
 (ns rapex.tasks.core
   (:require [rapex.tasks.core-specs :as specs]
             [ring.util.http-response :refer [ok not-found]]
+            [rapex.tasks.common-sepcs :as cs]
+            [clojure.string :as clj-str]
+            [clojure.spec.alpha :as s]
+            [rapex.tasks.util :refer [gen-organ-map]]
             ;; Chats
             [rapex.tasks.boxplot :as boxplot]
             [rapex.tasks.boxplot-multiple-organs :as boxplot-multiple-organs]
             [rapex.tasks.barplot :as barplot]
-            [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs]))
+            [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs])
+  (:import [clojure.lang Keyword]))
 
 (def ^:private chart-manifests (atom [boxplot/manifest
                                       boxplot-multiple-organs/manifest
@@ -13,10 +18,10 @@
                                       barplot-multiple-organs/manifest]))
 
 
-(def ^:private chart-ui-schemas (atom {:boxplot boxplot/ui-schema
-                                       :boxplot-organs boxplot-multiple-organs/ui-schema
-                                       :barplot barplot/ui-schema
-                                       :barplot-organs barplot-multiple-organs/ui-schema}))
+(def ^:private chart-ui-schemas (atom {:boxplot boxplot/ui-schema-fn
+                                       :boxplot-organs boxplot-multiple-organs/ui-schema-fn
+                                       :barplot barplot/ui-schema-fn
+                                       :barplot-organs barplot-multiple-organs/ui-schema-fn}))
 
 (defn list-charts
   []
@@ -38,10 +43,14 @@
                         :data (->> (drop (* (- page 1) page_size) @chart-manifests)
                                    (take page_size))})))})
 
+(def schema (s/keys :req-un []
+                    :opt-un [::cs/dataset]))
+
 (defn get-chart-ui-schema
   []
   {:summary    "Get the ui schema of a chart."
-   :parameters {:path {:chart_name string?}}
+   :parameters {:path {:chart_name string?}
+                :query schema}
    :responses  {200 {:body any?}
                 404 {:body {:msg string?
                             :context any?}}
@@ -49,10 +58,14 @@
                             :context any?}}
                 500 {:body {:msg string?
                             :context any?}}}
-   :handler    (fn [{{{:keys [chart_name]} :path} :parameters}]
-                 (let [ui-schema (get @chart-ui-schemas (keyword chart_name))]
-                   (if ui-schema
-                     (ok ui-schema)
+   :handler    (fn [{{{:keys [chart_name]} :path
+                      {:keys [dataset]} :query} :parameters}]
+                 (let [ui-schema-fn (get @chart-ui-schemas (keyword chart_name))]
+                   (if ui-schema-fn
+                     (if dataset
+                       (ok (ui-schema-fn {:organ-map (gen-organ-map :dataset dataset)
+                                          :datatype-map {:fpkm {:text (clj-str/upper-case "fpkm")}}}))
+                       (ok (ui-schema-fn {})))
                      (not-found {:msg "No such chart."
                                  :context nil}))))})
 

@@ -3,6 +3,7 @@
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]
             [tservice-core.plugins.util :as util]
+            [rapex.config :refer [memorized-get-dataset-metadata]]
             [tservice-core.plugins.env :refer [update-task! get-workdir create-task! make-remote-link]]
             [tservice-core.tasks.async :refer [publish-event!]]
             [local-fs.core :as fs-lib]))
@@ -66,3 +67,22 @@
                  :else {:percentage percentage})
         record (merge {:id task-id} record)]
     (update-task! record)))
+
+(defn gen-organ-map
+  "Generate organ map for ui schema.
+   
+   Output: {:gut {:text \"Gut\"} :hrt {:text \"Heart\"}} 
+  "
+  [& {:keys [dataset]}]
+  (let [dataset-metadata (memorized-get-dataset-metadata)
+        dataset-metadata (if dataset
+                           (filter #(= (:dataset_abbr %) dataset) dataset-metadata)
+                           dataset-metadata)
+        organs (apply concat (map (fn [dataset] (:organs dataset)) dataset-metadata))]
+    (log/info "Organs: " organs)
+    (->> organs
+         (map (fn [item] (select-keys item [:key :text])))
+         set
+         vec
+         (sort-by :key)
+         (map (fn [item] {(keyword (:key item)) {:text (:text item)}})))))

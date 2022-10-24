@@ -3,11 +3,19 @@
             [spec-tools.core :as st]))
 
 ;; More Details for `:type`: https://cljdoc.org/d/metosin/spec-tools/0.6.1/doc/readme#type-based-conforming
+(s/def ::dataset
+  (st/spec
+   {:spec                (s/and string? #(some? (re-matches #"[0-9]+" %)))  ;; such as 00000000
+    :description         "Dataset id."
+    :swagger/default     "000000"
+    :swagger/type        "string"
+    :reason              "Not a valid dataset id."}))
+
 (s/def ::query_str
   (st/spec
    {:spec                string?
     :description         "Query string with honeysql specification."
-    :swagger/default     "{:select [:*] :from :gut_000000_fpkm}"
+    :swagger/default     "{:select [:*] :from :xxx}"
     :swagger/type        "string"
     :reason              "Not a valid query string."}))
 
@@ -30,12 +38,12 @@
 (s/def ::DBQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
-           :opt-un [::page ::page_size])))
+           :opt-un [::page ::page_size ::dataset])))
 
 (s/def ::DBDataQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
-           :opt-un [])))
+           :opt-un [::dataset])))
 
 (s/def ::total
   (st/spec
@@ -81,6 +89,11 @@
   (st/spec
    (s/keys :req-un [::data]
            :opt-un [])))
+
+(s/def ::key string?)
+(s/def ::text string?)
+
+(s/def ::DatasetSchema (s/coll-of (s/keys :req-un [::key ::text])))
 
 (def database-error-body
   "A spec for the body."

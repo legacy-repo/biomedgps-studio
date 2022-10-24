@@ -8,7 +8,8 @@
    [clojure.tools.logging :as log]
    [clojure.java.io :refer [file]]
    [mount.core :refer [args defstate]]
-   [local-fs.core :as fs-lib]))
+   [local-fs.core :as fs-lib]
+   [clojure.data.json :as json]))
 
 (defstate env
   :start (load-config :merge [(args)
@@ -31,6 +32,8 @@
 (s/def ::nrepl-port (s/int-in 1024 65535))
 
 (s/def ::workdir (s/and string? exists?))
+
+(s/def ::dataset-metadata (s/and string? exists?))
 
 (s/def ::datadir (s/and string? exists?))
 
@@ -58,7 +61,9 @@
 
 (s/def ::cors-origins (s/nilable (s/coll-of string?)))
 
-(s/def ::config (s/keys :req-un [::port ::workdir ::datadir]
+(s/def ::default-dataset string?)
+
+(s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors
                                  ::database-url ::fs-services ::default-fs-service]))
 
@@ -92,6 +97,17 @@
   []
   (:workdir env))
 
+(defn get-default-dataset
+  []
+  (:default-dataset env))
+
+(defn get-dataset-metadata
+  []
+  (let [content (slurp (:dataset-metadata env))]
+    (json/read-str content :key-fn keyword)))
+
+(def memorized-get-dataset-metadata (memoize get-dataset-metadata))
+
 (defn check-fs-root!
   [env]
   (let [fs-rootdir (get-minio-rootdir env)
@@ -104,9 +120,9 @@
 
 (defn check-config
   [env]
-  (let [config (select-keys env [:port :nrepl-port :workdir :datadir
-                                 :cors-origins :enable-cors :database-url
-                                 :fs-services :default-fs-service])]
+  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset
+                                 :cors-origins :enable-cors :database-url :dbtype
+                                 :fs-services :default-fs-service :dataset-metadata])]
     (when (not (s/valid? ::config config))
       (log/error "Configuration errors:\n" (expound-str ::config config))
       (System/exit 1))))

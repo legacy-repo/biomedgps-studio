@@ -3,8 +3,10 @@
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process!]]
+            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map]]
+            [rapex.config :refer [get-default-dataset]]
             [rapex.db.query-data :as qd]
+            [rapex.tasks.common-sepcs :as cs]
             [clojure.string :as clj-str]))
 
 (defn- convert-record-map
@@ -26,14 +28,14 @@
        (apply concat)))
 
 (defn- query-db
-  [table ensembl-id]
+  [dataset table ensembl-id]
   (try
     (let [query-map {:select [:*]
                      :from [(keyword table)]
                      :where [:= :ensembl_id ensembl-id]}
-          ;; "gut_000000_fpkm" -> ["gut" "000000" "fpkm"]
+          ;; "gut_fpkm" -> ["gut" "fpkm"]
           organ (first (clj-str/split table #"_"))
-          results (qd/get-results (qd/get-db-path "rapex_expr") query-map)]
+          results (qd/get-results (qd/get-db-path dataset) query-map)]
       (convert-db-results organ results))
     ;; TODO: Need to record the message into a log file.
     (catch Exception e
@@ -48,10 +50,10 @@
           jitter_size (or (:jitter_size payload) 0.4)
           ;; Multiple items, such as ["gut" "lng"]
           organ (:organ payload)
-          dataset (or (:dataset payload) "000000")
+          dataset (or (:dataset payload) (get-default-dataset))
           ensembl_id (:gene_symbol payload)
-          results (map #(query-db % ensembl_id)
-                       (map #(format "%s_%s_%s" % dataset datatype) organ))
+          results (map #(query-db % ensembl_id dataset)
+                       (map #(format "%s_%s" % datatype) organ))
           ;; [[{}] [{}] []] -> [{} {}]
           d (apply concat results)
           resp (ocpu/draw-plot! "boxplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
@@ -89,16 +91,8 @@
    :readme "https://rapex.prophetdb.org/README/boxplot-organs.md"
    :id "boxplot-organs"})
 
-(s/def ::gene_symbol string?)
-(s/def ::organ (s/coll-of #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn"}))
-(s/def ::dataset #{"000000"})
-(s/def ::datatype #{"fpkm" "tpm" "counts"})
-(s/def ::method #{"t.test" "wilcox.test" "anova" "kruskal.test"})
-(s/def ::log_scale boolean?)
-(s/def ::jitter_size number?)
-
-(def schema (s/keys :req-un [::gene_symbol ::organ ::dataset ::datatype]
-                    :opt-un [::method ::log_scale ::jitter_size]))
+(def schema (s/keys :req-un [::cs/gene_symbol ::cs/organ ::cs/dataset ::cs/datatype]
+                    :opt-un [::cs/method ::cs/log_scale ::cs/jitter_size]))
 
 (defn post-boxplot!
   []
@@ -115,7 +109,10 @@
                      {:as headers} :headers}]
                  (draw-chart-fn "boxplot-organs" payload :owner (or (get headers "x-auth-users") "default")))})
 
-(def ui-schema
+(defn ui-schema-fn
+  [{:keys [organ-map datatype-map]
+    :or {organ-map (gen-organ-map :dataset (get-default-dataset))
+         datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
   {:readme "https://rapex.prophetdb.org/README/boxplot.md"
    :schema
    {:fields  [{:key "gene_symbol"
@@ -130,30 +127,17 @@
                :valueType "select"
                :title "Organ"
                :tooltip "Which organ do you want to query?"
-               :valueEnum {:gut {:text "Gut"} :hrt {:text "Heart"}
-                           :kdn {:text "Kidney"} :lng {:text "Lung"}
-                           :lvr {:text "Liver"} :tst {:text "Testis"}
-                           :tyr {:text "Thyroid"} :brn {:text "Brain"}}
+               :valueEnum organ-map
                :fieldProps {:mode "multiple"}
                :formItemProps {:rules [{:required true
                                         :message "organ filed is required."}]}}
-              {:key "dataset"
-               :dataIndex "dataset"
-               :valueType "select"
-               :title "Data Set"
-               :tooltip "Which dataset do you want to query?"
-               :valueEnum {:000000 {:text "Rapex00000"}}
-               :formItemProps {:initialValue "000000"
-                               :rules [{:required true
-                                        :message "dataset filed is required."}]}}
               {:key "datatype"
                :dataIndex "datatype"
                :valueType "select"
                :title "Data Type"
                :tooltip "Which datatype do you want to query?"
-               :valueEnum {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}
-               :formItemProps {:initialValue "fpkm"
-                               :rules [{:required true
+               :valueEnum datatype-map
+               :formItemProps {:rules [{:required true
                                         :message "datatype filed is required."}]}}
               {:key "method"
                :dataIndex "method"
@@ -178,7 +162,7 @@
                :title "Jitter Size"
                :tooltip "Jitter size greater than 0 and less than 1."
                :fieldProps {:step 0.1}
-               :formItemProps {:initialValue 0.4}}] 
+               :formItemProps {:initialValue 0.4}}]
     :examples [{:title "Example 1"
                 :key "example-1"
                 :arguments {:method "t.test"
