@@ -161,7 +161,6 @@
                :tooltip "Jitter size greater than 0 and less than 1."
                :fieldProps {:step 0.1}
                :formItemProps {:initialValue 0.4}}]
-    :dataKey {:data "Data"}
     :examples [{:title "Example 1"
                 :key "example-1"
                 :datafile ""

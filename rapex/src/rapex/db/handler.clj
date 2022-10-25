@@ -150,8 +150,8 @@
 (defn convert-record
   [record]
   (-> record
-      (assoc :response (json/read-str (:response record)))
-      (assoc :payload (json/read-str (:payload record)))))
+      (assoc :response (json/read-str (if (:response record) (:response record) "{}")))
+      (assoc :payload (json/read-str (if (:payload record) (:payload record) "{}")))))
 
 (defn convert-records
   [results]

@@ -152,7 +152,6 @@
                :tooltip
                "Logical value. If TRUE input data will be transformation using log2 function."
                :formItemProps {:initialValue true}}]
-    :dataKey {:data "Data"}
     :examples [{:title "Example 1"
                 :key "example-1"
                 :datafile ""

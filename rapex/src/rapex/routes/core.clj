@@ -93,21 +93,6 @@
                        (ok {:version (v/get-version "rapex" "rapex")
                             :db_version (db/get-db-version)}))}}]
 
-    ["/manifest"
-     {:tags ["Utility"]
-      :get {:summary "Get the manifest data of all plugins."
-            :parameters {}
-            :responses {200 {:body any?}}
-            :handler (fn [_]
-                       (let [manifest (get-manifest)]
-                         (if manifest
-                           {:body {:data manifest
-                                   :success true
-                                   :total (count manifest)}
-                            :status 200}
-                           {:body {:msg "No manifest file."
-                                   :status 404}})))}}]
-
     ["/download"
      {:tags ["File"]
       :get {:summary "Downloads a file"

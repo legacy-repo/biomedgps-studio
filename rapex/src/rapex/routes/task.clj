@@ -1,5 +1,5 @@
 (ns rapex.routes.task
-  (:require [ring.util.http-response :refer [ok created no-content]]
+  (:require [ring.util.http-response :refer [ok created no-content not-found]]
             [rapex.db.handler :as db-handler]
             [rapex.routes.task-specs :as specs]
             [clojure.string :as clj-str]
@@ -49,10 +49,14 @@
    ["/tasks/:id"
     {:get    {:summary    "Get a task by id."
               :parameters {:path specs/task-id}
-              :responses  {200 {:body map?}}
+              :responses  {200 {:body map?}
+                           404 {:body {:msg string?}}}
               :handler    (fn [{{{:keys [id]} :path} :parameters}]
                             (log/info "Get task: " id)
-                            (ok (db-handler/convert-record (db-handler/search-task id))))}
+                            (let [resp (db-handler/convert-record (db-handler/search-task id))]
+                              (if (seq (:response resp))
+                                (ok resp)
+                                (not-found {:msg (format "Not found the task: %s" id)}))))}
 
      :delete {:summary    "Delete a task."
               :parameters {:path specs/task-id}
