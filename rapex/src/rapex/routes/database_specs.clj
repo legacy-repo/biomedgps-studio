@@ -43,7 +43,7 @@
 (s/def ::DBDataQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
-           :opt-un [::dataset])))
+           :opt-un [::dataset ::page ::page_size])))
 
 (s/def ::total
   (st/spec

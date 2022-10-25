@@ -1,5 +1,4 @@
 import { Select, Empty } from 'antd';
-import { fetchGenes } from '@/services/swagger/OmicsData';
 import React, { useState } from 'react';
 
 const { Option } = Select;
@@ -9,14 +8,35 @@ let currentValue: string;
 
 import type { SortOrder } from 'antd/es/table/interface';
 
+export type GeneData = {
+    ensembl_id: string;
+    entrez_id: number;
+    gene_symbol: string;
+};
+
+export type GeneDataResponse = {
+    total: number;
+    page: number;
+    page_size: number;
+    data: GeneData[];
+};
+
+export type GenesQueryParams = {
+    /** Query string with honeysql specification. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+};
+
 export function makeQueryStr(
-    table: string,
     params: any, // DataType & PageParams
     sort: Record<string, SortOrder>,
     filter: Record<string, React.ReactText[] | null>,
 ): string {
     console.log('makeQueryStr filter: ', filter);
-    const query_str = `:select [:gene_symbol :entrez_id :ensembl_id] :from [:${table}]`;
+    const query_str = `:select [:gene_symbol :entrez_id :ensembl_id]`;
     let sort_clause = '';
     let query_clause = '';
     if (sort) {
@@ -49,40 +69,50 @@ export function makeQueryStr(
     return `{${query_str} ${sort_clause} ${query_clause}}`;
 }
 
-const fetch = (value: string, callback: (data: { value: string; text: string }[]) => void) => {
-    if (timeout) {
-        clearTimeout(timeout);
-        timeout = null;
-    }
-    currentValue = value;
-
-    const fetchData = () => {
-        fetchGenes({
-            // rapex_degs.duckdb has a data table.
-            query_str: makeQueryStr('data', { gene_symbol: value, ensembl_id: value, entrez_id: value }, {}, {}),
-        })
-            .then((response) => {
-                if (currentValue === value) {
-                    const { data } = response;
-                    const formatedData = data.map((item: any) => ({
-                        value: item['ensembl_id'],
-                        text: `${item['gene_symbol']} | ${item['entrez_id']} | ${item['ensembl_id']}`,
-                    }));
-                    callback(formatedData);
-                }
-            })
-            .catch((error) => {
-                console.log('requestDEGs Error: ', error);
-                return callback([]);
-            });
-    };
-
-    timeout = setTimeout(fetchData, 300);
+export type GeneSearcherProps = {
+    queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
+    placeholder?: string;
+    initialValue: any;
+    mode: any;
+    onChange?: (value: string) => void;
+    style: React.CSSProperties;
 };
 
-const GeneSearcher: React.FC<any & { onChange?: (value: string) => void } & { style: React.CSSProperties }> = props => {
+const GeneSearcher: React.FC<GeneSearcherProps> = props => {
+    const { queryGenes, onChange } = props;
     const [data, setData] = useState<any[]>([]);
     const [value, setValue] = useState<string>();
+
+    const fetch = (value: string, callback: (data: { value: string; text: string }[]) => void) => {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = null;
+        }
+        currentValue = value;
+
+        const fetchData = () => {
+            queryGenes({
+                // rapex_degs.duckdb has a data table.
+                query_str: makeQueryStr({ gene_symbol: value, ensembl_id: value, entrez_id: value }, {}, {}),
+            })
+                .then((response) => {
+                    if (currentValue === value) {
+                        const { data } = response;
+                        const formatedData = data.map((item: any) => ({
+                            value: item['ensembl_id'],
+                            text: `${item['gene_symbol']} | ${item['entrez_id']} | ${item['ensembl_id']}`,
+                        }));
+                        callback(formatedData);
+                    }
+                })
+                .catch((error) => {
+                    console.log('requestDEGs Error: ', error);
+                    return callback([]);
+                });
+        };
+
+        timeout = setTimeout(fetchData, 300);
+    };
 
     const handleSearch = (newValue: string) => {
         if (newValue) {

@@ -1,5 +1,3 @@
-// @ts-nocheck
-import { getFile } from '@/pages/StatEngine/services/StatEngine';
 import { DownloadOutlined, SyncOutlined } from '@ant-design/icons';
 import { Button, Col, Empty, Space, Spin } from 'antd';
 import { memo, useEffect, useState } from 'react';
@@ -7,9 +5,19 @@ import ReactAnsi from 'react-ansi';
 
 import './index.less';
 
+export type LogResponse = {
+  msg: string,
+  status: string
+}
+
+export type LogParams = {
+  filelink: string,
+}
+
 export type LogProps = {
   url: string;
   height: string;
+  getFile: (params: LogParams) => Promise<LogResponse>;
 };
 
 // // @ts-ignore
@@ -39,7 +47,7 @@ export type LogProps = {
 // }
 
 const LogViewer: React.FC<LogProps> = (props) => {
-  const { url, height } = props;
+  const { url, height, getFile } = props;
 
   const [log, setLog] = useState<string>('');
   // const [status, setStatus] = useState<string>('');

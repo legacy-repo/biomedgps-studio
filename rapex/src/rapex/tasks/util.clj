@@ -85,4 +85,5 @@
          set
          vec
          (sort-by :key)
-         (map (fn [item] {(keyword (:key item)) {:text (:text item)}})))))
+         (map (fn [item] {(keyword (:key item)) {:text (:text item)}}))
+         (into {}))))

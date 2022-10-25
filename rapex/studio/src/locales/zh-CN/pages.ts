@@ -4,6 +4,8 @@ export default {
   'pages.KEGGPathway.geneSymbol': '基因名',
   'pages.KEGGPathway.ensemblId': 'Ensembl ID',
   'pages.KEGGPathway.entrezId': 'Entrez ID',
+
+  'pages.GeneList.download': '下载',
   'pages.GeneList.ensemblId': 'Ensembl ID',
   'pages.GeneList.entrezId': 'Entrez ID',
   'pages.GeneList.geneSymbol': '基因名',

@@ -1,6 +1,6 @@
 import type { ProFormColumnsType } from '@ant-design/pro-form';
 import { GridContent } from '@ant-design/pro-layout';
-import { Col, message, Row, Spin, Tabs } from 'antd';
+import { Col, message, Row, Spin, Tabs, Form } from 'antd';
 import type { StaticContext } from 'react-router';
 import type { RouteComponentProps } from 'react-router-dom';
 import { useIntl } from 'umi';
@@ -17,13 +17,23 @@ import ArgumentForm from '@/components/ArgumentForm';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import Resizer from '@/components/Resizer';
 import ResultPanel from './components/ResultPanel';
+import DatasetSelect from '@/components/DatasetSelect';
+import { getDatasets } from '@/services/swagger/StatEngine';
 
 // Custom DataType
 import type { ChartResult, DataItem } from './components/ChartList/data';
 type UIContext = Record<string, any>;
 
 // Custom API
-import { getChartTask, getChartUiSchema, postChart } from './services/StatEngine';
+import {
+  getTasksId as getChartTask,
+  getChartsUiSchemaChartName as getChartUiSchema,
+  postChartsChartName as postChart
+} from '@/services/swagger/StatEngine';
+import {
+  getDownload as getFile
+} from '@/services/swagger/File';
+import { getGenes } from '@/services/swagger/OmicsData';
 
 // Custom Data
 import { langData } from './lang';
@@ -47,9 +57,10 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   const [currentActiveKey, setCurrentActiveKey] = useState<string>('arguments');
 
   // Chart
+  const [currentDataset, setCurrentDataset] = useState<string>('000000');
   const [currentChart, setCurrentChart] = useState<string | null>('');
   const [markdownLink, setMarkdownLink] = useState<string>('');
-  const [argumentColumns, setArgumentColumns] = useState<ProFormColumnsType<DataItem>[]>([]);
+  const [argumentColumns, setArgumentColumns] = useState<ProFormColumnsType<DataItem>[] & any>([]);
 
   const [resultData, setResultData] = useState<ChartResult | undefined>({
     results: [],
@@ -71,8 +82,8 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
     }
   }, [props.route.chart]);
 
-  const setChart = (chart: string, result?: ChartResult) => {
-    getChartUiSchema({ chart_name: chart }).then((response) => {
+  const setChart = (dataset: string, chart: string, result?: ChartResult) => {
+    getChartUiSchema({ chart_name: chart, dataset: dataset }).then((response) => {
       const schema = {
         ...response.schema,
       };
@@ -140,14 +151,18 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   const onSubmit = (values: any) => {
     const chartName: string = currentChart || '';
     console.log('onSubmit Chart: ', currentChart, values);
-    return new Promise<ChartResult>((resolve, reject) => {
+    values = {
+      ...values,
+      dataset: currentDataset
+    }
+    return new Promise<{ task_id: string }>((resolve, reject) => {
       postChart({ chart_name: chartName }, values)
         .then((response) => {
           console.log('Post Chart: ', response);
           message.success(`Create the chart ${chartName} successfully.`);
           setResultLoading(true);
           autoFetchTask(response.task_id);
-          // resolve(response);
+          resolve(response);
         })
         .catch((error) => {
           message.warn('Unknown error, please retry later.');
@@ -162,10 +177,10 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   };
 
   useEffect(() => {
-    if (currentChart) {
-      selectItem(currentChart, resultData);
+    if (currentChart && currentDataset) {
+      selectItem(currentDataset, currentChart, resultData);
     }
-  }, [currentChart, resultData, selectItem]);
+  }, [currentChart, resultData, selectItem, currentDataset]);
 
   return (
     <GridContent>
@@ -191,7 +206,23 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
                     }
                     key="arguments"
                   >
+                    <Form layout={"vertical"}>
+                      <Form.Item
+                        label="Data Set"
+                        name="dataset"
+                        rules={[{ required: true, message: 'Please select a dataset!' }]}
+                      >
+                        <DatasetSelect
+                          listDatasets={getDatasets}
+                          placeholder={"Select a dataset"}
+                          initialValue={currentDataset}
+                          onChange={setCurrentDataset}
+                          style={{}}>
+                        </DatasetSelect>
+                      </Form.Item>
+                    </Form>
                     <ArgumentForm
+                      queryGenes={getGenes}
                       labelSpan={24}
                       height="calc(100% - 10px)"
                       onSubmit={onSubmit}
@@ -207,7 +238,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
                     }
                     key="summary"
                   >
-                    <MarkdownViewer url={markdownLink} />
+                    <MarkdownViewer getFile={getFile} url={markdownLink} />
                   </TabPane>
                 </Tabs>
               </Col>

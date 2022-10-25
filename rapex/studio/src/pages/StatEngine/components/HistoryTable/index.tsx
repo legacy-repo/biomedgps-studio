@@ -6,11 +6,10 @@ import type { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
 import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { getTasks } from '../../services/StatEngine';
+import { getTasks } from '@/services/swagger/Task';
 import type { SortOrder } from 'antd/es/table/interface';
-import { StatEngineAPI as API } from '../../services/typings';
 import { useHistory } from 'react-router-dom';
-import { ChartResult } from '@/pages/StatEngine/components/ChartList/data';
+import { ChartResult } from '../ChartList/data';
 import './index.less';
 
 type PageParams = {
@@ -18,11 +17,47 @@ type PageParams = {
   pageSize?: number | undefined;
 };
 
+export type TaskListItem = {
+  response: {
+    log?: string;
+    results?: string[];
+    charts?: string[];
+    response_type?: string;
+    task_id?: string;
+  };
+  description: string;
+  finished_time: any;
+  plugin_name: string;
+  payload: Record<string, any>;
+  name: string;
+  plugin_type: string;
+  percentage: number;
+  status: string;
+  id: string;
+  started_time: number;
+  plugin_version: string;
+  owner: any;
+};
+
 export type HistoryTableProps = {
-  onClickItem?: (chart: string, result?: ChartResult, task?: API.TaskListItem) => void;
+  onClickItem?: (chart: string, result?: ChartResult, task?: TaskListItem) => void;
   pluginName?: string;
   forceUpdateKey?: string;
 };
+
+type TaskListResponse = {
+  total: number;
+  page: number;
+  page_size: number;
+  data: TaskListItem[];
+};
+
+function formatResponse(response: TaskListResponse): Promise<Partial<TaskListResponse>> {
+  return Promise.resolve({
+    ...response,
+    success: true,
+  });
+}
 
 const TableList: React.FC<HistoryTableProps> = (props) => {
   const { onClickItem, pluginName, forceUpdateKey } = props;
@@ -36,10 +71,10 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
 
   const history = useHistory();
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.TaskListItem>();
-  // const [selectedRowsState, setSelectedRows] = useState<API.TaskListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<TaskListItem>();
+  // const [selectedRowsState, setSelectedRows] = useState<TaskListItem[]>([]);
 
-  const listTasks = (
+  const listTasks = async (
     params: PageParams,
     sort: Record<string, SortOrder>,
     filter: Record<string, React.ReactText[] | null>,
@@ -53,7 +88,14 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
       queryParams['plugin_name'] = pluginName
     }
 
-    return(getTasks(queryParams))
+    return await getTasks(queryParams)
+      .then((response) => {
+        return formatResponse(response);
+      })
+      .catch((error) => {
+        console.log('requestDEGs Error: ', error);
+        return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
+      });
   }
 
   /**
@@ -62,7 +104,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
    * */
   const intl = useIntl();
 
-  const columns: ProColumns<API.TaskListItem>[] = [
+  const columns: ProColumns<TaskListItem>[] = [
     {
       title: <FormattedMessage id="stat-engine.history-table.id" defaultMessage="Task ID" />,
       dataIndex: 'id',
@@ -193,7 +235,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
 
   return (
     <PageContainer className="history-table-page-container">
-      <ProTable<API.TaskListItem, API.PageParams>
+      <ProTable<TaskListItem, PageParams>
         className="history-table"
         headerTitle={intl.formatMessage({
           id: 'stat-engine.history-table.title',
@@ -207,11 +249,11 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
         toolBarRender={() => []}
         request={listTasks}
         columns={columns}
-        // rowSelection={{
-        //   onChange: (_, selectedRows) => {
-        //     setSelectedRows(selectedRows);
-        //   },
-        // }}
+      // rowSelection={{
+      //   onChange: (_, selectedRows) => {
+      //     setSelectedRows(selectedRows);
+      //   },
+      // }}
       />
 
       <Drawer
@@ -225,7 +267,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
         closable={false}
       >
         {currentRow?.name && (
-          <ProDescriptions<API.TaskListItem>
+          <ProDescriptions<TaskListItem>
             column={1}
             title={currentRow?.name}
             request={async () => ({
@@ -234,7 +276,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
             params={{
               id: currentRow?.name,
             }}
-            columns={columns as ProDescriptionsItemProps<API.TaskListItem>[]}
+            columns={columns as ProDescriptionsItemProps<TaskListItem>[]}
           />
         )}
       </Drawer>

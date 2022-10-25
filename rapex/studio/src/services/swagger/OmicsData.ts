@@ -2,28 +2,13 @@
 /* eslint-disable */
 import { request } from 'umi';
 
-/** Fetch Genes GET /api/genes */
-export async function fetchGenes(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getDegsParams,
-  options?: { [key: string]: any },
-) {
-  return request<{ data: any }>('/api/v1/genes', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-/** Get DEGs GET /api/degs */
+/** Get DEGs Get DEGs GET /api/v1/degs */
 export async function getDegs(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getDegsParams,
   options?: { [key: string]: any },
 ) {
-  return request<{ total: number; page: number; page_size: number; data: any }>('/api/v1/degs', {
+  return request<API.DEGDataResponse>('/api/v1/degs', {
     method: 'GET',
     params: {
       ...params,
@@ -32,13 +17,43 @@ export async function getDegs(
   });
 }
 
-/** Get Pathways GET /api/pathways */
+/** Get gene expression data Get gene expression data GET /api/v1/gene-expr-data */
+export async function getGeneExprData(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getGeneExprDataParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.ExprDataResponse>('/api/v1/gene-expr-data', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Get genes Get Genes GET /api/v1/genes */
+export async function getGenes(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getGenesParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.GeneDataResponse>('/api/v1/genes', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Get pathways Get Pathways GET /api/v1/pathways */
 export async function getPathways(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getPathwaysParams,
   options?: { [key: string]: any },
 ) {
-  return request<{ total: number; page: number; page_size: number; data: any }>('/api/v1/pathways', {
+  return request<API.PathwayDataResponse>('/api/v1/pathways', {
     method: 'GET',
     params: {
       ...params,

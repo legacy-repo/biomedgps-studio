@@ -7,6 +7,7 @@ export default {
   'pages.KEGGPathway.entrezId': 'Gene ID',
 
   // GeneList Page
+  'pages.GeneList.download': 'Download',
   'pages.GeneList.ensemblId': 'Ensembl ID',
   'pages.GeneList.entrezId': 'Gene ID',
   'pages.GeneList.geneSymbol': 'Symbol',

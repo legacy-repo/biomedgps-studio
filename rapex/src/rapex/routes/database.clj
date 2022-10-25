@@ -45,7 +45,7 @@
                          page_size (or page_size 10)
                          dataset (or dataset (get-default-dataset))
                          query-map (qd/read-string-as-map query_str)
-                         query-map (merge query-map {:limit page_size 
+                         query-map (merge query-map {:limit page_size
                                                      :offset (* (- page 1) page_size)
                                                      :from table})
                          dbpath (qd/get-db-path dataset)]
@@ -66,15 +66,22 @@
                 404 {:body ds/database-error-body}
                 400 {:body ds/database-error-body}
                 500 {:body ds/database-error-body}}
-   :handler    (fn [{{{:keys [query_str dataset]} :query} :parameters
+   :handler    (fn [{{{:keys [page page_size query_str dataset]} :query} :parameters
                      {:as headers} :headers}]
                  (try
-                   (let [dataset (or dataset (get-default-dataset))
+                   (let [page (or page 1)
+                         page_size (or page_size 50)
+                         dataset (or dataset (get-default-dataset))
                          query-map (qd/read-string-as-map query_str)
-                         query-map (merge query-map {:from :genes})
+                         query-map (merge query-map {:limit page_size
+                                                     :offset (* (- page 1) page_size)
+                                                     :from :genes})
                          dbpath (qd/get-db-path dataset)]
                      (log/info "database:" dbpath "query-map:" query-map)
-                     (ok {:data (qd/get-results dbpath query-map)}))
+                     (ok {:total (qd/get-total dbpath query-map)
+                          :page page
+                          :page_size page_size
+                          :data (qd/get-results dbpath query-map)}))
                    (catch Exception e
                      (log/error "Error: " e)
                      (get-error-response e))))})

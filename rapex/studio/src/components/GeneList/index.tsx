@@ -1,22 +1,29 @@
-import { getDegs } from '@/services/swagger/OmicsData';
-import type { ActionType, ProColumns, RequestData } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
 import React, { useRef, useState } from 'react';
 import { FormattedMessage } from 'umi';
-import { makeQueryStr } from '../util';
+import { makeQueryStr } from './util';
 import './index.less';
 
-interface DataType {
-  id: string;
+type DEGQueryParams = {
+  /** Query string with honeysql specification. */
+  query_str: string;
+  /** Page, From 1. */
+  page?: number;
+  /** Num of items per page. */
+  page_size?: number;
+};
+
+type DataType = {
+  id: number;
   ensembl_id: string;
   entrez_id: string;
   gene_symbol: string;
   organ: string;
   method: string;
-  dataset: string;
   datatype: string;
   padj: number;
   pvalue: number;
@@ -24,40 +31,52 @@ interface DataType {
   direction: string;
 }
 
+type DEGDataResponse = {
+  total: number;
+  page: number;
+  page_size: number;
+  data: DataType[];
+};
+
 type PageParams = {
   current?: number | undefined;
   pageSize?: number | undefined;
 };
 
-function formatResponse(response: RequestData<DataType>): Promise<Partial<RequestData<DataType>>> {
+function formatResponse(response: DEGDataResponse): Promise<Partial<DEGDataResponse>> {
   return Promise.resolve({
     ...response,
     success: true,
   });
 }
 
-const requestDEGs = async (
-  params: PageParams,
-  sort: Record<string, SortOrder>,
-  filter: Record<string, React.ReactText[] | null>,
-) => {
-  console.log('requestDEGs: ', sort, filter);
-  return await getDegs({
-    page: params.current,
-    page_size: params.pageSize,
-    query_str: makeQueryStr('data', params, sort, filter),
-  })
-    .then((response) => {
-      return formatResponse(response);
-    })
-    .catch((error) => {
-      console.log('requestDEGs Error: ', error);
-      return formatResponse({ total: 0, success: true, data: [] });
-    });
+export type GeneListProps = {
+  queryDEGs: (params: DEGQueryParams) => Promise<DEGDataResponse>;
 };
 
-const GeneList: React.FC = () => {
+const GeneList: React.FC<GeneListProps> = (props) => {
+  const { queryDEGs } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
+
+  const requestDEGs = async (
+    params: PageParams,
+    sort: Record<string, SortOrder>,
+    filter: Record<string, React.ReactText[] | null>,
+  ) => {
+    console.log('requestDEGs: ', sort, filter);
+    return await queryDEGs({
+      page: params.current,
+      page_size: params.pageSize,
+      query_str: makeQueryStr(params, sort, filter),
+    })
+      .then((response) => {
+        return formatResponse(response);
+      })
+      .catch((error) => {
+        console.log('requestDEGs Error: ', error);
+        return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
+      });
+  };
 
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
@@ -181,7 +200,7 @@ const GeneList: React.FC = () => {
   return (
     <Row className="genelist">
       <ProTable<DataType, PageParams>
-        scroll={{ y: 'calc(100vh - 240px)' }}
+        scroll={{ y: 'calc(100vh - 200px)' }}
         className="genelist__table"
         actionRef={actionRef}
         rowKey="id"

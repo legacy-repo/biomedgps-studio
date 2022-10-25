@@ -32,7 +32,7 @@
         path: '/custom-analysis/differential-expression-analysis',
         name: 'diff-genes',
         icon: 'table',
-        component: './DataSet',
+        component: './GeneListWrapper',
       },
       {
         path: '/custom-analysis/gene-expression-profile',
@@ -106,7 +106,7 @@
     name: 'kegg-pathways',
     icon: 'partition',
     path: '/kegg-pathways',
-    component: './KEGGPathway',
+    component: './KEGGPathwayWrapper'
   },
   {
     name: 'datasets',

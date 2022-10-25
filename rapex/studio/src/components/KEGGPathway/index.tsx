@@ -1,21 +1,35 @@
-import { getPathways } from '@/services/swagger/OmicsData';
-import type { ActionType, ProColumns, RequestData } from '@ant-design/pro-components';
+import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Row } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import map from 'lodash.map';
 import React, { useRef } from 'react';
 import { FormattedMessage } from 'umi';
-import { makeQueryStr } from '../util';
+import { makeQueryStr } from './util';
 import './index.less';
 
-type DataType = {
-  key: string;
-  ensembl_id: string;
-  entrez_id: string;
-  gene_symbol: string;
+type PathwayQueryParams = {
+  /** Query string with honeysql specification. */
+  query_str: string;
+  /** Page, From 1. */
+  page?: number;
+  /** Num of items per page. */
+  page_size?: number;
+};
+
+type PathwayData = {
+  entrez_id: number;
   pathway_id: string;
+  gene_symbol: string;
+  ensembl_id: string;
   pathway_name: string;
+};
+
+type PathwayDataResponse = {
+  total: number;
+  page: number;
+  page_size: number;
+  data: PathwayData[];
 };
 
 type PageParams = {
@@ -23,7 +37,7 @@ type PageParams = {
   pageSize?: number | undefined;
 };
 
-function formatResponse(response: RequestData<DataType>): Promise<Partial<RequestData<DataType>>> {
+function formatResponse(response: PathwayDataResponse): Promise<Partial<PathwayDataResponse>> {
   return Promise.resolve({
     ...response,
     success: true,
@@ -33,35 +47,40 @@ function formatResponse(response: RequestData<DataType>): Promise<Partial<Reques
   });
 }
 
-const requestPathways = async (
-  params: PageParams & DataType,
-  sort: Record<string, SortOrder>,
-  filter: Record<string, React.ReactText[] | null>,
-) => {
-  console.log('requestPathways: ', params, sort, filter);
-  const query_str = makeQueryStr('kegg_pathway', params, sort, filter);
-  return await getPathways({
-    page: params.current,
-    page_size: params.pageSize,
-    query_str: query_str,
-  })
-    .then((response) => {
-      return formatResponse(response);
-    })
-    .catch((error) => {
-      console.log('requestPathways Error: ', error);
-      return formatResponse({ total: 0, success: true, data: [] });
-    });
+export type KEGGPathwayProps = {
+  queryPathways: (params: PathwayQueryParams) => Promise<PathwayDataResponse>;
 };
 
-const KEGGPathway: React.FC = () => {
+const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
+  const { queryPathways } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
+
+  const requestPathways = async (
+    params: PageParams & PathwayData,
+    sort: Record<string, SortOrder>,
+    filter: Record<string, React.ReactText[] | null>,
+  ) => {
+    console.log('requestPathways: ', params, sort, filter);
+    const query_str = makeQueryStr(params, sort, filter);
+    return await queryPathways({
+      page: params.current,
+      page_size: params.pageSize,
+      query_str: query_str,
+    })
+      .then((response) => {
+        return formatResponse(response);
+      })
+      .catch((error) => {
+        console.log('requestPathways Error: ', error);
+        return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
+      });
+  };
 
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
   // const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
 
-  const columns: ProColumns<DataType>[] = [
+  const columns: ProColumns<PathwayData>[] = [
     {
       title: <FormattedMessage id="pages.KEGGPathway.pathwayId" defaultMessage="Pathway ID" />,
       dataIndex: 'pathway_id',
@@ -146,7 +165,7 @@ const KEGGPathway: React.FC = () => {
 
   return (
     <Row className="keggpathway">
-      <ProTable<DataType, PageParams & DataType>
+      <ProTable<PathwayData, PageParams & PathwayData>
         className="keggpathway__table"
         actionRef={actionRef}
         rowKey="key"

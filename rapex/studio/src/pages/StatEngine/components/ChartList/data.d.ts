@@ -7,11 +7,6 @@ export declare type DataItem = {
 
 export declare type ReadOnlyData = Record<string, any[][]>;
 
-export declare type DataKey = {
-  annoData?: string;
-  data: string;
-};
-
 export declare type Example = {
   title: string;
   key: string;
@@ -44,13 +39,12 @@ export declare type ChartMetaData = {
 
 export declare type ChartData = {
   fields: ProFormColumnsType<DataItem>[];
-  dataKey: DataKey;
   examples: Example[];
 };
 
 export declare type ChartResult = {
-  results: string[];
-  charts: string[];
-  task_id: string;
-  log: string;
+  results?: string[];
+  charts?: string[];
+  task_id?: string;
+  log?: string;
 };

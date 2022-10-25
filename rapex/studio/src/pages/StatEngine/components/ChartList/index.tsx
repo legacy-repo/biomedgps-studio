@@ -6,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 import { useIntl } from 'umi';
 
 // API Endpoint
-import { getCharts } from '../../services/StatEngine';
+import { getCharts } from '@/services/swagger/StatEngine';
 
 import type { ChartMetaData, ChartResult, Icon } from './data';
 import './index.less';

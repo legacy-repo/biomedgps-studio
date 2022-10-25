@@ -8,9 +8,8 @@ import {
 } from '@ant-design/icons';
 import { Button, Col, Drawer, Row, Space, Tabs, Tooltip } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
-import PlotlyViewer from '@/pages/StatEngine/PlotlyViewer/indexClass';
-import HistoryTable from '@/pages/StatEngine/HistoryTable';
-import { StatEngineAPI } from '@/pages/StatEngine/services/typings';
+import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
+import HistoryTable from '@/pages/StatEngine/components/HistoryTable';
 import { useIntl } from 'umi';
 
 import './index.less';
@@ -22,6 +21,28 @@ export type ReportProps = {
     results: string[];
     charts: string[];
     responsiveKey: number | string;
+};
+
+type TaskListItem = {
+    response: {
+        log: string;
+        results: string[];
+        charts: string[];
+        response_type: string;
+        task_id: string;
+    };
+    description: string;
+    finished_time: any;
+    plugin_name: string;
+    payload: Record<string, any>;
+    name: string;
+    plugin_type: string;
+    percentage: number;
+    status: string;
+    id: string;
+    started_time: number;
+    plugin_version: string;
+    owner: any;
 };
 
 type UIContext = Record<string, any>;
@@ -36,7 +57,7 @@ const ReportPanel: React.FC<ReportProps> = (props) => {
 
     const { responsiveKey, results, charts } = props;
 
-    const [chartTask, setChartTask] = useState<StatEngineAPI.TaskListItem | undefined>(undefined);
+    const [chartTask, setChartTask] = useState<TaskListItem | undefined>(undefined);
     const [plotlyEditorMode, setPlotlyEditorMode] = useState<string>('Plotly');
     const [chartsVisible, setChartsVisible] = useState<boolean>(false);
     const [historyVisible, setHistoryVisible] = useState<boolean>(false);

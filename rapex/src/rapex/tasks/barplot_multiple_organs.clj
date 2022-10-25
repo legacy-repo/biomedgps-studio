@@ -89,7 +89,9 @@
    :readme "https://rapex.prophetdb.org/README/barplot-organs.md"
    :id "barplot-organs"})
 
-(def schema (s/keys :req-un [::cs/gene_symbol ::cs/organ ::cs/dataset ::cs/datatype]
+(s/def ::gene_symbol string?)
+(s/def ::organ (s/coll-of #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn" "nse" "bld" "buc"}))
+(def schema (s/keys :req-un [::gene_symbol ::organ ::cs/dataset ::cs/datatype]
                     :opt-un [::cs/position ::cs/log_scale]))
 
 (defn post-barplot!

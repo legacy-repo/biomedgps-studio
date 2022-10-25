@@ -278,6 +278,7 @@ RightContent 是以上几个组件的组合，同时新增了 plugins 的 `Selec
  */
 import GeneSearcher from '@/components/GeneSearcher';
 import React from 'react';
+import { getGenes } from '@/services/swagger/OmicsData';
 
-export default () => <GeneSearcher placeholder="Enter gene symbol, entrez id or ensembl id" style={{ width: 300 }} />;
+export default () => <GeneSearcher queryGenes={getGenes} placeholder="Enter gene symbol, entrez id or ensembl id" style={{ width: 300 }} />;
 ```

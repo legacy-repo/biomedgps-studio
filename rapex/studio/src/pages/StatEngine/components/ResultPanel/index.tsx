@@ -15,12 +15,12 @@ import LogViewer from '@/components/LogViewer/indexLog';
 // import MarkdownViewer from '../MarkdownViewer';
 import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
 import HistoryTable from '../HistoryTable';
+import { TaskListItem } from '../HistoryTable';
 import { JsonViewer } from '@textea/json-viewer'
 
-import { getFile } from '../../services/StatEngine';
+import { getDownload as getFile } from '@/services/swagger/File';
 import type { ChartResult } from '../ChartList/data';
 import type { PlotlyChart } from '@/components/PlotlyViewer/data';
-import type { StatEngineAPI } from '../../services/typings'
 
 import './index.less';
 import { langData } from './lang';
@@ -28,7 +28,7 @@ import { langData } from './lang';
 const { TabPane } = Tabs;
 
 export type ResultPanelProps = {
-  onClickItem: (chart: string, result?: ChartResult, task?: StatEngineAPI.TaskListItem) => void;
+  onClickItem: (chart: string, result?: ChartResult, task?: TaskListItem) => void;
   taskId: string;
   logLink: string;
   results: string[];
@@ -49,7 +49,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
 
   const { onClickItem, logLink, responsiveKey, currentChart, taskId, results, charts } = props;
 
-  const [chartTask, setChartTask] = useState<StatEngineAPI.TaskListItem | undefined>(undefined);
+  const [chartTask, setChartTask] = useState<TaskListItem | undefined>(undefined);
   const [plotlyEditorMode, setPlotlyEditorMode] = useState<string>('Plotly');
   const [chartsVisible, setChartsVisible] = useState<boolean>(false);
   const [editBtnActive, setEditBtnActive] = useState<boolean>(false);
@@ -171,7 +171,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
           }
           key="log"
         >
-          <LogViewer height="calc(100vh - 200px)" url={logLink} />
+          <LogViewer getFile={getFile} height="calc(100vh - 200px)" url={logLink} />
         </TabPane>
         {chartTask ? (<TabPane
           tab={

@@ -1,10 +1,11 @@
 import { DownloadOutlined, EditOutlined, UploadOutlined } from '@ant-design/icons';
 import type { ProFormColumnsType, ProFormLayoutType } from '@ant-design/pro-form';
 import { BetaSchemaForm, ProProvider, ProFormSelect } from '@ant-design/pro-components';
-import { Button, Col, Empty, Row, Space, Tooltip } from 'antd';
+import { Button, Col, Empty, Row, Space, Tooltip, Form } from 'antd';
 import GeneSearcher from '@/components/GeneSearcher';
+import { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher';
 import FormItem from 'antd/lib/form/FormItem';
-import React, { memo, useContext, useState } from 'react';
+import React, { memo, useContext, useEffect, useState } from 'react';
 import { useIntl } from 'umi';
 import type { ChartResult } from './data';
 
@@ -14,6 +15,7 @@ import type { DataItem } from './data';
 import { langData } from './lang';
 
 export type ArgumentProps = {
+  queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
   columns: ProFormColumnsType<DataItem>[];
   height?: string;
   labelSpan?: number;
@@ -23,7 +25,7 @@ export type ArgumentProps = {
 type UIContext = Record<string, any>;
 
 const ArgumentForm: React.FC<ArgumentProps> = (props) => {
-  const { columns, height, labelSpan, onSubmit } = props;
+  const { columns, height, labelSpan, onSubmit, queryGenes } = props;
 
   const activateBtn = (
     <FormItem
@@ -40,6 +42,7 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
   );
 
   const [layoutType, setLayoutType] = useState<ProFormLayoutType>('QueryFilter');
+  const [form] = Form.useForm();
 
   const intl = useIntl();
 
@@ -47,6 +50,10 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
   Object.keys(langData).forEach((key) => {
     uiContext[key] = intl.formatMessage(langData[key]);
   });
+
+  useEffect(() => {
+    form.resetFields()
+  }, [columns])
 
   console.log('ArgumentForm updated');
 
@@ -60,10 +67,12 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
             gene_searcher: {
               render: (text: any) => <a>{text}</a>,
               renderFormItem: (text: any, props: any) => (
-                <GeneSearcher placeholder="Enter gene symbol, entrez id or ensembl id"
+                <GeneSearcher
+                  placeholder="Enter gene symbol, entrez id or ensembl id"
+                  queryGenes={queryGenes}
                   initialValue={props?.formItemProps?.initialValue}
                   {...props?.fieldProps}
-                  mode={props?.fieldProps?.mode} 
+                  mode={props?.fieldProps?.mode}
                   style={{ width: '100%' }} />
               ),
             }
@@ -100,6 +109,7 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
           trigger={activateBtn}
           style={{ height }}
           span={labelSpan}
+          form={form}
           defaultCollapsed={false}
           layoutType={layoutType}
           layout="vertical"
