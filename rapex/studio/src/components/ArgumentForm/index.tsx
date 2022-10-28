@@ -17,6 +17,7 @@ import { langData } from './lang';
 export type ArgumentProps = {
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
   columns: ProFormColumnsType<DataItem>[];
+  fieldsValue?: any;
   height?: string;
   labelSpan?: number;
   onSubmit?: (values: any) => Promise<ChartResult>;
@@ -25,7 +26,7 @@ export type ArgumentProps = {
 type UIContext = Record<string, any>;
 
 const ArgumentForm: React.FC<ArgumentProps> = (props) => {
-  const { columns, height, labelSpan, onSubmit, queryGenes } = props;
+  const { columns, height, labelSpan, onSubmit, queryGenes, fieldsValue } = props;
 
   const activateBtn = (
     <FormItem
@@ -55,6 +56,12 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
     form.resetFields()
   }, [columns])
 
+  useEffect(() => {
+    if (fieldsValue) {
+      form.setFieldsValue(fieldsValue)
+    }
+  }, [fieldsValue])
+
   console.log('ArgumentForm updated');
 
   const values = useContext(ProProvider);
@@ -66,15 +73,17 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
           valueTypeMap: {
             gene_searcher: {
               render: (text: any) => <a>{text}</a>,
-              renderFormItem: (text: any, props: any) => (
-                <GeneSearcher
+              renderFormItem: (text: any, props: any) => {
+                console.log("Gene Searcher Component: ", props, form.getFieldValue(props?.id))
+                const initialValue = form.getFieldValue(props?.id)
+                return (<GeneSearcher
                   placeholder="Enter gene symbol, entrez id or ensembl id"
                   queryGenes={queryGenes}
-                  initialValue={props?.formItemProps?.initialValue}
+                  initialValue={initialValue ? initialValue : props?.formItemProps?.initialValue}
                   {...props?.fieldProps}
                   mode={props?.fieldProps?.mode}
-                  style={{ width: '100%' }} />
-              ),
+                  style={{ width: '100%' }} />)
+              },
             }
           },
         }}

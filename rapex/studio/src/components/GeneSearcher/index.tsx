@@ -1,5 +1,5 @@
 import { Select, Empty } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const { Option } = Select;
 
@@ -79,9 +79,15 @@ export type GeneSearcherProps = {
 };
 
 const GeneSearcher: React.FC<GeneSearcherProps> = props => {
-    const { queryGenes, onChange } = props;
+    const { queryGenes, onChange, initialValue } = props;
     const [data, setData] = useState<any[]>([]);
     const [value, setValue] = useState<string>();
+
+    useEffect(() => {
+        if (initialValue) {
+            setValue(initialValue)
+        }
+    }, [initialValue])
 
     const fetch = (value: string, callback: (data: { value: string; text: string }[]) => void) => {
         if (timeout) {
@@ -135,7 +141,6 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
             showSearch
             value={value}
             placeholder={props?.placeholder}
-            defaultValue={props?.initialValue}
             style={props.style}
             defaultActiveFirstOption={false}
             showArrow={true}

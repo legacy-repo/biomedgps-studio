@@ -9,7 +9,7 @@ import {
   CheckCircleOutlined,
   InfoCircleOutlined,
 } from '@ant-design/icons';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './index.less';
 
 // Custom Component
@@ -61,6 +61,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   const [currentChart, setCurrentChart] = useState<string | null>('');
   const [markdownLink, setMarkdownLink] = useState<string>('');
   const [argumentColumns, setArgumentColumns] = useState<ProFormColumnsType<DataItem>[] & any>([]);
+  const [fieldsValue, setFieldsValue] = useState<any>({});
 
   const [resultData, setResultData] = useState<ChartResult | undefined>({
     results: [],
@@ -82,7 +83,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
     }
   }, [props.route.chart]);
 
-  const setChart = (dataset: string, chart: string, result?: ChartResult) => {
+  const setChart = (dataset: string, chart: string, fieldsValue?: Record<string, any>) => {
     getChartUiSchema({ chart_name: chart, dataset: dataset }).then((response) => {
       const schema = {
         ...response.schema,
@@ -93,16 +94,28 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
 
       // Reset Argument
       setArgumentColumns(schema.fields);
+
+      if (fieldsValue) {
+        // Reset Fields Value
+        setFieldsValue(fieldsValue);
+      }
     });
+  };
+
+  const restoreChart = (chart: string, result?: ChartResult, fieldsValue?: Record<string, any>) => {
+    console.log("Restore Chart: ", chart, result, fieldsValue);
+    if (fieldsValue) {
+      setFieldsValue(fieldsValue);
+      setCurrentChart(chart);
+      setCurrentDataset(fieldsValue.dataset);
+    }
 
     if (result) {
       setResultData(result);
     } else {
       setResultData(undefined);
     }
-  };
-
-  const selectItem = useCallback(setChart, []);
+  }
 
   const changeDataTab = (key: string) => {
     setCurrentActiveKey(key);
@@ -178,9 +191,9 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
 
   useEffect(() => {
     if (currentChart && currentDataset) {
-      selectItem(currentDataset, currentChart, resultData);
+      setChart(currentDataset, currentChart, fieldsValue);
     }
-  }, [currentChart, resultData, selectItem, currentDataset]);
+  }, [currentChart, currentDataset]);
 
   return (
     <GridContent>
@@ -223,6 +236,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
                     </Form>
                     <ArgumentForm
                       queryGenes={getGenes}
+                      fieldsValue={fieldsValue}
                       labelSpan={24}
                       height="calc(100% - 10px)"
                       onSubmit={onSubmit}
@@ -267,7 +281,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
                 taskId={resultData?.task_id || ''}
                 responsiveKey={leftSpan}
                 logLink={resultData?.log || ''}
-                onClickItem={selectItem}
+                onClickItem={restoreChart}
               ></ResultPanel>
             </Row>
           </Col>

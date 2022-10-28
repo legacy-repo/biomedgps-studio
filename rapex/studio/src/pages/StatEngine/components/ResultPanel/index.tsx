@@ -28,7 +28,7 @@ import { langData } from './lang';
 const { TabPane } = Tabs;
 
 export type ResultPanelProps = {
-  onClickItem: (chart: string, result?: ChartResult, task?: TaskListItem) => void;
+  onClickItem: (chart: string, result?: ChartResult, fieldsValue?: Record<string, any>) => void;
   taskId: string;
   logLink: string;
   results: string[];
@@ -196,8 +196,8 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         visible={chartsVisible}
       >
         <ChartList
-          onClickItem={(chart, result) => {
-            onClickItem(chart.short_name, result);
+          onClickItem={(chart, result, fieldsValue) => {
+            onClickItem(chart.short_name, result, fieldsValue);
             setChartsVisible(false);
           }}
         ></ChartList>
@@ -216,10 +216,10 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         <HistoryTable
           forceUpdateKey={`${historyVisible}`}
           pluginName={currentChart || undefined}
-          onClickItem={(chart_name: any, result: any, task: any) => {
-            onClickItem(chart_name, result, task);
+          onClickItem={(chartName: any, result?: ChartResult, taskListItem?: TaskListItem) => {
+            onClickItem(chartName, result, taskListItem ? taskListItem.payload : undefined);
             setHistoryVisible(false);
-            setChartTask(task)
+            setChartTask(taskListItem)
           }}
         ></HistoryTable>
       </Drawer>

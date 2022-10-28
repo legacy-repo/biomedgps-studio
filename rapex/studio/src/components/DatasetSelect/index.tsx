@@ -19,23 +19,30 @@ export type DatasetSelectProps = {
 };
 
 const DatasetSelect: React.FC<DatasetSelectProps> = props => {
-    const { listDatasets, onChange } = props;
+    const { listDatasets, initialValue } = props;
     const [data, setData] = useState<any[]>([]);
     const [value, setValue] = useState<string>();
 
     useEffect(() => {
-        listDatasets().then((data) => {
-            const formatedData = data.map((item: any) => ({
-                value: item['key'],
-                text: item['text'],
-            }));
-            setData(formatedData)
-        })
-            .catch((error) => {
-                console.log('listDatasets Error: ', error);
-                return setData([]);
-            });
-    }, [])
+        if (initialValue) {
+            setValue(initialValue)
+            props.onChange?.(initialValue)
+        }
+
+        if (data.length == 0) {
+            listDatasets().then((data) => {
+                const formatedData = data.map((item: any) => ({
+                    value: item['key'],
+                    text: item['text'],
+                }));
+                setData(formatedData)
+            })
+                .catch((error) => {
+                    console.log('listDatasets Error: ', error);
+                    return setData([]);
+                });
+        }
+    }, [initialValue, value])
 
     const handleChange = (newValue: string) => {
         setValue(newValue);
@@ -50,7 +57,6 @@ const DatasetSelect: React.FC<DatasetSelectProps> = props => {
             showSearch
             value={value}
             placeholder={props?.placeholder}
-            defaultValue={props?.initialValue}
             style={props.style}
             defaultActiveFirstOption={false}
             showArrow={true}

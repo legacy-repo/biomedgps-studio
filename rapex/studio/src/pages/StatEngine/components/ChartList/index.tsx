@@ -16,7 +16,7 @@ import { langData } from './lang';
 type UIContext = Record<string, any>;
 
 export type ChartListProps = {
-  onClickItem?: (chart: ChartMetaData, result?: ChartResult) => void;
+  onClickItem?: (chart: ChartMetaData, result?: ChartResult, fieldsValue?: Record<string, any>) => void;
 };
 
 const ChartList: React.FC<ChartListProps> = (props) => {
@@ -57,7 +57,7 @@ const ChartList: React.FC<ChartListProps> = (props) => {
   };
 
   const getLogo = (icons: Icon[]): string => {
-    return icons[0].src;
+    return icons[0].src ? icons[0].src : "";
   };
 
   const titleLink = (name: string, version: string) => {
@@ -95,7 +95,7 @@ const ChartList: React.FC<ChartListProps> = (props) => {
           className="chart-item"
           onClick={() => {
             if (onClickItem) {
-              onClickItem(item, undefined);
+              onClickItem(item, undefined, undefined);
             } else {
               history.push('/stat-engine/index', {
                 chart: item,

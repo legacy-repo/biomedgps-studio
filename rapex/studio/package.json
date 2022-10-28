@@ -31,7 +31,7 @@
     "prettier": "prettier -c --write \"src/**/*\"",
     "serve": "umi-serve",
     "start": "cross-env UMI_ENV=dev umi dev",
-    "start:local-dev": "cross-env UMI_APP_API_PREFIX=http://127.0.0.1:3002 umi dev",
+    "start:local-dev": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi dev",
     "start:dev": "cross-env REACT_APP_ENV=dev MOCK=none UMI_ENV=dev umi dev",
     "start:no-mock": "cross-env MOCK=none UMI_ENV=dev umi dev",
     "start:no-ui": "cross-env UMI_UI=none UMI_ENV=dev umi dev",

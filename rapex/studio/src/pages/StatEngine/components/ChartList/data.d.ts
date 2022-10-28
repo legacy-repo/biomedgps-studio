@@ -16,9 +16,9 @@ export declare type Example = {
 
 export declare type Icon = {
   // type: 'image/png', sizes: '192x192'
-  src: string;
-  type: string;
-  sizes: string;
+  src?: string;
+  type?: string;
+  sizes?: string;
 };
 
 export declare type ChartMetaData = {
