@@ -52,7 +52,7 @@
           dataset (or (:dataset payload) (get-default-dataset))
           ensembl_id (:gene_symbol payload)
           results (map #(query-db dataset % ensembl_id)
-                       (map #(format "%s_%s" % datatype) organ))
+                       (map #(format "expr_%s_%s" % datatype) organ))
           ;; [[{}] [{}] []] -> [{} {}]
           d (apply concat results)
           resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)

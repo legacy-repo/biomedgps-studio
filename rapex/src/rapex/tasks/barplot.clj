@@ -35,7 +35,7 @@
 (defn- prepare-data
   [ensembl_id organ dataset datatype]
   (let [query-map {:select [:*]
-                   :from [(keyword (format "%s_%s" organ datatype))]}
+                   :from [(keyword (format "expr_%s_%s" organ datatype))]}
         query-map (if (coll? ensembl_id)
                     (merge query-map {:where [:in :ensembl_id ensembl_id]})
                     (merge query-map {:where [:= :ensembl_id ensembl_id]}))
