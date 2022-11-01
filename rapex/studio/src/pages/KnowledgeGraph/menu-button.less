@@ -1,0 +1,52 @@
+@hover-button-top: 15px;
+@hover-button-left: 15px;
+@hover-menu-top: @hover-button-top + 35px;
+@hover-menu-left: @hover-button-left + 20px;
+
+.hover-menu {
+    width: 300px;
+    max-height: calc(100vh - 300px);
+    height: fit-content;
+    position: absolute;
+    top: @hover-menu-top;
+    left: @hover-menu-left;
+    padding: 10px;
+    box-shadow: -1px -1px 4px 0 hsla(0, 0%, 87.5%, .5), -2px 2px 4px 0 hsla(0, 0%, 95.7%, .5), 2px 3px 8px 2px hsla(0, 0%, 59.2%, .05) !important;
+    border-radius: 5px;
+    overflow: scroll;
+    background-color: #ffffff;
+
+    .ant-collapse {
+        border: unset;
+        margin-top: 10px;
+
+        .ant-collapse-item {
+            border: unset;
+            box-shadow: -1px -1px 4px 0 hsla(0, 0%, 87.5%, .5), -2px 2px 4px 0 hsla(0, 0%, 95.7%, .5), 2px 3px 8px 2px hsla(0, 0%, 59.2%, .05) !important;
+        }
+    
+        .ant-collapse-header {
+            background-color: #ffffff;
+        }
+        
+        .ant-collapse-content {
+            border: unset;
+        }
+
+        .ant-collapse-content-box {
+            padding: 15px;
+        }
+    }
+
+    .ant-form-item {
+        margin-bottom: 10px;
+    }
+}
+
+.hover-button {
+    width: 30px;
+    height: 30px;
+    position: absolute;
+    top: @hover-button-top;
+    left: @hover-button-left;
+}

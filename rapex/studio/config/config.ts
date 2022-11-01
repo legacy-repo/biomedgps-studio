@@ -60,6 +60,7 @@ export default defineConfig({
   },
   // Fast Refresh 热更新
   fastRefresh: {},
+  runtimePublicPath: true,
   openAPI: [
     {
       requestLibPath: "import { request } from 'umi'",
