@@ -39,6 +39,8 @@
 
 (s/def ::database-url (s/and string? #(some? (re-matches #"jdbc:postgresql:.*" %))))
 
+(s/def ::graph-database-url (s/and string? #(some? (re-matches #"neo4j:.*" %))))
+
 ;; Service
 (s/def ::fs-service #{"minio" "oss" "s3"})
 
@@ -63,9 +65,10 @@
 
 (s/def ::default-dataset string?)
 
-(s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata]
+(s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
+                                 ::graph-database-url ::database-url]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors
-                                 ::database-url ::fs-services ::default-fs-service]))
+                                 ::fs-services ::default-fs-service]))
 
 (defn get-minio-rootdir
   [env]
@@ -121,7 +124,7 @@
 (defn check-config
   [env]
   (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset
-                                 :cors-origins :enable-cors :database-url :dbtype
+                                 :cors-origins :enable-cors :database-url :dbtype :graph-database-url
                                  :fs-services :default-fs-service :dataset-metadata])]
     (when (not (s/valid? ::config config))
       (log/error "Configuration errors:\n" (expound-str ::config config))

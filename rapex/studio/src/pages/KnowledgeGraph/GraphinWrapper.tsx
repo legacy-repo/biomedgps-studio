@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Graphin, { Components, Behaviors, GraphinContext } from '@antv/graphin';
 import { ContextMenu, FishEye } from '@antv/graphin-components';
 import {
@@ -12,12 +12,14 @@ import {
 } from '@ant-design/icons';
 import type { TooltipValue } from '@antv/graphin';
 import { Config } from './MenuButton';
-import { message } from 'antd';
-const { MiniMap, SnapLine, Tooltip } = Components;
-
+import { message, Descriptions } from 'antd';
+import { makeDataSource } from './utils';
+import voca from 'voca';
 import './graphin-wrapper.less';
 
-const { ZoomCanvas, ActivateRelations, ClickSelect, Hoverable } = Behaviors;
+const { MiniMap, SnapLine, Tooltip } = Components;
+
+const { ZoomCanvas, ActivateRelations, ClickSelect, Hoverable, FitView } = Behaviors;
 const { Menu } = ContextMenu;
 
 export type GraphinProps = {
@@ -32,7 +34,7 @@ export type GraphinProps = {
 const snapLineOptions = {
     line: {
         stroke: 'lightgreen',
-        lineWidth: 0.5,
+        lineWidth: 1,
     },
 };
 
@@ -107,7 +109,7 @@ const HighlightNode = (props: { selectedNode?: string }) => {
         // Highlight the selected node.
         nodes.forEach(node => {
             const model = node.getModel();
-            
+
             if (props.selectedNode && props.selectedNode !== model.id) {
                 console.log("UnSelected Node: ", props.selectedNode, model.id)
                 graph.setItemState(node, 'inactive', true);
@@ -131,8 +133,28 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         setVisible(false);
     };
 
+    const HoverText: React.FC<{ data: Record<string, any>, style: any }> = ({ data, style }) => {
+        console.log("HoverText: ", data)
+        const dataSource = makeDataSource(data, ["comboId", "degree", "depth", "layoutOrder", "x", "y", "type", "category"])
+        const items = Object.keys(dataSource).map(key => {
+            if (dataSource[key]) {
+                return (<Descriptions.Item key={voca.titleCase(key)} label={key}>{dataSource[key]}</Descriptions.Item>)
+            } else {
+                return null
+            }
+        })
+        return (
+            items.length > 0 ?
+                (<Descriptions size={"small"} column={1} title={null} bordered style={style}>
+                    {items}
+                </Descriptions>)
+                : (<span style={style}>No Properties</span>)
+        )
+    }
+
     return (
-        data && <Graphin fitView={true} fitCenter={true} data={data} layout={layout} style={style}>
+        data && <Graphin fitCenter={true} data={data} layout={layout} style={style}>
+            <FitView></FitView>
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
             <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
             {(config ? config.nodeTooltipEnabled : null) ?
@@ -141,7 +163,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         if (value.model) {
                             const { model } = value;
                             return (
-                                <span style={{ padding: '10px' }}>{model.id}</span>
+                                <HoverText data={model} style={{ padding: '10px', width: '300px' }}></HoverText>
                             );
                         }
                         return null;
@@ -154,7 +176,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         if (value.model) {
                             const { model } = value;
                             return (
-                                <span style={{ padding: '10px', width: 'fit-content' }}>{model.id}</span>
+                                <HoverText data={model} style={{ padding: '10px', width: 'fit-content' }}></HoverText>
                             );
                         }
                         return null;
@@ -164,7 +186,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <ZoomCanvas />
             {(config ? config.miniMapEnabled : null) ? <MiniMap /> : null}
             <Hoverable bindType="node" />
-            <Hoverable bindType="edge" />
+            {/* <Hoverable bindType="edge" /> */}
             {(config ? config.snapLineEnabled : null) ? <SnapLine options={snapLineOptions} visible /> : null}
             <ActivateRelations />
             <ContextMenu style={{ width: '150px' }}>

@@ -7,34 +7,14 @@ import { Config } from './MenuButton';
 import Toolbar from './Toolbar';
 import GraphinWrapper from './GraphinWrapper';
 import MenuButton from './MenuButton';
-import { uniq } from 'lodash';
-import voca from 'voca';
+import { request } from 'umi';
+import { makeColumns, makeDataSources } from './utils';
 
 import './index.less';
 
-const makeColumns = (dataSource: Array<Record<string, any>>) => {
-  let keys: Array<string> = [];
-  dataSource.map(item => {
-    keys = keys.concat(Object.keys(item))
-  });
-
-  let columns: TableColumnType<any>[] = [];
-  let uniq_keys = uniq(keys);
-  uniq_keys.map(item => {
-    columns.push({
-      title: voca.titleCase(item),
-      key: item,
-      dataIndex: item,
-      align: 'center'
-    })
-  });
-
-  return columns;
-}
-
 const oldLayout = {
-  type: 'compactBox',
-  direction: 'TB',
+  type: 'concentric',
+  minNodeSpacing: 20,
   getId: function getId(d: any) {
     return d.id;
   },
@@ -56,16 +36,43 @@ const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
 }
 
+export type GraphNode = {
+  comboId: string;
+  id: string;
+  label: string;
+  style: any;
+  category: 'nodes' | 'edges';
+  type: 'graphin-circle';
+  data: Record<string, any>
+}
+
+export type GraphEdge = {
+  relid: string;
+  source: string;
+  category: 'nodes' | 'edges';
+  target: string;
+  reltype: string;
+  style: any;
+  data: Record<string, any>
+}
+
 const KnowledgeGraph: React.FC = () => {
-  const [data, setData] = useState(Utils.mock(8).circle().graphin());
+  // const [data, setData] = useState(Utils.mock(8).circle().graphin())
+  const [data, setData] = useState<{ nodes: Array<GraphNode>, edges: Array<GraphEdge> }>({
+    nodes: [],
+    edges: []
+  });
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
+  const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
+  const [edgeColumns, setEdgeColumns] = useState<TableColumnType<any>[]>([]);
+  const [edgeDataSources, setEdgeDataSources] = useState<Array<Record<string, any>>>([]);
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
 
   const [layout, setLayout] = React.useState<any>({});
   const [config, setConfig] = React.useState<Config & { layout?: any } | undefined>({
-    layout: 'graphin-force',
+    layout: 'concentric',
     miniMapEnabled: false,
     snapLineEnabled: true,
     nodeTooltipEnabled: true,
@@ -73,9 +80,28 @@ const KnowledgeGraph: React.FC = () => {
   });
 
   useEffect(() => {
-    const columns = makeColumns(data.nodes);
-    console.log("Node Columns: ", columns);
-    setNodeColumns(columns);
+    request('/api/v1/nodes', {
+      method: 'GET',
+      params: {}
+    }).then(response => {
+      console.log("Get Knowledge Graph Data: ", response)
+      setData(response)
+    })
+  }, [])
+
+  useEffect(() => {
+    const nodes = makeDataSources(data.nodes)
+    setNodeDataSources(nodes)
+
+    const nodeColumns = makeColumns(nodes, ["comboId", "style", "data"]);
+    setNodeColumns(nodeColumns);
+
+    const edges = makeDataSources(data.edges)
+    setEdgeDataSources(edges)
+
+    const edgeColumns = makeColumns(edges, []);
+    setEdgeColumns(edgeColumns)
+    console.log("Node & Edge Columns: ", nodeColumns, edgeColumns);
   }, [data])
 
   const onChangeConfig = (config: Config, layout: any) => {
@@ -131,12 +157,13 @@ const KnowledgeGraph: React.FC = () => {
         <Toolbar position='bottom'>
           <TableTabs>
             {nodeColumns.length > 0 ?
-              <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={data.nodes} columns={nodeColumns} pagination={false}
+              <Table size={"small"} scroll={{ y: 200 }} rowKey={"identity"} dataSource={nodeDataSources} columns={nodeColumns} pagination={false}
                 onRow={(record, rowIndex) => {
                   return {
                     onClick: event => {
-                      setCurrentNode(record.id)
-                      setSelectedRowKeys([record.id])
+                      console.log("Click the node item: ", event, record)
+                      setCurrentNode(record.identity)
+                      setSelectedRowKeys([record.identity])
                     }
                   };
                 }}
@@ -146,11 +173,11 @@ const KnowledgeGraph: React.FC = () => {
                 }} />
               : null}
             {nodeColumns.length > 0 ?
-              <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={data.nodes} columns={nodeColumns} pagination={false} />
+              <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={edgeDataSources} columns={edgeColumns} pagination={false} />
               : null}
           </TableTabs>
         </Toolbar>
-        <GraphinWrapper selectedNode={currentNode} handleChange={handleChange} config={config} data={data} layout={{ oldLayout, ...layout }} style={style}></GraphinWrapper>
+        <GraphinWrapper selectedNode={currentNode} handleChange={handleChange} config={config} data={data} layout={{ ...oldLayout, ...layout }} style={style}></GraphinWrapper>
       </Col>
     </Row >
   );

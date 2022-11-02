@@ -14,7 +14,6 @@
             [ring.util.http-response :refer [ok not-found]]
             [ring.util.mime-type :as mime-type]
             [rapex.config :refer [env get-real-path]]
-            [tservice-core.tasks.http :refer [get-manifest]]
             [local-fs.core :as fs-lib]
             [rapex.util :as u]
             [rapex.middleware.exception :as exception]
@@ -22,6 +21,7 @@
             [rapex.routes.task :as task-route]
             [rapex.routes.database :as db-route]
             [rapex.tasks.core :as tasks-route]
+            [rapex.routes.graph :as gdb-route]
             [remote-fs.route :as fs-route]
             [rapex.version :as v]
             [rapex.db.core :as db]))
@@ -133,4 +133,5 @@
     task-route/routes
     fs-route/routes
     db-route/routes
-    tasks-route/routes]])
+    tasks-route/routes
+    gdb-route/routes]])

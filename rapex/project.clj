@@ -22,9 +22,9 @@
                  [org.postgresql/postgresql "42.2.8"]
                  [luminus-migrations "0.6.6" :exclusions [org.clojure/clojure]]
                  [cheshire "5.9.0" :exclusions [org.clojure/clojure]]
-                 [conman "0.8.4"
-                  :exclusions [org.clojure/java.jdbc
-                               org.clojure/clojure]]
+                 [conman "0.8.4" :exclusions [org.clojure/java.jdbc
+                                              org.clojure/clojure]]
+                 [org.neo4j.driver/neo4j-java-driver "4.4.9"]
 
                  ;; Web Middleware
                  [ring-cors "0.1.13"]
@@ -48,7 +48,7 @@
                  [com.github.yjcyxky/local-fs "0.1.5"]
                  [com.github.yjcyxky/remote-fs "0.2.5"]
                  [com.github.yjcyxky/tservice-core "0.2.3"]
-                 
+
                  ;; R
                  [rojure "0.2.0"]
                  [opencpu-clj "0.3.1"]

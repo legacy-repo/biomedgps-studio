@@ -10,7 +10,8 @@
             [rapex.tasks :as tasks]
             [rapex.rwrapper.opencpu :as opencpu]
             [mount.core :as mount]
-            [rapex.db.query-data :as qd]))
+            [rapex.db.query-data :as qd]
+            [rapex.db.query-gdata :as qgd]))
 
 ;; log uncaught exceptions in threads
 (Thread/setDefaultUncaughtExceptionHandler
@@ -70,6 +71,7 @@
   (check-config env)
   (qd/setup-datadir (:datadir env))
   (qd/setup-default-dbtype (:dbtype env))
+  (qgd/setup-gdb-connection (:graph-database-url env))
   (opencpu/setup-ocpu-api-service (or (:ocpu-api-service env) "http://localhost:5656"))
   (cond
     ;; Run a command like `java -jar rapex.jar init-*`
