@@ -96,7 +96,7 @@
   (s/keys :req-un [::required ::node_name ::node_type ::attribute ::attribute_type]
           :opt-un []))
 
-(s/def ::properties (s/map-of string? ::property))
+(s/def ::properties (s/map-of string? (s/coll-of ::property)))
 
 (def node-properties-resp-spec
   (s/keys :req-un []

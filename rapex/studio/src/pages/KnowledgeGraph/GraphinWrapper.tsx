@@ -138,7 +138,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         const dataSource = makeDataSource(data, ["comboId", "degree", "depth", "layoutOrder", "x", "y", "type", "category"])
         const items = Object.keys(dataSource).map(key => {
             if (dataSource[key]) {
-                return (<Descriptions.Item key={voca.titleCase(key)} label={key}>{dataSource[key]}</Descriptions.Item>)
+                return (<Descriptions.Item key={key} label={voca.titleCase(key)}>{dataSource[key]}</Descriptions.Item>)
             } else {
                 return null
             }

@@ -2,6 +2,7 @@
   (:require [rapex.db.neo4j.core :as db]
             [clojure.string :as clj-str]
             [rapex.config :refer [env]]
+            [clojure.tools.logging :as log]
             [reitit.ring.middleware.parameters :as parameters])
   (:import (java.net URI)))
 
@@ -102,14 +103,8 @@
                        all-properties)
                      @node-properties)]
     (if node-name
-      (get properties node-name)
+      {node-name (get properties node-name)}
       properties)))
-
-(db/defquery q-node-relationships
-  "Match (n:Gene)-[r]-(m) RETURN n, r, m LIMIT $limit")
-
-(db/defquery q-node-relationships-by-id
-  "MATCH (n)-[r]-(m) WHERE id(n) = $id RETURN n, r, m")
 
 (def color-map
   {:Gene "black"
@@ -165,6 +160,57 @@
 (defn merge-node-relationships
   [formated-node-relationships]
   (apply concat (map (fn [item] [(:n item) (:r item) (:m item)]) formated-node-relationships)))
+
+(defn limit
+  [limit-clause]
+  (if limit-clause
+    (format "LIMIT %s" limit-clause)
+    ""))
+
+(defn where
+  [where-clause]
+  (if where-clause
+    (format "WHERE %s" where-clause)
+    ""))
+
+(defn match
+  [match-clause]
+  (if match-clause
+    (format "MATCH %s" match-clause)
+    (throw (Exception. "Match clause is missing."))))
+
+(defn return
+  [return-clause]
+  (if return-clause
+    (format "RETURN %s" return-clause)
+    (throw (Exception. "Return clause is missing."))))
+
+(defn make-query
+  "
+   {:match xxx :where xxx :return xxx :limit xxx}
+  "
+  [query-map]
+  (let [query (format "%s %s %s %s"
+                      (match (:match query-map))
+                      (where (:where query-map))
+                      (return (:return query-map))
+                      (limit (:limit query-map)))]
+    (log/info "Query neo4j with " query)
+    (db/create-query query)))
+
+(defn query-gdb
+  [tx query-map]
+  (->> ((make-query query-map) tx)
+       (format-node-relationships)
+       (merge-node-relationships)
+       (distinct)
+       (group-by :category)))
+
+(db/defquery q-node-relationships
+  "Match (n:Gene)-[r]-(m) RETURN n, r, m LIMIT $limit")
+
+(db/defquery q-node-relationships-by-id
+  "MATCH (n)-[r]-(m) WHERE id(n) = $id RETURN n, r, m")
 
 (defn search-node-relationships
   " 

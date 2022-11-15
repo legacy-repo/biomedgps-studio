@@ -7,6 +7,7 @@ import { Config } from './MenuButton';
 import Toolbar from './Toolbar';
 import GraphinWrapper from './GraphinWrapper';
 import MenuButton from './MenuButton';
+import QueryBuilder from './QueryBuilder';
 import { request } from 'umi';
 import { makeColumns, makeDataSources } from './utils';
 
@@ -82,7 +83,9 @@ const KnowledgeGraph: React.FC = () => {
   useEffect(() => {
     request('/api/v1/nodes', {
       method: 'GET',
-      params: {}
+      params: {
+        "query_str": "{:match \"(n:Gene)-[r]-(m)\" :return \"n, r, m\"  :limit 10}"
+      }
     }).then(response => {
       console.log("Get Knowledge Graph Data: ", response)
       setData(response)
@@ -151,6 +154,7 @@ const KnowledgeGraph: React.FC = () => {
   return (
     <Row className='knowledge-graph-container'>
       <MenuButton config={config} onChangeConfig={onChangeConfig} style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}></MenuButton>
+      <QueryBuilder></QueryBuilder>
       <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
         <Toolbar position='right'>
         </Toolbar>
