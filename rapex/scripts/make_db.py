@@ -201,6 +201,21 @@ def dataset(data_dir, output_dir, db):
 
     func_map.get(db)(datafile, dbfile, "pathways", skip=True)
 
+    # Similar Genes
+    similar_genes_dir = os.path.join(data_dir, "similar_genes")
+    files = os.listdir(similar_genes_dir)
+    expected_files = [filename for filename in files if re.match(
+        r"[a-z]{3}_similar_genes.csv", filename)]
+
+    if len(expected_files) == 0:
+        raise Exception(
+            "Cannot find any expected data files in %s." % data_dir)
+
+    for datafile in expected_files:
+        id = datafile.split('.')[0]
+        datafile = os.path.join(similar_genes_dir, datafile)
+        func_map.get(db)(datafile, dbfile, id, skip=True)
+
 
 if __name__ == '__main__':
     main = click.CommandCollection(sources=[database])

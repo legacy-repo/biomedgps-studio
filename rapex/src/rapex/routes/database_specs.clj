@@ -1,6 +1,7 @@
 (ns rapex.routes.database-specs
   (:require [clojure.spec.alpha :as s]
-            [spec-tools.core :as st]))
+            [spec-tools.core :as st]
+            [rapex.tasks.common-sepcs :as cs]))
 
 ;; More Details for `:type`: https://cljdoc.org/d/metosin/spec-tools/0.6.1/doc/readme#type-based-conforming
 (s/def ::dataset
@@ -44,6 +45,27 @@
   (st/spec
    (s/keys :req-un [::query_str]
            :opt-un [::dataset ::page ::page_size])))
+
+(s/def ::queried_ensembl_id
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Ensembl id for querying similar genes."
+    :swagger/default     "ENSMUSG00000001"
+    :reason              "The ensembl id is invalid."}))
+
+(s/def ::organ
+  (st/spec
+   {:spec                cs/organ-sets
+    :type                :string
+    :description         "Organ name."
+    :swagger/default     (first cs/organ-sets)
+    :reason              "The organ name is invalid"}))
+
+(s/def ::SimilarGenesQueryParans
+  (st/spec
+   (s/keys :req-un [::queried_ensembl_id]
+           :opt-un [::page ::page_size ::dataset ::organ])))
 
 (s/def ::total
   (st/spec

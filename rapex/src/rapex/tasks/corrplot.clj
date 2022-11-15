@@ -16,8 +16,7 @@
                      :from [(keyword table)]
                      :where [:in :ensembl_id ensembl-ids]}
           results (qd/get-results (qd/get-db-path dataset) query-map)]
-      ;; [[{:ensembl_id xxx :gut_fa_1_1 xxx} {:ensembl_id xxx :gut_fa_1_2 xxx}]] -> [{:ensembl_id xxx :gut_fa_1_1 xxx :gut_fa_1_2 xxx}]
-      (map (fn [item] (apply merge item)) results))
+      results)
     ;; TODO: Need to record the message into a log file.
     (catch Exception e
       [])))
@@ -34,7 +33,7 @@
           organ (:organ payload)
           dataset (or (:dataset payload) (get-default-dataset))
           ensembl_ids (:gene_symbol payload)
-          results (query-db dataset (format "expr_%s_%s" datatype organ) ensembl_ids)
+          results (query-db dataset (format "expr_%s_%s" organ datatype) ensembl_ids)
           resp (ocpu/draw-plot! "corrplotly" :params {:d results :filetype "png"
                                                       :data_type (clj-str/upper-case datatype)
                                                       :scale scale :show_colnames show_colnames
@@ -72,7 +71,7 @@
    :id "corrplot"})
 
 (s/def ::gene_symbol (s/coll-of string?))
-(s/def ::organ #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn" "nse" "bld" "buc"})
+(s/def ::organ cs/organ-sets)
 (def schema (s/keys :req-un [::gene_symbol ::organ ::cs/dataset ::cs/datatype]
                     :opt-un [::cs/scale ::cs/show_rownames ::cs/show_colnames ::cs/corr_type]))
 

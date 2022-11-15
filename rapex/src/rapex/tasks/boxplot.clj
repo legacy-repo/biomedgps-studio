@@ -90,7 +90,7 @@
    :id "boxplot"})
 
 (s/def ::gene_symbol (s/coll-of string?))
-(s/def ::organ #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn" "nse" "bld" "buc"})
+(s/def ::organ cs/organ-sets)
 
 (def schema (s/keys :req-un [::gene_symbol ::organ ::cs/dataset ::cs/datatype]
                     :opt-un [::cs/method ::cs/log_scale ::cs/jitter_size]))

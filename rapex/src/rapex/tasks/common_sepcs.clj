@@ -11,3 +11,5 @@
 (s/def ::scale #{"none" "row" "col"})
 (s/def ::show_colnames boolean?)
 (s/def ::show_rownames boolean?)
+
+(def organ-sets #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn" "nse" "bld" "buc"})

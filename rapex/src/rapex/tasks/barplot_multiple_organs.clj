@@ -90,7 +90,7 @@
    :id "barplot-organs"})
 
 (s/def ::gene_symbol string?)
-(s/def ::organ (s/coll-of #{"gut" "hrt" "kdn" "lng" "lvr" "tst" "tyr" "brn" "nse" "bld" "buc"}))
+(s/def ::organ (s/coll-of cs/organ-sets))
 (def schema (s/keys :req-un [::gene_symbol ::organ ::cs/dataset ::cs/datatype]
                     :opt-un [::cs/position ::cs/log_scale]))
 

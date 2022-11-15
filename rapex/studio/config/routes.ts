@@ -92,7 +92,8 @@
         path: '/custom-analysis/correlation-analysis',
         name: 'correlation-analysis',
         icon: 'smile',
-        component: './Welcome',
+        component: './StatEngine',
+        chart: 'corrplot'
       },
       {
         path: '/custom-analysis/similar-genes-detection',

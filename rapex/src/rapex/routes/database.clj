@@ -3,7 +3,8 @@
             [rapex.db.query-data :as qd]
             [clojure.tools.logging :as log]
             [rapex.routes.database-specs :as ds]
-            [rapex.config :refer [get-default-dataset memorized-get-dataset-metadata]]))
+            [rapex.config :refer [get-default-dataset memorized-get-dataset-metadata]]
+            [rapex.tasks.common-sepcs :as cs]))
 
 (defn get-error-response
   [e]
@@ -15,6 +16,8 @@
                                           :context (.getData e)})
       :else (internal-server-error {:msg (.getMessage e)
                                     :context (.getData e)}))))
+
+(def get-default-organ (first cs/organ-sets))
 
 (defn gen-dataset-map
   "Generate dataset map for ui schema.
@@ -86,6 +89,37 @@
                      (log/error "Error: " e)
                      (get-error-response e))))})
 
+(defn fetch-similar-genes
+  []
+  {:summary    "Fetch similar genes"
+   :parameters {:query ::ds/SimilarGenesQueryParans}
+   :responses  {200 {:body ::ds/DBDataItems}
+                404 {:body ds/database-error-body}
+                400 {:body ds/database-error-body}
+                500 {:body ds/database-error-body}}
+   :handler    (fn [{{{:keys [page page_size queried_ensembl_id organ dataset]} :query} :parameters
+                     {:as headers} :headers}]
+                 (try
+                   (let [page (or page 1)
+                         page_size (or page_size 50)
+                         dataset (or dataset (get-default-dataset))
+                         organ   (or organ (get-default-organ))
+                         ;; How to handle the exception when the table doesn't exist.
+                         query-map {:select [:*]
+                                    :limit page_size
+                                    :offset (* (- page 1) page_size)
+                                    :from (keyword (format "%s_similar_genes" organ))
+                                    :where [:queried_ensembl_id queried_ensembl_id]}
+                         dbpath (qd/get-db-path dataset)]
+                     (log/info "database:" dbpath "query-map:" query-map)
+                     (ok {:total (qd/get-total dbpath query-map)
+                          :page page
+                          :page_size page_size
+                          :data (qd/get-results dbpath query-map)}))
+                   (catch Exception e
+                     (log/error "Error: " e)
+                     (get-error-response e))))})
+
 (defn get-datasets
   []
   {:summary "Get datasets"
@@ -107,6 +141,9 @@
 
    ["/genes"
     {:get (fetch-genes "Get Genes")}]
+
+   ["/similar-genes"
+    {:get (fetch-similar-genes)}]
 
    ["/pathways"
     {:get  (get-results "Get Pathways" :pathways)}]])
