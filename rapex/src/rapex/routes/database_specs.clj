@@ -64,7 +64,7 @@
 
 (s/def ::SimilarGenesQueryParans
   (st/spec
-   (s/keys :req-un [::queried_ensembl_id]
+   (s/keys :req-un [::query_str]
            :opt-un [::page ::page_size ::dataset ::organ])))
 
 (s/def ::total

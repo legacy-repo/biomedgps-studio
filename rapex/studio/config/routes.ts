@@ -6,12 +6,6 @@
     component: './Welcome',
   },
   {
-    path: '/knowledge-graph',
-    name: 'knowledge-graph',
-    icon: 'share-alt',
-    component: './KnowledgeGraph',
-  },
-  {
     path: '/single-gene',
     name: 'single-gene',
     icon: 'sliders',
@@ -21,6 +15,24 @@
     path: '/multiple-genes',
     name: 'multiple-genes',
     icon: 'dot-chart',
+    component: './Welcome',
+  },
+  {
+    name: 'kegg-pathways',
+    icon: 'partition',
+    path: '/kegg-pathways',
+    component: './KEGGPathwayWrapper'
+  },
+  {
+    path: '/knowledge-graph',
+    name: 'knowledge-graph',
+    icon: 'share-alt',
+    component: './KnowledgeGraph',
+  },
+  {
+    name: 'datasets',
+    icon: 'table',
+    path: '/datasets',
     component: './Welcome',
   },
   {
@@ -99,21 +111,9 @@
         path: '/custom-analysis/similar-genes-detection',
         name: 'similar-genes-detection',
         icon: 'smile',
-        component: './Welcome',
+        component: './SimilarGeneListWrapper',
       },
     ],
-  },
-  {
-    name: 'kegg-pathways',
-    icon: 'partition',
-    path: '/kegg-pathways',
-    component: './KEGGPathwayWrapper'
-  },
-  {
-    name: 'datasets',
-    icon: 'table',
-    path: '/datasets',
-    component: './Welcome',
   },
   {
     name: 'about',

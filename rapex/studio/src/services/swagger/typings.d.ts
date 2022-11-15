@@ -189,6 +189,18 @@ declare namespace API {
     page_size?: number;
   };
 
+  type getSimilarGenesParams = {
+    /** Queried ensembl id. */
+    queried_ensembl_id: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** Organ name. */
+    organ?: string;
+    dataset?: string;
+  };
+
   type getTasksIdParams = {
     /** Task ID */
     id: string;
@@ -226,6 +238,21 @@ declare namespace API {
 
   type postChartsChartNameParams = {
     chart_name: string;
+  };
+
+  type SimilarGenesData = {
+    pvalue: number;
+    ensembl_id: string;
+    gene_symbol?: string;
+    entrez_id?: string;
+    PCC: number;
+  };
+
+  type SimilarGenesDataResponse = {
+    total: number;
+    page: number;
+    page_size: number;
+    data: SimilarGenesData[];
   };
 
   type TaskCreationResponse = {

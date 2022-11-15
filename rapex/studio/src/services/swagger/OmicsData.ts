@@ -61,3 +61,18 @@ export async function getPathways(
     ...(options || {}),
   });
 }
+
+/** Get similar genes Get similar genes. GET /api/v1/similar-genes */
+export async function getSimilarGenes(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getSimilarGenesParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.SimilarGenesDataResponse>('/api/v1/similar-genes', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}

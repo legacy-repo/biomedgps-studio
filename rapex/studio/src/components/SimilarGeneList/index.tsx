@@ -8,9 +8,10 @@ import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
 
-type DEGQueryParams = {
-  /** Query string with honeysql specification. */
+type SimilarGenesQueryParams = {
   query_str: string;
+  organ?: string;
+  dataset?: string;
   /** Page, From 1. */
   page?: number;
   /** Num of items per page. */
@@ -18,20 +19,14 @@ type DEGQueryParams = {
 };
 
 type DataType = {
-  id: number;
-  ensembl_id: string;
-  entrez_id: string;
-  gene_symbol: string;
-  organ: string;
-  method: string;
-  datatype: string;
-  padj: number;
+  query_str: string;
+  entrez_id?: string;
+  gene_symbol?: string;
+  PCC: number;
   pvalue: number;
-  logfc: number;
-  direction: string;
 }
 
-type DEGDataResponse = {
+type SimilarGenesDataResponse = {
   total: number;
   page: number;
   page_size: number;
@@ -43,31 +38,33 @@ type PageParams = {
   pageSize?: number | undefined;
 };
 
-function formatResponse(response: DEGDataResponse): Promise<Partial<DEGDataResponse>> {
+function formatResponse(response: SimilarGenesDataResponse): Promise<Partial<SimilarGenesDataResponse>> {
   return Promise.resolve({
     ...response,
     success: true,
   });
 }
 
-export type GeneListProps = {
-  queryDEGs: (params: DEGQueryParams) => Promise<DEGDataResponse>;
+export type SimilarGeneListProps = {
+  querySimilarGenes: (params: SimilarGenesQueryParams) => Promise<SimilarGenesDataResponse>;
 };
 
-const GeneList: React.FC<GeneListProps> = (props) => {
-  const { queryDEGs } = props;
+const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
+  const { querySimilarGenes } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestDEGs = async (
-    params: PageParams,
+    params: PageParams & SimilarGenesQueryParams,
     sort: Record<string, SortOrder>,
     filter: Record<string, React.ReactText[] | null>,
   ) => {
     console.log('requestDEGs: ', sort, filter);
-    return await queryDEGs({
+    return await querySimilarGenes({
       page: params.current,
       page_size: params.pageSize,
       query_str: makeQueryStr(params, sort, filter),
+      organ: params.organ,
+      dataset: params.dataset
     })
       .then((response) => {
         return formatResponse(response);
@@ -84,32 +81,55 @@ const GeneList: React.FC<GeneListProps> = (props) => {
 
   const columns: ProColumns<DataType>[] = [
     {
-      title: <FormattedMessage id="pages.GeneList.ensemblId" defaultMessage="Ensembl ID" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_id',
+      sorter: true,
+      hideInForm: true,
+      hideInSetting: true,
+      hideInTable: true,
+      fieldProps: {
+        placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
+      },
+      tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+    },
+    {
+      title: <FormattedMessage id="pages.SimilarGeneList.ensemblId" defaultMessage="Ensembl ID" />,
       dataIndex: 'ensembl_id',
       sorter: true,
+      hideInForm: true,
+      hideInSearch: true,
+      hideInSetting: true,
       width: '180px',
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
     },
     {
-      title: <FormattedMessage id="pages.GeneList.entrezId" defaultMessage="Entrez ID" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.entrezId" defaultMessage="Entrez ID" />,
       align: 'center',
       sorter: true,
+      hideInForm: true,
+      hideInSearch: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
     },
     {
-      title: <FormattedMessage id="pages.GeneList.geneSymbol" defaultMessage="Gene Symbol" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.geneSymbol" defaultMessage="Gene Symbol" />,
       align: 'center',
+      hideInForm: true,
+      hideInSearch: true,
       dataIndex: 'gene_symbol',
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
     },
     {
-      title: <FormattedMessage id="pages.GeneList.organ" defaultMessage="Organ" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.organ" defaultMessage="Organ" />,
       align: 'center',
       dataIndex: 'organ',
       sorter: true,
+      hideInForm: true,
+      hideInSetting: true,
+      hideInTable: true,
       tip: 'Organ name.',
+      initialValue: "gut",
       valueType: 'select',
       valueEnum: {
         gut: { text: "Gut" },
@@ -123,96 +143,69 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       },
     },
     {
-      title: <FormattedMessage id="pages.GeneList.method" defaultMessage="Method" />,
-      align: 'center',
-      dataIndex: 'method',
-      sorter: true,
-      valueType: 'select',
-      valueEnum: {
-        ttest: { text: "T Test" },
-        wilcox: { text: "Wilcox Test" },
-        limma: { text: "Limma" }
-      },
-      tip: 'Stat method, such as ttest, wilcox.'
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.datatype" defaultMessage="Data Type" />,
-      align: 'center',
-      dataIndex: 'datatype',
-      sorter: true,
-      tip: 'Data type, such as FPKM, TPM, Counts.',
-      valueType: 'select',
-      valueEnum: {
-        fpkm: { text: "FPKM" },
-        tpm: { text: "TPM" },
-        counts: { text: "Counts" }
-      },
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.dataset" defaultMessage="Dataset" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.dataset" defaultMessage="Dataset" />,
       align: 'center',
       dataIndex: 'dataset',
       valueType: 'select',
+      hideInForm: true,
+      hideInSetting: true,
+      hideInTable: true,
+      initialValue: "000000",
       valueEnum: {
-        0: { text: "rapex_000000" }
+        "000000": { text: "rapex_000000" }
       },
     },
     {
-      title: <FormattedMessage id="pages.GeneList.pAdj" defaultMessage="AdjPvalue" />,
-      align: 'center',
-      hideInSearch: true,
-      dataIndex: 'padj',
-      sorter: true
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.pvalue" defaultMessage="Pvalue" />,
+      title: <FormattedMessage id="pages.SimilarGeneList.pvalue" defaultMessage="Pvalue" />,
       align: 'center',
       hideInSearch: true,
       dataIndex: 'pvalue',
       width: '80px',
-      sorter: true
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.logfc" defaultMessage="LogFC" />,
-      align: 'center',
-      hideInSearch: true,
-      dataIndex: 'logfc',
       sorter: true,
-      width: '80px',
-      tip: 'Log fold change = log(FC) Usually, the transformation is log at base 2, so the interpretation is straightforward: a log(FC) of 1 means twice as expressed.',
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.direction" defaultMessage="Direction" />,
-      align: 'center',
-      dataIndex: 'direction',
-      sorter: true,
-      width: '100px',
-      tip: '`Up` means up-regulated, `Down` means down-regulated and `No` means no difference.',
-      valueType: 'select',
-      valueEnum: {
-        up: { text: "Up" },
-        down: { text: "Down" },
-        no: { text: "No" }
+      render: (dom, entity) => {
+        return (
+          <span>{entity.pvalue.toFixed(3)}</span>
+        );
       },
     },
+    {
+      title: <FormattedMessage id="pages.SimilarGeneList.PCC" defaultMessage="PCC" />,
+      align: 'center',
+      hideInSearch: true,
+      dataIndex: 'PCC',
+      sorter: true,
+      tip: 'Pearson correlation coefficient.',
+      render: (dom, entity) => {
+        return (
+          <span>{entity.PCC.toFixed(3)}</span>
+        );
+      },
+    }
   ];
 
   return (
-    <Row className="genelist">
+    <Row className="similar-genelist">
       <ProTable<DataType, PageParams>
-        scroll={{ y: 'calc(100vh - 200px)' }}
+        // scroll={{ y: 'calc(100vh - 150px)' }}
         className="genelist__table"
         actionRef={actionRef}
         rowKey="id"
         search={{
           labelWidth: 120,
-          showHiddenNum: true
+          defaultCollapsed: false,
+          // Don't worry it.
+          searchText: <FormattedMessage id="pages.SimilarGeneList.analyze" defaultMessage="Analyze" />,
+        }}
+        cardBordered
+        polling={undefined}
+        locale={{
+          emptyText: <b><FormattedMessage id="pages.SimilarGeneList.nodata" defaultMessage="Please input a gene symbol or ensembl id." /></b>,
         }}
         pagination={{
           showQuickJumper: true,
           position: ['topLeft'],
         }}
-        cardBordered
+        // Don't worry it.
         request={requestDEGs}
         columns={columns}
         rowSelection={
@@ -234,7 +227,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
                   return true;
                 }
               }}>
-              <FormattedMessage id="pages.GeneList.download" defaultMessage="Download" />
+              <FormattedMessage id="pages.SimilarGeneList.download" defaultMessage="Download" />
             </CSVLink>
           ]
         }}
@@ -243,4 +236,4 @@ const GeneList: React.FC<GeneListProps> = (props) => {
   );
 };
 
-export default GeneList;
+export default SimilarGeneList;

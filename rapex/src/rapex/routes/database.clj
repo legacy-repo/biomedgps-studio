@@ -97,19 +97,24 @@
                 404 {:body ds/database-error-body}
                 400 {:body ds/database-error-body}
                 500 {:body ds/database-error-body}}
-   :handler    (fn [{{{:keys [page page_size queried_ensembl_id organ dataset]} :query} :parameters
+   :handler    (fn [{{{:keys [page page_size query_str organ dataset]} :query} :parameters
                      {:as headers} :headers}]
                  (try
                    (let [page (or page 1)
                          page_size (or page_size 50)
                          dataset (or dataset (get-default-dataset))
                          organ   (or organ (get-default-organ))
+                         query-map (qd/read-string-as-map query_str)
                          ;; How to handle the exception when the table doesn't exist.
-                         query-map {:select [:*]
-                                    :limit page_size
-                                    :offset (* (- page 1) page_size)
-                                    :from (keyword (format "%s_similar_genes" organ))
-                                    :where [:queried_ensembl_id queried_ensembl_id]}
+                         ;;  query-map {:select [:*]
+                         ;;             :limit page_size
+                         ;;             :offset (* (- page 1) page_size)
+                         ;;             :from (keyword (format "%s_similar_genes" organ))
+                         ;;             :where [:= :queried_ensembl_id queried_ensembl_id]
+                         ;;             :order-by [[:PCC :desc]]}
+                         query-map (merge query-map {:limit page_size
+                                                     :offset (* (- page 1) page_size)
+                                                     :from (keyword (format "%s_similar_genes" organ))})
                          dbpath (qd/get-db-path dataset)]
                      (log/info "database:" dbpath "query-map:" query-map)
                      (ok {:total (qd/get-total dbpath query-map)

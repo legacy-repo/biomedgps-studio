@@ -20,7 +20,7 @@ export default defineConfig({
     locale: true,
     siderWidth: 280,
     menu: {
-      defaultOpenAll: true,
+      defaultOpenAll: false,
     },
     ...defaultSettings,
   },

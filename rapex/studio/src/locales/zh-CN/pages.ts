@@ -14,6 +14,19 @@ export default {
   'pages.GeneList.logfc': 'logFC',
   'pages.GeneList.direction': '上下调',
 
+  // SimilarGeneList Page
+  'pages.SimilarGeneList.nodata': '请输入基因名或Ensembl ID计算相似基因...',
+  'pages.SimilarGeneList.analyze': '分析',
+  'pages.SimilarGeneList.gene': '基因',
+  'pages.SimilarGeneList.download': '下载',
+  'pages.SimilarGeneList.ensemblId': 'Ensembl ID',
+  'pages.SimilarGeneList.entrezId': 'Gene ID',
+  'pages.SimilarGeneList.geneSymbol': '基因名',
+  'pages.SimilarGeneList.organ': '器官',
+  'pages.SimilarGeneList.dataset': '数据集',
+  'pages.SimilarGeneList.PCC': '皮尔逊相关系数',
+  'pages.SimilarGeneList.pvalue': 'P值',
+
   'pages.layouts.userLayout.title': 'Ant Design 是西湖区最具影响力的 Web 设计规范',
   'pages.login.accountLogin.tab': '账户密码登录',
   'pages.login.accountLogin.errorMessage': '错误的用户名和密码(admin/ant.design)',

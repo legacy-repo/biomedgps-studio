@@ -2,7 +2,7 @@
 /* eslint-disable */
 import { request } from 'umi';
 
-/** Get Charts Get all the available charts. GET /api/v1/charts */
+/** Get charts Get all the available charts. GET /api/v1/charts */
 export async function getCharts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getChartsParams,
@@ -17,7 +17,7 @@ export async function getCharts(
   });
 }
 
-/** Create Chart Create a chart task. POST /api/v1/charts/${param0} */
+/** Create chart Create a chart task. POST /api/v1/charts/${param0} */
 export async function postChartsChartName(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.postChartsChartNameParams,
@@ -36,7 +36,7 @@ export async function postChartsChartName(
   });
 }
 
-/** Get UI Schema Get the ui schema of a chart. GET /api/v1/charts/ui-schema/${param0} */
+/** Get ui schema Get the ui schema of a chart. GET /api/v1/charts/ui-schema/${param0} */
 export async function getChartsUiSchemaChartName(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getChartsUiSchemaChartNameParams,
@@ -60,7 +60,7 @@ export async function getDatasets(options?: { [key: string]: any }) {
   });
 }
 
-/** Get Chart Task Get the information of a chart task. GET /api/v1/tasks/${param0} */
+/** Get chart task Get the information of a chart task. GET /api/v1/tasks/${param0} */
 export async function getTasksId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
   params: API.getTasksIdParams,

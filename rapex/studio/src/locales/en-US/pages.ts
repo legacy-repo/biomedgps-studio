@@ -20,10 +20,23 @@ export default {
   'pages.GeneList.logfc': 'logFC',
   'pages.GeneList.direction': 'Direction',
 
+  // SimilarGeneList Page
+  'pages.SimilarGeneList.nodata': 'Please input a gene symbol or ensembl id for detecting similar genes.',
+  'pages.SimilarGeneList.analyze': 'Analyze',
+  'pages.SimilarGeneList.gene': 'Gene',
+  'pages.SimilarGeneList.download': 'Download',
+  'pages.SimilarGeneList.ensemblId': 'Ensembl ID',
+  'pages.SimilarGeneList.entrezId': 'Gene ID',
+  'pages.SimilarGeneList.geneSymbol': 'Gene Symbol',
+  'pages.SimilarGeneList.organ': 'Organ',
+  'pages.SimilarGeneList.dataset': 'DataSet',
+  'pages.SimilarGeneList.PCC': 'PCC',
+  'pages.SimilarGeneList.pvalue': 'Pvalue',
+
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',
 
-  
+
   'pages.login.accountLogin.tab': 'Account Login',
   'pages.login.accountLogin.errorMessage': 'Incorrect username/password(admin/ant.design)',
   'pages.login.failure': 'Login failed, please try again!',
