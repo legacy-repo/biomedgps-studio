@@ -13,6 +13,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <title>RAPEX - Response to Air Pollution EXposure</title>
   <link rel="icon" href="<%= context.config.publicPath +'favicon.ico'%>" type="image/x-icon" />
+  <style>
+    /* Vistor Statistics */
+    iframe[style^="background"] {
+      display: block;
+      position: fixed !important;
+      right: 10px;
+      bottom: 0px;
+      z-index: 1000;
+      width: 50px;
+      height: 50px;
+      left: unset !important;
+      top: unset !important;
+    }
+
+    #root+div[style^="max-width"] {
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
@@ -197,15 +215,6 @@
           -webkit-transform: rotate(405deg);
           transform: rotate(405deg);
         }
-      }
-
-      /* Vistor Statistics */
-      iframe[style^="background"] {
-        display: none;
-        position: fixed;
-        right: 10px;
-        bottom: 0px;
-        z-index: 1000;
       }
     </style>
     <div style="

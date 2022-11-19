@@ -1,7 +1,7 @@
 export default {
   // Welcome Page
   'pages.Welcome.single-gene-analysis': 'Search Gene',
-  'pages.Welcome.multiple-gene-analysis': 'Multiple Genes Analysis',
+  'pages.Welcome.multiple-genes-analysis': 'Multiple Genes Analysis',
   'pages.Welcome.custom-data-analysis': 'Custom Data Analysis',
   'pages.Welcome.kegg-pathways': 'KEGG Pathway',
   'pages.Welcome.diff-genes': 'Diff Genes',

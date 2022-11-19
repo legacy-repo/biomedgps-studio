@@ -1,7 +1,7 @@
 export default {
   // Welcome Page
   'pages.Welcome.single-gene-analysis': '搜索基因',
-  'pages.Welcome.multiple-gene-analysis': '多基因分析',
+  'pages.Welcome.multiple-genes-analysis': '多基因分析',
   'pages.Welcome.custom-data-analysis': '自定义分析',
   'pages.Welcome.kegg-pathways': 'KEGG通路',
   'pages.Welcome.diff-genes': '差异表达基因',

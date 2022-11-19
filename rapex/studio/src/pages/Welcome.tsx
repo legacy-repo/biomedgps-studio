@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React from 'react';
-import { Tabs, Row, Col, List, Avatar, Tag } from 'antd';
+import { Tabs, Row, Col, Tag } from 'antd';
 import { FormattedMessage } from 'umi';
 import { filter } from 'lodash';
 import { Link } from 'react-router-dom'
@@ -167,7 +167,7 @@ const Welcome: React.FC = () => {
                             tags.map(tag => {
                               return (
                                 <Link to={tag.route}>
-                                  <Tag color="#108ee9">{tag.title}</Tag>
+                                  <Tag color="#108ee9" key={tag.route}>{tag.title}</Tag>
                                 </Link>
                               )
                             })
@@ -194,19 +194,7 @@ const Welcome: React.FC = () => {
                       </Row>
                     </Row>
                     :
-                    <List
-                      itemLayout="horizontal"
-                      dataSource={item.data}
-                      renderItem={item => (
-                        <List.Item>
-                          <List.Item.Meta
-                            avatar={<Avatar src="https://joeschmoe.io/api/v1/random" />}
-                            title={<a href="https://ant.design">{item.title}</a>}
-                            description="Ant Design, a design language for background applications, is refined by Ant UED Team"
-                          />
-                        </List.Item>
-                      )}
-                    />
+                    null
                 }
               </Tabs.TabPane>
             )
