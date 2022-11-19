@@ -164,11 +164,14 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     links: isDev
       ? [
         <DocLink></DocLink>,
-        <ExampleLink></ExampleLink>,
-        <OpenAPILink></OpenAPILink>,
-        <ComponentLink></ComponentLink>,
+        // <ExampleLink></ExampleLink>,
+        // <OpenAPILink></OpenAPILink>,
+        // <ComponentLink></ComponentLink>,
       ]
-      : [<DocLink></DocLink>, <ExampleLink></ExampleLink>],
+      : [
+        <DocLink></DocLink>,
+        // <ExampleLink></ExampleLink>
+      ],
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,

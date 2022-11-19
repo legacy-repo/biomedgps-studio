@@ -6,34 +6,29 @@
     component: './Welcome',
   },
   {
-    path: '/single-gene',
-    name: 'single-gene',
-    icon: 'sliders',
-    component: './Welcome',
-  },
-  {
-    path: '/multiple-genes',
-    name: 'multiple-genes',
-    icon: 'dot-chart',
-    component: './Welcome',
-  },
-  {
-    name: 'kegg-pathways',
-    icon: 'partition',
-    path: '/kegg-pathways',
-    component: './KEGGPathwayWrapper'
-  },
-  {
-    path: '/knowledge-graph',
-    name: 'knowledge-graph',
-    icon: 'share-alt',
-    component: './KnowledgeGraph',
-  },
-  {
-    name: 'datasets',
-    icon: 'table',
-    path: '/datasets',
-    component: './Welcome',
+    path: '/expression-analysis',
+    name: 'expression-analysis',
+    icon: 'appstore-add',
+    routes: [
+      {
+        path: '/expression-analysis/single-gene',
+        name: 'single-gene',
+        icon: 'sliders',
+        component: './Welcome',
+      },
+      {
+        path: '/expression-analysis/multiple-genes',
+        name: 'multiple-genes',
+        icon: 'dot-chart',
+        component: './Welcome',
+      },
+      {
+        path: '/expression-analysis/kegg-pathways',
+        name: 'kegg-pathways',
+        icon: 'partition',
+        component: './KEGGPathwayWrapper'
+      },
+    ]
   },
   {
     path: '/custom-analysis',
@@ -48,64 +43,9 @@
       },
       {
         path: '/custom-analysis/gene-expression-profile',
-        name: 'gene-exp-profile',
-        icon: 'table',
-        routes: [
-          {
-            path: '/custom-analysis/gene-expression-profile/boxplot',
-            name: 'boxplot',
-            icon: 'smile',
-            component: './StatEngine',
-            chart: 'boxplot'
-          },
-          {
-            path: '/custom-analysis/gene-expression-profile/barplot',
-            name: 'barplot',
-            icon: 'smile',
-            component: './StatEngine',
-            chart: 'barplot'
-          },
-        ]
-      },
-      {
-        path: '/custom-analysis/across-organs',
-        name: 'across-organs',
-        icon: 'table',
-        routes: [
-          {
-            path: '/custom-analysis/across-organs/boxplot-organs',
-            name: 'boxplot',
-            icon: 'smile',
-            component: './StatEngine',
-            chart: 'boxplot-organs'
-          },
-          {
-            path: '/custom-analysis/across-organs/barplot-organs',
-            name: 'barplot',
-            icon: 'smile',
-            component: './StatEngine',
-            chart: 'barplot-organs'
-          },
-        ]
-      },
-      {
-        path: '/custom-analysis/across-species',
-        name: 'across-species',
+        name: 'gene-expression-profile',
         icon: 'smile',
-        component: './Welcome',
-      },
-      {
-        path: '/custom-analysis/multiple-genes-comparison',
-        name: 'multiple-genes-comparison',
-        icon: 'smile',
-        component: './Welcome',
-      },
-      {
-        path: '/custom-analysis/correlation-analysis',
-        name: 'correlation-analysis',
-        icon: 'smile',
-        component: './StatEngine',
-        chart: 'corrplot'
+        component: './StatEngineWrapper'
       },
       {
         path: '/custom-analysis/similar-genes-detection',
@@ -114,6 +54,18 @@
         component: './SimilarGeneListWrapper',
       },
     ],
+  },
+  {
+    path: '/knowledge-graph',
+    name: 'knowledge-graph',
+    icon: 'share-alt',
+    component: './KnowledgeGraph',
+  },
+  {
+    name: 'datasets',
+    icon: 'table',
+    path: '/datasets',
+    component: './Welcome',
   },
   {
     name: 'about',

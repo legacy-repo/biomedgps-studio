@@ -24,7 +24,17 @@ export function makeQueryStr(
   if (params) {
     const subclauses = [];
     for (const key of Object.keys(params)) {
-      if (['current', 'pageSize'].indexOf(key) < 0 && params[key].length > 0) {
+      if ('queried_id' == key && params[key].length > 0) {
+        if (params[key].match(/ENS/i)) {
+          subclauses.push(`[:like [:upper :ensembl_id] [:upper "%${params[key]}%"]]`);
+        } else if (params[key].match(/[a-zA-Z][a-zA-Z0-9]+/i)) {
+          subclauses.push(`[:like [:upper :gene_symbol] [:upper "%${params[key]}%"]]`);
+        } else if (params[key].match(/[0-9]+/i)) {
+          subclauses.push(`[:like [:upper :entrez_id] [:upper "%${params[key]}%"]]`);
+        }
+      }
+
+      if (['current', 'pageSize', 'queried_id'].indexOf(key) < 0 && params[key].length > 0) {
         subclauses.push(`[:like [:upper :${key}] [:upper "%${params[key]}%"]]`);
       }
     }

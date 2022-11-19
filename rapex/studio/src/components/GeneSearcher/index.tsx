@@ -72,8 +72,8 @@ export function makeQueryStr(
 export type GeneSearcherProps = {
     queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
     placeholder?: string;
-    initialValue: any;
-    mode: any;
+    initialValue?: any;
+    mode?: any;
     onChange?: (value: string) => void;
     style: React.CSSProperties;
 };
@@ -147,7 +147,7 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
             filterOption={false}
             onSearch={handleSearch}
             onChange={handleChange}
-            mode={props?.mode}
+            mode={props?.mode ? props?.mode : 'single'}
             notFoundContent={<Empty description="Searching ..." />}
         >
             {options}

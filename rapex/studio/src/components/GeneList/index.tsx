@@ -25,6 +25,7 @@ type DataType = {
   organ: string;
   method: string;
   datatype: string;
+  dataset: string;
   padj: number;
   pvalue: number;
   logfc: number;
@@ -59,23 +60,27 @@ const GeneList: React.FC<GeneListProps> = (props) => {
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestDEGs = async (
-    params: PageParams,
+    params: PageParams & DataType,
     sort: Record<string, SortOrder>,
     filter: Record<string, React.ReactText[] | null>,
   ) => {
     console.log('requestDEGs: ', sort, filter);
-    return await queryDEGs({
-      page: params.current,
-      page_size: params.pageSize,
-      query_str: makeQueryStr(params, sort, filter),
-    })
-      .then((response) => {
-        return formatResponse(response);
+    if (params.method && params.datatype && params.organ) {
+      return await queryDEGs({
+        page: params.current,
+        page_size: params.pageSize,
+        query_str: makeQueryStr(params, sort, filter),
       })
-      .catch((error) => {
-        console.log('requestDEGs Error: ', error);
-        return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
-      });
+        .then((response) => {
+          return formatResponse(response);
+        })
+        .catch((error) => {
+          console.log('requestDEGs Error: ', error);
+          return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
+        });
+    } else {
+      return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
+    }
   };
 
   const actionRef = useRef<ActionType>();
@@ -84,9 +89,22 @@ const GeneList: React.FC<GeneListProps> = (props) => {
 
   const columns: ProColumns<DataType>[] = [
     {
+      title: <FormattedMessage id="pages.GeneList.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_id',
+      sorter: true,
+      hideInForm: true,
+      hideInSetting: true,
+      hideInTable: true,
+      fieldProps: {
+        placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
+      },
+      tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+    },
+    {
       title: <FormattedMessage id="pages.GeneList.ensemblId" defaultMessage="Ensembl ID" />,
       dataIndex: 'ensembl_id',
       sorter: true,
+      hideInSearch: true,
       width: '180px',
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
     },
@@ -94,6 +112,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       title: <FormattedMessage id="pages.GeneList.entrezId" defaultMessage="Entrez ID" />,
       align: 'center',
       sorter: true,
+      hideInSearch: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
     },
@@ -101,6 +120,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       title: <FormattedMessage id="pages.GeneList.geneSymbol" defaultMessage="Gene Symbol" />,
       align: 'center',
       dataIndex: 'gene_symbol',
+      hideInSearch: true,
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
     },
@@ -111,6 +131,9 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       sorter: true,
       tip: 'Organ name.',
       valueType: 'select',
+      formItemProps: {
+        required: true
+      },
       valueEnum: {
         gut: { text: "Gut" },
         kdn: { text: "Kidney" },
@@ -128,6 +151,9 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       dataIndex: 'method',
       sorter: true,
       valueType: 'select',
+      formItemProps: {
+        required: true
+      },
       valueEnum: {
         ttest: { text: "T Test" },
         wilcox: { text: "Wilcox Test" },
@@ -142,6 +168,9 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       sorter: true,
       tip: 'Data type, such as FPKM, TPM, Counts.',
       valueType: 'select',
+      formItemProps: {
+        required: true
+      },
       valueEnum: {
         fpkm: { text: "FPKM" },
         tpm: { text: "TPM" },
@@ -152,6 +181,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       title: <FormattedMessage id="pages.GeneList.dataset" defaultMessage="Dataset" />,
       align: 'center',
       dataIndex: 'dataset',
+      hideInSearch: true,
       valueType: 'select',
       valueEnum: {
         0: { text: "rapex_000000" }
@@ -185,6 +215,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       title: <FormattedMessage id="pages.GeneList.direction" defaultMessage="Direction" />,
       align: 'center',
       dataIndex: 'direction',
+      hideInSearch: true,
       sorter: true,
       width: '100px',
       tip: '`Up` means up-regulated, `Down` means down-regulated and `No` means no difference.',
@@ -206,11 +237,17 @@ const GeneList: React.FC<GeneListProps> = (props) => {
         rowKey="id"
         search={{
           labelWidth: 120,
-          showHiddenNum: true
+          showHiddenNum: true,
+          defaultCollapsed: false,
+          // Don't worry it.
+          searchText: <FormattedMessage id="pages.GeneList.analyze" defaultMessage="Analyze" />,
         }}
         pagination={{
           showQuickJumper: true,
           position: ['topLeft'],
+        }}
+        locale={{
+          emptyText: <b><FormattedMessage id="pages.GeneList.nodata" defaultMessage="Please input the parameters for analyzing diff genes." /></b>,
         }}
         cardBordered
         request={requestDEGs}

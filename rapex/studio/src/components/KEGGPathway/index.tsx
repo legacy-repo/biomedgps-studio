@@ -1,9 +1,10 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Row } from 'antd';
+import { message, Row } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
-import map from 'lodash.map';
-import React, { useRef } from 'react';
+import { map } from 'lodash';
+import { CSVLink } from "react-csv";
+import React, { useRef, useState } from 'react';
 import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
@@ -78,7 +79,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
 
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
-  // const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
+  const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
 
   const columns: ProColumns<PathwayData>[] = [
     {
@@ -106,8 +107,21 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       tip: 'The name of a KEGG pathway.',
     },
     {
+      title: <FormattedMessage id="pages.KEGGPathway.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_id',
+      sorter: true,
+      hideInForm: true,
+      hideInSetting: true,
+      hideInTable: true,
+      fieldProps: {
+        placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
+      },
+      tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+    },
+    {
       title: <FormattedMessage id="pages.KEGGPathway.geneSymbol" defaultMessage="Gene Symbol" />,
       align: 'center',
+      hideInSearch: true,
       dataIndex: 'gene_symbol',
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
@@ -127,6 +141,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
     {
       title: <FormattedMessage id="pages.KEGGPathway.ensemblId" defaultMessage="Ensembl ID" />,
       dataIndex: 'ensembl_id',
+      hideInSearch: true,
       sorter: true,
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
       // render: (dom, entity) => {
@@ -146,6 +161,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       title: <FormattedMessage id="pages.KEGGPathway.entrezId" defaultMessage="Entrez ID" />,
       align: 'center',
       sorter: true,
+      hideInSearch: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
       // render: (dom, entity) => {
@@ -171,6 +187,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
         rowKey="key"
         search={{
           labelWidth: 120,
+          defaultCollapsed: false,
         }}
         pagination={{
           showQuickJumper: true,
@@ -180,11 +197,28 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
         columns={columns}
         rowSelection={
           {
-            // onChange: (_, selectedRows) => {
-            //     setSelectedRows(selectedRows);
-            // },
+            onChange: (_, selectedRows) => {
+              setSelectedRows(selectedRows);
+            },
           }
         }
+        cardBordered
+        toolbar={{
+          actions: [
+            <CSVLink data={selectedRowsState}
+              filename="download-pathway.csv"
+              onClick={() => {
+                if (selectedRowsState.length == 0) {
+                  message.warn("Please select records firstly.")
+                  return false;
+                } else {
+                  return true;
+                }
+              }}>
+              <FormattedMessage id="pages.GeneList.download" defaultMessage="Download" />
+            </CSVLink>
+          ]
+        }}
       />
     </Row>
   );

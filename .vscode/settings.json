@@ -13,5 +13,6 @@
   },
   "[clojure]": {
     "editor.defaultFormatter": "betterthantomorrow.calva"
-  }
+  },
+  "editor.tabSize": 2
 }

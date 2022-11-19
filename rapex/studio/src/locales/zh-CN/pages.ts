@@ -1,18 +1,43 @@
 export default {
+  // Welcome Page
+  'pages.Welcome.single-gene-analysis': '搜索基因',
+  'pages.Welcome.multiple-gene-analysis': '多基因分析',
+  'pages.Welcome.custom-data-analysis': '自定义分析',
+  'pages.Welcome.kegg-pathways': 'KEGG通路',
+  'pages.Welcome.diff-genes': '差异表达基因',
+  'pages.Welcome.boxplot': '箱式图',
+  'pages.Welcome.barplot': '柱状图',
+  'pages.Welcome.boxplot-organs': '跨器官箱式图',
+  'pages.Welcome.barplot-organs': '跨器官柱状图',
+  'pages.Welcome.correlation-analysis': '相关性分析',
+  'pages.Welcome.similar-genes-detection': '相似基因分析',
+  'pages.Welcome.knowledge-graph': '知识图谱',
+  'pages.Welcome.datasets': '数据集',
+  'pages.Welcome.description': 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia',
+
+  // KEGGPathway Page
   'pages.KEGGPathway.pathwayId': '通路ID',
   'pages.KEGGPathway.pathwayName': '通路名称',
   'pages.KEGGPathway.geneSymbol': '基因名',
   'pages.KEGGPathway.ensemblId': 'Ensembl ID',
   'pages.KEGGPathway.entrezId': 'Entrez ID',
+  'pages.KEGGPathway.gene': '搜索基因',
 
+  // GeneList Page
   'pages.GeneList.download': '下载',
   'pages.GeneList.ensemblId': 'Ensembl ID',
   'pages.GeneList.entrezId': 'Entrez ID',
   'pages.GeneList.geneSymbol': '基因名',
+  'pages.GeneList.organ': '器官',
+  'pages.GeneList.method': '统计方法',
+  'pages.GeneList.datatype': '数据类型',
+  'pages.GeneList.dataset': '数据集',
   'pages.GeneList.pAdj': '校正后P值',
   'pages.GeneList.pvalue': 'P值',
   'pages.GeneList.logfc': 'logFC',
   'pages.GeneList.direction': '上下调',
+  'pages.GeneList.analyze': '分析',
+  'pages.GeneList.nodata': '请输入参数分析差异表达基因...',
 
   // SimilarGeneList Page
   'pages.SimilarGeneList.nodata': '请输入基因名或Ensembl ID计算相似基因...',
@@ -26,6 +51,14 @@ export default {
   'pages.SimilarGeneList.dataset': '数据集',
   'pages.SimilarGeneList.PCC': '皮尔逊相关系数',
   'pages.SimilarGeneList.pvalue': 'P值',
+
+  // StatEngineWrapper Page
+  'pages.StatEngineWrapper.boxplot': '箱式图',
+  'pages.StatEngineWrapper.barplot': '柱状图',
+  'pages.StatEngineWrapper.across-organs-boxplot': '跨器官箱式图',
+  'pages.StatEngineWrapper.across-organs-barplot': '跨器官柱状图',
+  'pages.StatEngineWrapper.correlation-analysis': '相关性分析',
+  'pages.StatEngineWrapper.multiple-genes-comparison': '多基因比较分析',
 
   'pages.layouts.userLayout.title': 'Ant Design 是西湖区最具影响力的 Web 设计规范',
   'pages.login.accountLogin.tab': '账户密码登录',

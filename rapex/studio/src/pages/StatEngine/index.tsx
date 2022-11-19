@@ -75,13 +75,13 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
 
   useEffect(() => {
     // More details on https://v3.umijs.org/docs/routing#routing-component-parameters
-    const chart = props.route.chart;
+    const chart = props.chart;
     if (chart) {
       setCurrentChart(chart);
     } else {
       setCurrentChart('boxplot');
     }
-  }, [props.route.chart]);
+  }, [props.chart]);
 
   const setChart = (dataset: string, chart: string, fieldsValue?: Record<string, any>) => {
     getChartUiSchema({ chart_name: chart, dataset: dataset }).then((response) => {

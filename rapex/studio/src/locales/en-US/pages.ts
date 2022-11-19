@@ -1,10 +1,27 @@
 export default {
+  // Welcome Page
+  'pages.Welcome.single-gene-analysis': 'Search Gene',
+  'pages.Welcome.multiple-gene-analysis': 'Multiple Genes Analysis',
+  'pages.Welcome.custom-data-analysis': 'Custom Data Analysis',
+  'pages.Welcome.kegg-pathways': 'KEGG Pathway',
+  'pages.Welcome.diff-genes': 'Diff Genes',
+  'pages.Welcome.boxplot': 'Boxplot',
+  'pages.Welcome.barplot': 'Barplot',
+  'pages.Welcome.boxplot-organs': 'Across Organs on Boxplot',
+  'pages.Welcome.barplot-organs': 'Across Organs on Barplot',
+  'pages.Welcome.correlation-analysis': 'Correlation Analysis',
+  'pages.Welcome.similar-genes-detection': 'Similar Genes Detection',
+  'pages.Welcome.knowledge-graph': 'Knowledge Graph',
+  'pages.Welcome.datasets': 'Datasets',
+  'pages.Welcome.description': 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia',
+
   // KEGGPathway Page
   'pages.KEGGPathway.pathwayId': 'Pathway ID',
   'pages.KEGGPathway.pathwayName': 'Pathway Name',
   'pages.KEGGPathway.geneSymbol': 'Gene Symbol',
   'pages.KEGGPathway.ensemblId': 'Ensembl ID',
   'pages.KEGGPathway.entrezId': 'Gene ID',
+  'pages.KEGGPathway.gene': 'Gene',
 
   // GeneList Page
   'pages.GeneList.download': 'Download',
@@ -19,6 +36,8 @@ export default {
   'pages.GeneList.pvalue': 'Pvalue',
   'pages.GeneList.logfc': 'logFC',
   'pages.GeneList.direction': 'Direction',
+  'pages.GeneList.analyze': 'Analyze',
+  'pages.GeneList.nodata': 'Please input the parameters for analyzing diff genes.',
 
   // SimilarGeneList Page
   'pages.SimilarGeneList.nodata': 'Please input a gene symbol or ensembl id for detecting similar genes.',
@@ -33,9 +52,16 @@ export default {
   'pages.SimilarGeneList.PCC': 'PCC',
   'pages.SimilarGeneList.pvalue': 'Pvalue',
 
+  // StatEngineWrapper Page
+  'pages.StatEngineWrapper.boxplot': 'Boxplot',
+  'pages.StatEngineWrapper.barplot': 'Barplot',
+  'pages.StatEngineWrapper.across-organs-boxplot': 'Across Organs (Boxplot)',
+  'pages.StatEngineWrapper.across-organs-barplot': 'Across Organs (Barplot)',
+  'pages.StatEngineWrapper.correlation-analysis': 'Correlation Analysis',
+  'pages.StatEngineWrapper.multiple-genes-comparison': 'Multiple Genes Comparison',
+
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',
-
 
   'pages.login.accountLogin.tab': 'Account Login',
   'pages.login.accountLogin.errorMessage': 'Incorrect username/password(admin/ant.design)',
