@@ -6,6 +6,7 @@
   display: flex;
   flex-direction: row;
   border-radius: 5px;
+  border: 1px solid #d6d6d6;
 
   .logo-container {
     width: 100%;
@@ -27,6 +28,7 @@
   }
 
   .search-container {
+    border-radius: 5px;
     height: 100%;
     background-color: #ffffff;
 
@@ -74,16 +76,12 @@
 
       .ant-tabs-content-holder,
       .ant-tabs-content {
-        height: calc(100vh - 112px);
+        height: calc(100vh - 113px);
       }
 
       .ant-tabs-tabpane {
         overflow: scroll;
-        border: 1px solid #d6d6d6;
-        border-top: unset;
         border-radius: 5px;
-        border-top-left-radius: unset;
-        border-top-right-radius: unset;
       }
 
       .ant-tabs-nav {
@@ -97,11 +95,6 @@
 
       .ant-tabs-nav>.ant-tabs-nav-wrap {
         padding-left: 10px;
-        border-radius: 5px;
-        border: 1px solid #d6d6d6;
-        border-bottom: unset;
-        border-bottom-left-radius: unset;
-        border-bottom-right-radius: unset;
       }
     }
   }
