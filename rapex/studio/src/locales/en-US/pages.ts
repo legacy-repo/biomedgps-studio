@@ -13,6 +13,9 @@ export default {
   'pages.Welcome.similar-genes-detection': 'Similar Genes Detection',
   'pages.Welcome.knowledge-graph': 'Knowledge Graph',
   'pages.Welcome.datasets': 'Datasets',
+  'pages.Welcome.samples': 'Samples',
+  'pages.Welcome.organs': 'Organs',
+  'pages.Welcome.publications': 'Publications',
   'pages.Welcome.description': 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia',
 
   // KEGGPathway Page

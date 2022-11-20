@@ -14,13 +14,13 @@
         path: '/expression-analysis/single-gene',
         name: 'single-gene',
         icon: 'sliders',
-        component: './About',
+        component: './SingleGene',
       },
       {
         path: '/expression-analysis/multiple-genes',
         name: 'multiple-genes',
         icon: 'dot-chart',
-        component: './About',
+        component: './MultipleGenes',
       },
       {
         path: '/expression-analysis/kegg-pathways',
