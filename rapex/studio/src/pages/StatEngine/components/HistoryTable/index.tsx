@@ -15,6 +15,7 @@ import './index.less';
 type PageParams = {
   current?: number | undefined;
   pageSize?: number | undefined;
+  status?: string;
 };
 
 export type TaskListItem = {
@@ -69,7 +70,6 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
     setForceUpdate('');
   }, [forceUpdateKey])
 
-  const history = useHistory();
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<TaskListItem>();
   // const [selectedRowsState, setSelectedRows] = useState<TaskListItem[]>([]);
@@ -87,6 +87,16 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
     if (pluginName) {
       queryParams['plugin_name'] = pluginName
     }
+
+    if (filter.status) {
+      queryParams['status'] = filter.status
+    }
+
+    if (params.status) {
+      queryParams['status'] = params.status
+    }
+
+    console.log("List Tasks: ", queryParams, params);
 
     return await getTasks(queryParams)
       .then((response) => {
