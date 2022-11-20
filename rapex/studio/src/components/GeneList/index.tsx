@@ -4,6 +4,8 @@ import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
 import React, { useRef, useState } from 'react';
+import GeneSearcher from '@/components/GeneSearcher';
+import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
@@ -25,7 +27,7 @@ type DataType = {
   organ: string;
   method: string;
   datatype: string;
-  dataset: string;
+  dataset?: string;
   padj: number;
   pvalue: number;
   logfc: number;
@@ -53,10 +55,11 @@ function formatResponse(response: DEGDataResponse): Promise<Partial<DEGDataRespo
 
 export type GeneListProps = {
   queryDEGs: (params: DEGQueryParams) => Promise<DEGDataResponse>;
+  queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
 };
 
 const GeneList: React.FC<GeneListProps> = (props) => {
-  const { queryDEGs } = props;
+  const { queryDEGs, queryGenes } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestDEGs = async (
@@ -99,6 +102,19 @@ const GeneList: React.FC<GeneListProps> = (props) => {
         placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
       },
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+      renderFormItem: (_, { type, defaultRender, ...rest }, form) => {
+        if (type === 'form') {
+          return null;
+        }
+
+        return (
+          <GeneSearcher
+            queryGenes={queryGenes}
+            {...rest}
+            style={{ width: '280px' }}
+          />
+        );
+      }
     },
     {
       title: <FormattedMessage id="pages.GeneList.ensemblId" defaultMessage="Ensembl ID" />,

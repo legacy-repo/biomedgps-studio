@@ -5,6 +5,8 @@ import type { SortOrder } from 'antd/es/table/interface';
 import { map } from 'lodash';
 import { CSVLink } from "react-csv";
 import React, { useRef, useState } from 'react';
+import GeneSearcher from '@/components/GeneSearcher';
+import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
@@ -50,10 +52,11 @@ function formatResponse(response: PathwayDataResponse): Promise<Partial<PathwayD
 
 export type KEGGPathwayProps = {
   queryPathways: (params: PathwayQueryParams) => Promise<PathwayDataResponse>;
+  queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
 };
 
 const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
-  const { queryPathways } = props;
+  const { queryPathways, queryGenes } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestPathways = async (
@@ -78,8 +81,8 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
   };
 
   const actionRef = useRef<ActionType>();
-  // const [currentRow, setCurrentRow] = useState<DataType>();
-  const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
+  // const [currentRow, setCurrentRow] = useState<PathwayData>();
+  const [selectedRowsState, setSelectedRows] = useState<PathwayData[]>([]);
 
   const columns: ProColumns<PathwayData>[] = [
     {
@@ -117,6 +120,19 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
         placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
       },
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+      renderFormItem: (_, { type, defaultRender, ...rest }, form) => {
+        if (type === 'form') {
+          return null;
+        }
+
+        return (
+          <GeneSearcher
+            queryGenes={queryGenes}
+            {...rest}
+            style={{ width: '300px' }}
+          />
+        );
+      }
     },
     {
       title: <FormattedMessage id="pages.KEGGPathway.geneSymbol" defaultMessage="Gene Symbol" />,

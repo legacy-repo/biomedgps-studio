@@ -134,7 +134,7 @@ const TableList: React.FC<HistoryTableProps> = (props) => {
             {dom}
           </a>
         );
-      },
+      }
     },
     {
       title: <FormattedMessage id="stat-engine.history-table.taskName" defaultMessage="Task Name" />,

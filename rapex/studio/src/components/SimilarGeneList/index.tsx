@@ -4,6 +4,8 @@ import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
 import React, { useRef, useState } from 'react';
+import GeneSearcher from '@/components/GeneSearcher';
+import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
@@ -47,10 +49,11 @@ function formatResponse(response: SimilarGenesDataResponse): Promise<Partial<Sim
 
 export type SimilarGeneListProps = {
   querySimilarGenes: (params: SimilarGenesQueryParams) => Promise<SimilarGenesDataResponse>;
+  queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
 };
 
 const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
-  const { querySimilarGenes } = props;
+  const { querySimilarGenes, queryGenes } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestDEGs = async (
@@ -91,6 +94,19 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
         placeholder: 'Please input a gene symbol, ensembl id or entrez id.'
       },
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+      renderFormItem: (_, { type, defaultRender, ...rest }, form) => {
+        if (type === 'form') {
+          return null;
+        }
+
+        return (
+          <GeneSearcher
+            queryGenes={queryGenes}
+            {...rest}
+            style={{ width: '280px' }}
+          />
+        );
+      }
     },
     {
       title: <FormattedMessage id="pages.SimilarGeneList.ensemblId" defaultMessage="Ensembl ID" />,
