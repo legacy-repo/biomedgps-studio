@@ -13,7 +13,7 @@ import { Carousel } from 'react-responsive-carousel';
 // import ProDescriptions from '@ant-design/pro-descriptions';
 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import './welcome.less';
+import './Welcome.less';
 
 type Item = {
   label: any,
