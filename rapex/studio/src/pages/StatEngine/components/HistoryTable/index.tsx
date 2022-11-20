@@ -8,7 +8,6 @@ import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { getTasks } from '@/services/swagger/Task';
 import type { SortOrder } from 'antd/es/table/interface';
-import { useHistory } from 'react-router-dom';
 import { ChartResult } from '../ChartList/data';
 import './index.less';
 

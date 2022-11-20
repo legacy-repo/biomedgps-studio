@@ -1,12 +1,16 @@
 /* eslint-disable no-undef */
-import React from 'react';
+import { Drawer } from 'antd';
+import React, { useState } from 'react';
 import { Tabs, Row, Col, Tag } from 'antd';
 import { FormattedMessage } from 'umi';
 import { filter } from 'lodash';
 import { Link } from 'react-router-dom'
+import { ReactSVG } from 'react-svg';
 import GeneSearcher from '@/components/GeneSearcher';
 import { getGenes } from '@/services/swagger/OmicsData';
 import { Carousel } from 'react-responsive-carousel';
+// import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
+// import ProDescriptions from '@ant-design/pro-descriptions';
 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import './welcome.less';
@@ -34,6 +38,9 @@ type StatItem = {
 }
 
 const Welcome: React.FC = () => {
+  const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [organ, setOrgan] = useState<string>("");
+
   const items: Item[] = [
     {
       label: <FormattedMessage id="pages.Welcome.single-gene-analysis" defaultMessage="Search Gene" />,
@@ -167,6 +174,13 @@ const Welcome: React.FC = () => {
 
   }
 
+  const onClickOrgan = (organ: string) => {
+    if (['lung', 'liver', 'gut', 'thyroid', 'brain', 'testis', 'heart', 'kidney'].indexOf(organ) >= 0) {
+      setShowDetail(true)
+      setOrgan(organ)
+    }
+  }
+
   const description = 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia'
 
   return (
@@ -212,11 +226,11 @@ const Welcome: React.FC = () => {
                       </Row>
                       <Row className='statistics' gutter={16}>
                         <Col className='data-stat' md={9} sm={24} xs={9} xxl={9}>
-                          <img src="/data-stat.png"></img>
+                          <ReactSVG src="/mice-organs.svg" onClick={(e) => { onClickOrgan(e.target.parentNode.parentNode.id) }}></ReactSVG>
                           <FormattedMessage id="pages.Welcome.description" defaultMessage={description} />
                         </Col>
                         <Col className='image-container' md={15} sm={24} xs={15} xxl={15}>
-                          <Carousel autoPlay dynamicHeight={false}>
+                          <Carousel autoPlay dynamicHeight={false} infiniteLoop>
                             {images.map((item: ImageItem) => {
                               return (
                                 <div key={item.title}>
@@ -237,9 +251,22 @@ const Welcome: React.FC = () => {
           })}
         </Tabs>
       </Col>
+
+      <Drawer
+        width={'50%'}
+        visible={showDetail}
+        className="organ-details"
+        onClose={() => {
+          setOrgan("")
+          setShowDetail(false)
+        }}
+        closable={true}
+        maskClosable={true}
+      >
+        hahaha {organ}
+      </Drawer>
     </Row >
   );
-
 };
 
 export default Welcome;

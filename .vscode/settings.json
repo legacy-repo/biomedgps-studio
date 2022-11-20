@@ -14,5 +14,8 @@
   "[clojure]": {
     "editor.defaultFormatter": "betterthantomorrow.calva"
   },
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  }
 }

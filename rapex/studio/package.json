@@ -90,6 +90,7 @@
     "react-json-viewer": "^3.0.1",
     "react-markdown": "^8.0.3",
     "react-responsive-carousel": "^3.2.23",
+    "react-svg": "^15.1.13",
     "rehype-raw": "^6.1.1",
     "umi": "^3.5.0",
     "umi-plugin-pro": "^2.0.1",
