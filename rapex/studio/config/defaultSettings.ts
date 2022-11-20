@@ -7,14 +7,14 @@ const Settings: LayoutSettings & {
   navTheme: 'light',
   // 拂晓蓝
   primaryColor: '#1890ff',
-  layout: 'mix',
+  layout: 'top',
   contentWidth: 'Fluid',
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
   title: '',
   pwa: false,
-  logo: '/logo-white.png',
+  logo: '/logo.png',
   iconfontUrl: '',
 };
 

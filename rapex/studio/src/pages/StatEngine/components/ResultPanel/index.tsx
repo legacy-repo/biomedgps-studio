@@ -207,6 +207,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         title="Chart History"
         placement="right"
         closable
+        className='history-table-drawer'
         width="70%"
         onClose={() => {
           setHistoryVisible(false);

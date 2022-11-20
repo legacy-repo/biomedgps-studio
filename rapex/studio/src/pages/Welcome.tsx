@@ -28,6 +28,11 @@ type TagItem = {
   title: string | React.ReactElement
 }
 
+type StatItem = {
+  title: string | React.ReactElement,
+  stat: string
+}
+
 const Welcome: React.FC = () => {
   const items: Item[] = [
     {
@@ -139,6 +144,25 @@ const Welcome: React.FC = () => {
     }
   ]
 
+  const stats: StatItem[] = [
+    {
+      title: <FormattedMessage id="pages.Welcome.datasets" defaultMessage="Datasets" />,
+      stat: '200',
+    },
+    {
+      title: <FormattedMessage id="pages.Welcome.samples" defaultMessage="Samples" />,
+      stat: '1,000'
+    },
+    {
+      title: <FormattedMessage id="pages.Welcome.organs" defaultMessage="Organs" />,
+      stat: '10'
+    },
+    {
+      title: <FormattedMessage id="pages.Welcome.publications" defaultMessage="Publications" />,
+      stat: '10,000'
+    }
+  ]
+
   const onSearch = (value: string) => {
 
   }
@@ -159,7 +183,7 @@ const Welcome: React.FC = () => {
                 {
                   item.key === 'single-gene-analysis' ?
                     <Row className='gene-searcher-box'>
-                      <Col className='search-box'>
+                      <Row className='search-box'>
                         <span className='title'>Enter gene symbol, ensembl id or entrez id</span>
                         <GeneSearcher queryGenes={getGenes} placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059" style={{ width: '100%' }} onChange={onSearch} />
                         <div className='tag-container'>
@@ -173,7 +197,19 @@ const Welcome: React.FC = () => {
                             })
                           }
                         </div>
-                      </Col>
+                      </Row>
+                      <Row className='text-statistics'>
+                        {
+                          stats.map(item => {
+                            return (
+                              <Col span={6} className='stat-item'>
+                                <span>{item.stat}</span>
+                                <span className='title'>{item.title}</span>
+                              </Col>
+                            )
+                          })
+                        }
+                      </Row>
                       <Row className='statistics' gutter={16}>
                         <Col className='data-stat' md={9} sm={24} xs={9} xxl={9}>
                           <img src="/data-stat.png"></img>
