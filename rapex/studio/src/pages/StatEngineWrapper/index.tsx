@@ -49,7 +49,7 @@ const StatEngineWrapper: React.FC<{ chart?: string } & RouteComponentProps<{}, S
   }, [chart])
 
   return (
-    <Tabs className='stat-engine-container' activeKey={currentKey}>
+    <Tabs className='stat-engine-container' activeKey={currentKey} onChange={(chart) => { setCurrentKey(chart) }}>
       {items.map(item => {
         return (
           <Tabs.TabPane tab={item.label} key={item.key}>
