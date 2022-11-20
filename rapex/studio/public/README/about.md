@@ -10,8 +10,6 @@ RAPEX has several customizable functions:
 3. Interactive visualization outputs. Unlike most of outputs provided in other tools, RAPEX provides interactive charts, leading users to other portions of the platform for further analysis. In addition, downloadable outputs are highly modifiable in terms of color, axis, etc.
 In summary, RAPEX is an one-stop RNA-Seq analysis tool that assists researchers and clinicians in discovering organ-specific, inter-organ and inter-species damage patterns caused by air pollution.
 
-This tool is developed by Jingcheng Yang, Tianyuan Chen, Yiqing Zhang, Jun Shang, Yuqin Huang, Yijia Huang, and Zihan Ran.
-
 ## How to cite?
 
 
