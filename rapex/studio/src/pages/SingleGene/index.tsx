@@ -27,39 +27,46 @@ const SingleGene: React.FC = () => {
   }, [id])
 
   useEffect(() => {
-    const query_str = `{:select [:*] :where [:like [:upper :ensembl_id] [:upper "%${ensemblId}%"]]}`
-    getGenes({
-      // rapex_degs.duckdb has a data table.
-      query_str: query_str,
-    })
-      .then((response) => {
-        const { data } = response;
-        setGene(data && data[0])
+    if (ensemblId && ensemblId !== "NA") {
+      const query_str = `{:select [:*] :where [:like [:upper :ensembl_id] [:upper "%${ensemblId}%"]]}`
+      getGenes({
+        // rapex_degs.duckdb has a data table.
+        query_str: query_str,
       })
-      .catch((error) => {
-        console.log('requestDEGs Error: ', error);
-        setGene(undefined)
+        .then((response) => {
+          const { data } = response;
+          setGene(data && data[0])
+        })
+        .catch((error) => {
+          console.log('requestDEGs Error: ', error);
+          setGene(undefined)
+        });
+
+      getFile({ filelink: `minio://single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+        setBarPlot({
+          data: response.data,
+          layout: response.layout,
+          frames: response.frames || undefined
+        });
+      }).catch(error => {
+        message.warn("Cannot fetch the result, please retry later.")
       });
 
-    getFile({ filelink: `minio://single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
-      setBarPlot({
-        data: response.data,
-        layout: response.layout,
-        frames: response.frames || undefined
+      getFile({ filelink: `minio://single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+        setBoxPlot({
+          data: response.data,
+          layout: response.layout,
+          frames: response.frames || undefined
+        });
+      }).catch(error => {
+        message.warn("Cannot fetch the result, please retry later.")
       });
-    }).catch(error => {
-      message.warn("Cannot fetch the result, please retry later.")
-    });
-
-    getFile({ filelink: `minio://single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
-      setBoxPlot({
-        data: response.data,
-        layout: response.layout,
-        frames: response.frames || undefined
-      });
-    }).catch(error => {
-      message.warn("Cannot fetch the result, please retry later.")
-    });
+    } else {
+      setGene(undefined);
+      setBarPlot(null);
+      setBoxPlot(null);
+      message.warn(`No such gene ${ensemblId}, use the default gene instead of it.`, 5);
+    }
   }, [ensemblId])
 
   const onSearch = (value: string, gene: GeneData) => {
