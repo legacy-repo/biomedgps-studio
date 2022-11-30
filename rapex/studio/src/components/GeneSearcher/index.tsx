@@ -1,4 +1,5 @@
 import { Select, Empty } from 'antd';
+import { filter } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
 const { Option } = Select;
@@ -12,6 +13,22 @@ export type GeneData = {
     ensembl_id: string;
     entrez_id: number;
     gene_symbol: string;
+    name: string;
+    taxid: string;
+    type_of_gene: string;
+    description: string;
+    mgi_id: string;
+    pdb: string;
+    pfam: string;
+    pubmed_ids: string;
+    pubmed: string;
+    alias: string;
+    chromosome: string;
+    start: string;
+    end: string;
+    strand: string;
+    swiss_p: string;
+    prosite: string;
 };
 
 export type GeneDataResponse = {
@@ -36,7 +53,7 @@ export function makeQueryStr(
     filter: Record<string, React.ReactText[] | null>,
 ): string {
     console.log('makeQueryStr filter: ', filter);
-    const query_str = `:select [:gene_symbol :entrez_id :ensembl_id]`;
+    const query_str = `:select [:*]`;
     let sort_clause = '';
     let query_clause = '';
     if (sort) {
@@ -74,18 +91,23 @@ export type GeneSearcherProps = {
     placeholder?: string;
     initialValue?: any;
     mode?: any;
-    onChange?: (value: string) => void;
+    onChange?: (value: string, gene: GeneData) => void;
     style: React.CSSProperties;
 };
 
 const GeneSearcher: React.FC<GeneSearcherProps> = props => {
-    const { queryGenes, onChange, initialValue } = props;
+    const { queryGenes, initialValue } = props;
+    const [geneData, setGeneData] = useState<GeneData[]>([]);
     const [data, setData] = useState<any[]>([]);
     const [value, setValue] = useState<string>();
 
     useEffect(() => {
         if (initialValue) {
             setValue(initialValue)
+            fetch(initialValue, (data) => {
+                setData(data);
+                handleChange(initialValue, {});
+            })
         }
     }, [initialValue])
 
@@ -109,11 +131,12 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
                             text: `${item['gene_symbol']} | ${item['entrez_id']} | ${item['ensembl_id']}`,
                         }));
                         callback(formatedData);
+                        setGeneData(data);
                     }
                 })
                 .catch((error) => {
                     console.log('requestDEGs Error: ', error);
-                    return callback([]);
+                    callback([]);
                 });
         };
 
@@ -128,9 +151,24 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
         }
     };
 
-    const handleChange = (newValue: string) => {
+    const handleChange = (newValue: string, option: any) => {
         setValue(newValue);
-        props.onChange?.(newValue);
+        if (newValue) {
+            const gene = filter(geneData, (item) => {
+                if (newValue.match(/ENS/i)) {
+                    return item.ensembl_id == newValue
+                } else if (newValue.match(/[a-zA-Z][a-zA-Z0-9]+/i)) {
+                    return item.gene_symbol == newValue
+                } else if (newValue.match(/[0-9]+/i)) {
+                    return item.entrez_id.toString() == newValue
+                } else {
+                    return false
+                }
+            })
+
+            console.log("handleChange(GeneSearcher): ", gene, geneData);
+            props.onChange?.(newValue, gene[0]);
+        }
     };
 
     const options = data.map(d => <Option key={d.value}>{d.text}</Option>);

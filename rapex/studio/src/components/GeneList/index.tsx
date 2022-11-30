@@ -4,6 +4,7 @@ import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
 import React, { useRef, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
@@ -56,10 +57,12 @@ function formatResponse(response: DEGDataResponse): Promise<Partial<DEGDataRespo
 export type GeneListProps = {
   queryDEGs: (params: DEGQueryParams) => Promise<DEGDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
+  queryGeneBaseUrl?: string;
 };
 
 const GeneList: React.FC<GeneListProps> = (props) => {
-  const { queryDEGs, queryGenes } = props;
+  const history = useHistory();
+  const { queryDEGs, queryGenes, queryGeneBaseUrl } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestDEGs = async (
@@ -123,6 +126,21 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       hideInSearch: true,
       width: '180px',
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.entrezId" defaultMessage="Entrez ID" />,
@@ -131,6 +149,21 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       hideInSearch: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.geneSymbol" defaultMessage="Gene Symbol" />,
@@ -139,6 +172,21 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       hideInSearch: true,
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.GeneList.organ" defaultMessage="Organ" />,

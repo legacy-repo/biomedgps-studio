@@ -4,12 +4,22 @@ import re
 import os
 import sys
 import click
+import time
 import duckdb
 import csv
 import sqlite3
 import tempfile
+import json
+import mygene
+import glob
+import xmltodict
+import pandas as pd
+from Bio import Entrez
 
-def db_init(reader:csv.DictReader, cur:sqlite3.Cursor, filein, table) -> list:
+Entrez.email = "yjcyxky@163.com"
+
+
+def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
     line = next(reader)
     db_fields = {}
     db_columns = []
@@ -33,10 +43,11 @@ def db_init(reader:csv.DictReader, cur:sqlite3.Cursor, filein, table) -> list:
 
     return db_columns
 
+
 def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
-    
+
     if csvfile.endswith('csv'):
         delimiter = ','
     elif csvfile.endswith('tsv'):
@@ -48,7 +59,7 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
 
         try:
             conn = sqlite3.connect(dbfile)
-        except: # catch *all* exceptions
+        except:  # catch *all* exceptions
             e = sys.exc_info()[0]
             print(e)
             sys.exit(1)
@@ -64,11 +75,14 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
 
             qmarks = ','.join(['?'] * len(db_fields))
             columns = ','.join(db_columns)
-            # print("INSERT INTO papers (" + columns + ") VALUES ({qm});".format(qm=qmarks))
-            cur.execute("INSERT INTO " + table_name + " (" + columns + ") VALUES ({qm});".format(qm=qmarks), db_fields)
+            # print("INSERT INTO " + table_name + " (" + columns +
+            #   ") VALUES ({qm});".format(qm=qmarks), db_fields)
+            cur.execute("INSERT INTO " + table_name + " (" + columns +
+                        ") VALUES ({qm});".format(qm=qmarks), db_fields)
 
         conn.commit()
-        
+
+
 def csv2duckdb(csvfile, dbfile, table_name="data", skip=False):
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
@@ -76,8 +90,8 @@ def csv2duckdb(csvfile, dbfile, table_name="data", skip=False):
     conn.execute(
         "CREATE TABLE %s AS SELECT * FROM read_csv_auto('%s', HEADER=TRUE);" % (table_name, csvfile))
 
-    conn.close()    
-    
+    conn.close()
+
 
 func_map = {
     "sqlite": csv2sqlite,
@@ -85,14 +99,9 @@ func_map = {
 }
 
 
-@click.group()
-def database():
-    pass
-
-
-def read_csv(csvfile):
+def read_csv(csvfile, sep=","):
     with open(csvfile, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
+        reader = csv.DictReader(csvfile, delimiter=sep)
         return [item for item in reader]
 
 
@@ -123,14 +132,159 @@ def format_deg_table(expected_files):
     return data
 
 
-def write_csv(data, file="data.csv"):
+def write_csv(data, file="data.csv", sep=","):
     with open(file, 'w') as csvfile:
         fieldnames = data[0].keys()
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, delimiter=sep)
         writer.writeheader()
 
         for item in data:
             writer.writerow(item)
+
+
+def write_json(data, file="data.json"):
+    with open(file, 'w') as jsonfile:
+        jsonfile.write(json.dumps(data))
+
+
+def fetch_ncbi_gene(ensembl_ids):
+    handle = Entrez.efetch(db="gene", id=ensembl_ids, retmode="xml")
+    result = xmltodict.parse(
+        ''.join([i.decode().strip() for i in handle.readlines()]))
+    return result.get("Entrezgene-Set").get("Entrezgene")
+
+
+def fetch_ncbi_gene_summaries(entrez_ids):
+    entrez_ids_str = ",".join(entrez_ids)
+    handle = Entrez.esummary(db="gene", id=entrez_ids_str)
+    result = xmltodict.parse(
+        ''.join([i.decode().strip() for i in handle.readlines()]))
+    esummary = result.get("eSummaryResult")
+    document_summary_set = esummary.get("DocumentSummarySet")
+    document_summaries = document_summary_set.get("DocumentSummary", "")
+    summary_dict = {i.get("@uid"): i.get("Summary")
+                    for i in document_summaries}
+    results = [summary_dict.get(id, "") for id in entrez_ids]
+    return results
+
+    # Cannot get matched results
+    # ncbi_gene_results = fetch_ncbi_gene(entrez_ids)
+    # return [result.get("Entrezgene_summary")
+    #         for result in ncbi_gene_results]
+
+
+def fetch_my_gene(ensembl_ids):
+    mg = mygene.MyGeneInfo()
+    return mg.getgenes(ensembl_ids)
+
+
+def merge_dict(dict1, dict2):
+    return {**dict1, **dict2}
+
+
+def format_pubmed_ids(pubmed_list):
+    if pubmed_list:
+        return ",".join(map(str, [i.get("pubmed") for i in pubmed_list]))
+    else:
+        return ""
+
+
+def format_pfam(pfam):
+    if type(pfam) == list:
+        return ','.join(pfam)
+    else:
+        return pfam
+
+
+def format_pdb(pdb):
+    if type(pdb) == list:
+        return ','.join(pdb)
+    else:
+        return pdb
+
+
+def format_swiss_p(swiss_p):
+    if type(swiss_p) == list:
+        return ','.join(swiss_p)
+    else:
+        return swiss_p
+
+
+def format_alias(alias):
+    if type(alias) == list:
+        return ','.join(alias)
+    else:
+        return alias
+
+
+def format_prosite(prosite):
+    if type(prosite) == list:
+        return ','.join(prosite)
+    else:
+        return prosite
+
+
+def format_mgi(mgi):
+    if type(mgi) == list:
+        return ','.join(mgi)
+    else:
+        return mgi
+
+
+def format_genomic_pos(genomic_pos, field="start"):
+    if genomic_pos:
+        if type(genomic_pos) == list:
+            return ",".join(map(str, [i.get(field) for i in genomic_pos]))
+        else:
+            return genomic_pos.get(field)
+    else:
+        return ""
+
+
+def format_pubmed(pubmed):
+    if pubmed:
+        return "|".join(["#".join([str(i.get("pubmed")),
+                                   re.sub("[\t\n]+", " ", i.get("text"))]) for i in pubmed])
+    else:
+        return "Unknown"
+
+
+def format_genes_output(results):
+    formated_results = []
+    for result in results:
+        genomic_pos = result.get("genomic_pos")
+        formated_results.append({
+            "gene_symbol": result.get("gene_symbol"),
+            "ensembl_id": result.get("ensembl_id"),
+            "entrez_id": result.get("entrez_id"),
+            "name": result.get("name"),
+            "taxid": result.get("taxid"),
+            "type_of_gene": result.get("type_of_gene"),
+            "description": result.get("description"),
+            # http://www.informatics.jax.org/marker/MGI:95773
+            "mgi_id": format_mgi(result.get("MGI")),
+            # https://www.rcsb.org/structure/3AB3
+            "pdb": format_pdb(result.get("pdb")),
+            # https://www.ebi.ac.uk/interpro/search/text/PF00503
+            "pfam": format_pfam(result.get("pfam")),
+            # https://pubmed.ncbi.nlm.nih.gov/23703206,23703205
+            "pubmed_ids": format_pubmed_ids(result.get("generif")),
+            "pubmed": format_pubmed(result.get("generif")),
+            "alias": format_alias(result.get("alias")),
+            "chromosome": format_genomic_pos(genomic_pos, "chr"),
+            "start": format_genomic_pos(genomic_pos, "start"),
+            "end": format_genomic_pos(genomic_pos, "end"),
+            "strand": format_genomic_pos(genomic_pos, "strand"),
+            "swiss_p": format_swiss_p(result.get("ipi")),
+            # https://prosite.expasy.org/cgi-bin/prosite/prosite_search_full.pl?SEARCH=xxx
+            "prosite": format_prosite(result.get("prosite")),
+        })
+    return formated_results
+
+
+@click.group()
+def database():
+    pass
 
 
 @database.command(help="Parse data files and make a dataset database.")
@@ -159,24 +313,29 @@ def dataset(data_dir, output_dir, db):
             "Cannot find any expected data files in %s." % deg_dir)
 
     data = format_deg_table(expected_files)
-    
+
     tempdir = tempfile.mkdtemp()
     datafile = os.path.join(tempdir, "rapex_degs.csv")
     write_csv(data, file=datafile)
 
     func_map.get(db)(datafile, dbfile, "degs")
-    
-    # Genes
-    genes = map(lambda item: {
-        "ensembl_id": item.get("ensembl_id"),
-        "entrez_id": item.get("entrez_id"),
-        "gene_symbol": item.get("gene_symbol")
-    }, data)
-    genefile = os.path.join(data_dir, "genes.csv")
-    write_csv(list({v['ensembl_id']:v for v in genes}.values()), file=genefile)
 
+    # Genes
+    genefile = os.path.join(data_dir, "formated_genes.tsv")
+
+    if not os.path.exists(genefile):
+        genes = map(lambda item: {
+            "ensembl_id": item.get("ensembl_id"),
+            "entrez_id": item.get("entrez_id"),
+            "gene_symbol": item.get("gene_symbol")
+        }, data)
+        genefile = os.path.join(data_dir, "genes.csv")
+        write_csv(
+            list({v['ensembl_id']: v for v in genes}.values()), file=genefile)
+
+    print("Import %s into database" % genefile)
     func_map.get(db)(genefile, dbfile, "genes", skip=True)
-    
+
     # Expr
     expr_dir = os.path.join(data_dir, "expr")
     files = os.listdir(expr_dir)
@@ -191,7 +350,7 @@ def dataset(data_dir, output_dir, db):
         id = "expr_%s" % datafile.split('.')[0]
         datafile = os.path.join(expr_dir, datafile)
         func_map.get(db)(datafile, dbfile, id, skip=True)
-        
+
     # Pathways
     datafile = os.path.join(data_dir, "pathways.tsv")
 
@@ -215,6 +374,82 @@ def dataset(data_dir, output_dir, db):
         id = datafile.split('.')[0]
         datafile = os.path.join(similar_genes_dir, datafile)
         func_map.get(db)(datafile, dbfile, id, skip=True)
+
+
+@database.command(help="Get the gene information from NCBI and myGene.")
+@click.option('--gene-list-file', '-i', required=True, help="A file which contains gene ids.")
+@click.option('--output-file', '-o', required=False, help="A output file.", default="genes.json")
+@click.option('--output-tsv', is_flag=True, help='Whether to output tsv file.')
+@click.option('--step', '-s', help='How many steps?', default=200)
+@click.option('--waiting-seconds', '-w', type=int, default=2,
+              help='How many seconds do you need to wait?.',)
+def genes(gene_list_file, output_file, output_tsv, step, waiting_seconds):
+    genes = read_csv(gene_list_file)
+
+    if len(genes) == 0:
+        raise Exception("Not a valid gene list file.")
+
+    ids = genes[0].keys()
+    if 'ensembl_id' not in ids:
+        raise Exception("ensembl_id doesn't exist in the gene list file.")
+
+    for (index, genesets) in enumerate([genes[i:i+step] for i in range(0, len(genes), step)]):
+        filename = "_%s-%s.json" % ((index * step), (index * step) + step)
+        outfile = output_file.replace(".json", filename)
+
+        if not (os.path.exists(outfile) and os.path.exists(outfile.replace("json", "tsv"))):
+            results = []
+            ensembl_ids = [gene.get("ensembl_id") for gene in genesets]
+            entrez_ids = [gene.get("entrez_id") for gene in genesets]
+            print("Querying %s genes" % len(ensembl_ids))
+            summaries = fetch_ncbi_gene_summaries(entrez_ids)
+            mygene_results = fetch_my_gene(ensembl_ids)
+
+            print("Get gene info: %s, %s" %
+                  (len(summaries), len(mygene_results)))
+
+            for (idx, gene) in enumerate(genesets):
+                summary = {"description": summaries[idx]}
+                mygene = mygene_results[idx]
+                # print("Summary: %s, My Gene: %s" % (summary, mygene.keys()))
+                gene_info = merge_dict(merge_dict(summary, mygene), gene)
+                results.append(gene_info)
+
+            write_json(results, file=outfile)
+
+            if output_tsv:
+                tsv_content = format_genes_output(results)
+                write_csv(tsv_content, file=outfile.replace(".json", ".tsv"),
+                          sep="\t")
+            time.sleep(waiting_seconds)
+        else:
+            print("%s exists, so skip it." % outfile)
+
+
+@database.command(help="Merge csv/tsv files.")
+@click.option('--data-dir', '-d', required=True,
+              type=click.Path(exists=True, dir_okay=True),
+              help="A directory which contains csv/tsv files.")
+@click.option('--output-file', '-o', required=False, default="output.tsv", help="A path of output file.")
+@click.option('--output-csv', is_flag=True, help="Output as csv file?")
+def merge(data_dir, output_file, output_csv):
+    def read_file(filepath):
+        if filepath.endswith("tsv"):
+            return pd.read_csv(filepath, sep='\t')
+        else:
+            return pd.read_csv(filepath, sep=',')
+
+    all_files = glob.glob(os.path.join(data_dir, "*.csv"))
+    all_files.extend(glob.glob(os.path.join(data_dir, "*.tsv")))
+    print("Merge %s files in %s" % (len(all_files), data_dir))
+
+    if all_files:
+        df_from_each_file = (read_file(f) for f in all_files)
+        df_merged = pd.concat(df_from_each_file, ignore_index=True)
+        if output_csv:
+            df_merged.to_csv(output_file, sep=",", index=False)
+        else:
+            df_merged.to_csv(output_file, sep="\t", index=False)
 
 
 if __name__ == '__main__':

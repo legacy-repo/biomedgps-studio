@@ -5,7 +5,9 @@ import './index.less';
 
 const GeneListWrapper: React.FC = () => {
   return (
-    <GeneList queryDEGs={getDegs} queryGenes={getGenes}></GeneList>
+    <GeneList queryDEGs={getDegs} queryGenes={getGenes}
+      queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=">
+    </GeneList>
   );
 };
 

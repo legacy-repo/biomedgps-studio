@@ -4,6 +4,7 @@ import { message, Row } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { map } from 'lodash';
 import { CSVLink } from "react-csv";
+import { useHistory } from 'react-router-dom';
 import React, { useRef, useState } from 'react';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
@@ -53,10 +54,12 @@ function formatResponse(response: PathwayDataResponse): Promise<Partial<PathwayD
 export type KEGGPathwayProps = {
   queryPathways: (params: PathwayQueryParams) => Promise<PathwayDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
+  queryGeneBaseUrl?: string;
 };
 
 const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
-  const { queryPathways, queryGenes } = props;
+  const history = useHistory();
+  const { queryPathways, queryGenes, queryGeneBaseUrl } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestPathways = async (
@@ -141,18 +144,21 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       dataIndex: 'gene_symbol',
       sorter: true,
       tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.KEGGPathway.ensemblId" defaultMessage="Ensembl ID" />,
@@ -160,18 +166,21 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       hideInSearch: true,
       sorter: true,
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.KEGGPathway.entrezId" defaultMessage="Entrez ID" />,
@@ -180,18 +189,21 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       hideInSearch: true,
       dataIndex: 'entrez_id',
       tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
-      // render: (dom, entity) => {
-      //     return (
-      //         <a
-      //             onClick={() => {
-      //                 // setCurrentRow(entity);
-      //                 // setShowDetail(true);
-      //             }}
-      //         >
-      //             {dom}
-      //         </a>
-      //     );
-      // },
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              if (queryGeneBaseUrl) {
+                history.push(`${queryGeneBaseUrl}${entity.ensembl_id}`);
+              } else {
+                console.log("You need to set queryGeneBaseUrl.");
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
   ];
 

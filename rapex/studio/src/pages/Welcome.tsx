@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Tabs, Row, Col, Tag } from 'antd';
 import { FormattedMessage } from 'umi';
 import { filter } from 'lodash';
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom';
 import { ReactSVG } from 'react-svg';
 import GeneSearcher from '@/components/GeneSearcher';
 import { getGenes } from '@/services/swagger/OmicsData';
@@ -38,6 +38,7 @@ type StatItem = {
 }
 
 const Welcome: React.FC = () => {
+  const history = useHistory();
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [organ, setOrgan] = useState<string>("");
 
@@ -171,7 +172,9 @@ const Welcome: React.FC = () => {
   ]
 
   const onSearch = (value: string) => {
-
+    if (value) {
+      history.push(`/expression-analysis/single-gene?ensemblId=${value}`);
+    }
   }
 
   const onClickOrgan = (organ: string) => {

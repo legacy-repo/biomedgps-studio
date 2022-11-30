@@ -5,7 +5,9 @@ import './index.less';
 
 const KEGGPathwayWrapper: React.FC = () => {
   return (
-    <KEGGPathway queryPathways={getPathways} queryGenes={getGenes}></KEGGPathway>
+    <KEGGPathway queryPathways={getPathways} queryGenes={getGenes}
+      queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=">
+    </KEGGPathway>
   );
 };
 
