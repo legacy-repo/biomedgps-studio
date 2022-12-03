@@ -1,15 +1,15 @@
 (ns rapex.config
-  (:require
-   [clojure.spec.alpha :as s]
-   [expound.alpha :refer [expound-str]]
-   [cprop.core :refer [load-config]]
-   [cprop.source :as source]
-   [clojure.string :as clj-str]
-   [clojure.tools.logging :as log]
-   [clojure.java.io :refer [file]]
-   [mount.core :refer [args defstate]]
-   [local-fs.core :as fs-lib]
-   [clojure.data.json :as json]))
+  (:require [clojure.spec.alpha :as s]
+            [expound.alpha :refer [expound-str]]
+            [cprop.core :refer [load-config]]
+            [cprop.source :as source]
+            [clojure.string :as clj-str]
+            [clojure.tools.logging :as log]
+            [clojure.java.io :refer [file]]
+            [mount.core :refer [args defstate]]
+            [local-fs.core :as fs-lib]
+            [clojure.data.json :as json]
+            [rapex.version :as v]))
 
 (defstate env
   :start (load-config :merge [(args)
@@ -87,18 +87,13 @@
         trimmed (str (clj-str/replace minio-rootdir #"/$" "") "/")]
     (clj-str/replace abspath (re-pattern trimmed) "minio://")))
 
-(defn get-real-path
-  "Replace a minio link to an absolute path."
-  [object-link]
-  (let [minio-rootdir (get-minio-rootdir env)
-        trimmed (clj-str/replace object-link #"minio://(/|./)?|file://(/|./)?" "")]
-    (if (= trimmed object-link)
-      (throw (ex-info "Not a valid link." {}))
-      (fs-lib/join-paths minio-rootdir trimmed))))
-
 (defn get-workdir
   []
   (:workdir env))
+
+(defn get-datadir
+  []
+  (:datadir env))
 
 (defn get-default-dataset
   []
@@ -110,6 +105,25 @@
     (json/read-str content :key-fn keyword)))
 
 (def memorized-get-dataset-metadata (memoize get-dataset-metadata))
+
+(def memorized-get-version (memoize (fn [] (v/get-version "com.github.rapex-lab" "rapex"))))
+
+(defn get-real-path
+  "Replace a minio link to an absolute path."
+  [object-link]
+  (let [minio-rootdir (get-minio-rootdir env)
+        datadir (get-datadir)
+        is-minio (re-matches #"minio://.*" object-link)
+        trimmed (clj-str/replace object-link #"minio://(/|./)?|file://(/|./)?" "")]
+    (cond
+      (= trimmed object-link)
+      (throw (ex-info "Not a valid link." {}))
+
+      is-minio
+      (fs-lib/join-paths minio-rootdir trimmed)
+
+      :else
+      (fs-lib/join-paths datadir trimmed))))
 
 (defn check-fs-root!
   [env]

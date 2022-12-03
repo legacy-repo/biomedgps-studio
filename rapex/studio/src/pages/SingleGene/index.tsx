@@ -42,7 +42,7 @@ const SingleGene: React.FC = () => {
           setGene(undefined)
         });
 
-      getFile({ filelink: `minio://single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+      getFile({ filelink: `file:///000000/single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
         setBarPlot({
           data: response.data,
           layout: response.layout,
@@ -52,7 +52,7 @@ const SingleGene: React.FC = () => {
         message.warn("Cannot fetch the result, please retry later.")
       });
 
-      getFile({ filelink: `minio://single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+      getFile({ filelink: `file:///000000/single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
         setBoxPlot({
           data: response.data,
           layout: response.layout,

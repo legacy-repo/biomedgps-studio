@@ -33,8 +33,8 @@
     (let [query-map {:select [:*]
                      :from [(keyword table)]
                      :where [:= :ensembl_id ensembl-id]}
-          ;; "gut_fpkm" -> ["gut" "fpkm"]
-          organ (first (clj-str/split table #"_"))
+          ;; "expr_gut_fpkm" -> ["gut" "fpkm"]
+          organ (second (clj-str/split table #"_"))
           results (qd/get-results (qd/get-db-path dataset) query-map)]
       (convert-db-results organ results))
     ;; TODO: Need to record the message into a log file.
@@ -55,10 +55,10 @@
                        (map #(format "expr_%s_%s" % datatype) organ))
           ;; [[{}] [{}] []] -> [{} {}]
           d (apply concat results)
+          _ (spit plot-data-path (json/write-str d))
           resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
                                                      :position position :log_scale log_scale})
           out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
-      (spit plot-data-path (json/write-str d))
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path out-log)

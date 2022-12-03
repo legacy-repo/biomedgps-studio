@@ -4,6 +4,7 @@
             [rapex.config :refer [env]]
             [clojure.tools.logging :as log]
             [local-fs.core :as fs-lib]
+            [clojure.java.io :as io]
             [clojure.string :as clj-str]
             [next.jdbc.result-set :as rs])
   (:import [org.duckdb DuckDBDriver]
@@ -99,13 +100,21 @@
                :limit 10})
   (get-results db sqlmap))
 
+(defn list-files
+  [datadir]
+  (let [directory (io/file datadir)
+        dir? #(.isDirectory %)]
+    (map #(.getPath %)
+         (filter (comp not dir?)
+                 (tree-seq dir? #(.listFiles %) directory)))))
+
 (defn list-db
   "List all database in a directory.
    
    {:00000 \"./examples/db/000000.duckdb\"}
   "
   ^PersistentArrayMap [^String datadir]
-  (let [allfiles (map #(.getPath %) (fs-lib/list-dir datadir))
+  (let [allfiles (list-files datadir)
         alldbs (filter #(re-matches #".*.(duckdb|sqlite)$" %) allfiles)
         db-map-lst (map (fn [dbpath] {(keyword (fs-lib/base-name dbpath false)) dbpath}) alldbs)]
     (into {} db-map-lst)))

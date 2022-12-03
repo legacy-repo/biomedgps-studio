@@ -5,7 +5,9 @@ import {
   HistoryOutlined,
   IssuesCloseOutlined,
   // SnippetsOutlined,
+  DatabaseOutlined
 } from '@ant-design/icons';
+import { FormattedMessage } from 'umi';
 import { Button, Col, Drawer, Row, Space, Tabs, Tooltip, message } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
 import { useIntl } from 'umi';
@@ -16,7 +18,8 @@ import LogViewer from '@/components/LogViewer/indexLog';
 import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
 import HistoryTable from '../HistoryTable';
 import { TaskListItem } from '../HistoryTable';
-import { JsonViewer } from '@textea/json-viewer'
+import { JsonViewer } from '@textea/json-viewer';
+import { CSVLink } from "react-csv";
 
 import { getDownload as getFile } from '@/services/swagger/File';
 import type { ChartResult } from '../ChartList/data';
@@ -37,6 +40,20 @@ export type ResultPanelProps = {
   responsiveKey: number | string;
 };
 
+export const downloadAsJSON = function (data: any, elementId: string) {
+  var dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data))
+  var dlAnchorElem = document.getElementById(elementId)
+  if (dlAnchorElem) {
+    dlAnchorElem.setAttribute('href', dataStr)
+    dlAnchorElem.setAttribute('download', 'metadata.json')
+    dlAnchorElem.click()
+  } else {
+    console.log(`No such html tag ${elementId}`)
+  }
+
+  console.log(`Download ${elementId}`)
+}
+
 type UIContext = Record<string, any>;
 
 const ResultPanel: React.FC<ResultPanelProps> = (props) => {
@@ -56,6 +73,7 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
   const [historyVisible, setHistoryVisible] = useState<boolean>(false);
   const [activeKey, setActiveKey] = useState<string>("chart");
 
+  const [plotData, setPlotData] = useState<any | null>(null);
   const [plotlyData, setPlotlyData] = useState<PlotlyChart | null>(null);
 
   useEffect(() => {
@@ -71,7 +89,18 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         message.warn("Cannot fetch the result, please retry later.")
       });
     }
-  }, [results, charts]);
+  }, [charts]);
+
+  useEffect(() => {
+    if (results.length > 0) {
+      console.log('Data: ', taskId);
+      getFile({ filelink: results[0] }).then((response: any) => {
+        setPlotData(response)
+      }).catch(error => {
+        message.warn("Cannot fetch the result, please retry later.")
+      });
+    }
+  }, [results])
 
   useEffect(() => {
     if (logLink.length > 0) {
@@ -173,6 +202,23 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
         >
           <LogViewer getFile={getFile} height="calc(100vh - 200px)" url={logLink} />
         </TabPane>
+        {
+          plotData ? (<TabPane
+            tab={
+              <span>
+                <DatabaseOutlined />
+                {uiContext.data}
+              </span>
+            }
+            key="data"
+          >
+            <CSVLink data={plotData}
+              filename="data.csv"
+              className="button">
+              {uiContext.download} {uiContext.data}
+            </CSVLink>
+            <JsonViewer value={plotData} />
+          </TabPane>) : null}
         {chartTask ? (<TabPane
           tab={
             <span>
@@ -182,6 +228,10 @@ const ResultPanel: React.FC<ResultPanelProps> = (props) => {
           }
           key="metadata"
         >
+          <a className="button" onClick={() => { downloadAsJSON(chartTask, "download-anchor") }}>
+            {uiContext.download} {uiContext.metadata}
+          </a>
+          <a id="download-anchor" style={{ display: 'none' }}></a>
           <JsonViewer value={chartTask} />
         </TabPane>) : null}
       </Tabs>

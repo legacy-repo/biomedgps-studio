@@ -9,6 +9,14 @@ export const langData: LangData = {
     id: 'stat-engine.result-panel.results',
     defaultMessage: '结果',
   },
+  data: {
+    id: 'stat-engine.result-panel.data',
+    defaultMessage: '数据',
+  },
+  download: {
+    id: 'stat-engine.result-panel.download',
+    defaultMessage: '下载',
+  },
   metadata: {
     id: 'stat-engine.result-panel.metadata',
     defaultMessage: '元数据',

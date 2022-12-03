@@ -90,7 +90,7 @@
             :parameters {}
             :responses {200 {:body specs/instance-version}}
             :handler (fn [_]
-                       (ok {:version (v/get-version "rapex" "rapex")
+                       (ok {:version (v/get-version "com.github.rapex-lab" "rapex")
                             :db_version (db/get-db-version)}))}}]
 
     ["/download"

@@ -34,12 +34,12 @@
           dataset (or (:dataset payload) (get-default-dataset))
           ensembl_ids (:gene_symbol payload)
           results (query-db dataset (format "expr_%s_%s" organ datatype) ensembl_ids)
+          _ (spit plot-data-path (json/write-str results))
           resp (ocpu/draw-plot! "corrplotly" :params {:d results :filetype "png"
                                                       :data_type (clj-str/upper-case datatype)
                                                       :scale scale :show_colnames show_colnames
                                                       :show_rownames show_rownames :corr_type corr_type})
           out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
-      (spit plot-data-path (json/write-str results))
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path out-log)
