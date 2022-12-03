@@ -26,9 +26,10 @@
         uuid (fs-lib/basename workdir)
         log-path (fs-lib/join-paths workdir "log.json")
         plot-path (fs-lib/join-paths workdir (format "%s.png" chart_name))
+        plot-data-path (fs-lib/join-paths workdir (format "%s.data.json" chart_name))
         plot-json-path (fs-lib/join-paths workdir (format "%s.json" chart_name))]
     (try
-      (let [response {:results [(make-remote-link plot-path)]
+      (let [response {:results [(make-remote-link plot-data-path)]
                       :charts [(make-remote-link plot-json-path)]
                       :log (make-remote-link log-path)
                       :response_type :data2chart
@@ -46,6 +47,7 @@
         (spit log-path (json/write-str {:status "Running" :msg ""}))
         (publish-event! chart_name
                         {:plot-path plot-path
+                         :plot-data-path plot-data-path
                          :plot-json-path plot-json-path
                          :task-id task-id
                          :log-path log-path

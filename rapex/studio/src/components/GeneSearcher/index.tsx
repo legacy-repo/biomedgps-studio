@@ -1,5 +1,5 @@
 import { Select, Empty } from 'antd';
-import { filter } from 'lodash';
+import { filter, map } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
 const { Option } = Select;
@@ -91,7 +91,8 @@ export type GeneSearcherProps = {
     placeholder?: string;
     initialValue?: any;
     mode?: any;
-    onChange?: (value: string, gene: GeneData) => void;
+    // When multiple values was returned, the gene variable will be undefined.
+    onChange?: (value: string | string[], gene: GeneData | undefined) => void;
     style: React.CSSProperties;
 };
 
@@ -102,7 +103,8 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
     const [value, setValue] = useState<string>();
 
     useEffect(() => {
-        if (initialValue) {
+        // To avoid the loop updating.
+        if (initialValue && initialValue !== value) {
             setValue(initialValue)
             fetch(initialValue, (data) => {
                 setData(data);
@@ -153,7 +155,8 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
 
     const handleChange = (newValue: string, option: any) => {
         setValue(newValue);
-        if (newValue) {
+        console.log("GeneSearcher handleChange: ", newValue);
+        if (newValue && typeof newValue == 'string') {
             const gene = filter(geneData, (item) => {
                 if (newValue.match(/ENS/i)) {
                     return item.ensembl_id == newValue
@@ -168,6 +171,8 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
 
             console.log("handleChange(GeneSearcher): ", gene, geneData);
             props.onChange?.(newValue, gene[0]);
+        } else {
+            props.onChange?.(newValue, undefined);
         }
     };
 

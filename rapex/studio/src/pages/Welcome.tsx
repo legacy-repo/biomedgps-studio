@@ -184,7 +184,7 @@ const Welcome: React.FC = () => {
     }
   }
 
-  const description = 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia'
+  const description = 'RAPEX is a newly developed interactive web server for focusing on pollution-caused damage within and across organ, as well as inter-species by RNA-seq analysis. Target users are researchers interested in air pollution health outputs on gene level. Researchers can access datasets we generated from mice in lab, as well as selected from various sources in the server. Upon selecting datasets, featured interactive visual outputs on rich differential gene analysis integrated in the platform are displayed. Analysis portion is consistent of three parts, single gene analysis most useful for inter-organ analysis, multiple gene differential analysis, and custom analysis allowing customized inputs and settings.'
 
   return (
     <Row className='welcome'>

@@ -16,7 +16,7 @@ export default {
   'pages.Welcome.samples': 'Samples',
   'pages.Welcome.organs': 'Organs',
   'pages.Welcome.publications': 'Publications',
-  'pages.Welcome.description': 'A glioma is a type of tumor that starts in the glial cells of the brain or the spine. Gliomas comprise about 30 percent of all brain tumors and central nervous system tumors, and 80 percent of all malignant brain tumors. - Wikipedia',
+  'pages.Welcome.description': 'RAPEX is a newly developed interactive web server for focusing on pollution-caused damage within and across organ, as well as inter-species by RNA-seq analysis.',
 
   // KEGGPathway Page
   'pages.KEGGPathway.pathwayId': 'Pathway ID',

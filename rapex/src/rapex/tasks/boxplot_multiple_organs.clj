@@ -42,7 +42,7 @@
       [])))
 
 (defn draw-boxplot!
-  [{:keys [plot-json-path plot-path task-id log-path payload]}]
+  [{:keys [plot-json-path plot-path plot-data-path task-id log-path payload]}]
   (try
     (let [method (or (:method payload) "t.test")
           datatype (or (:datatype payload) "fpkm")
@@ -62,6 +62,7 @@
           out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
+      (spit plot-data-path (json/write-str d))
       (spit log-path out-log)
       (update-process! task-id 100))
     (catch Exception e
@@ -123,7 +124,7 @@
                :title "Gene Symbol"
                :tooltip "Which gene do you want to query?"
                :formItemProps {:rules [{:required true
-                                        :message "gene_symbol filed is required."}]}}
+                                        :message "gene_symbol field is required."}]}}
               {:key "organ"
                :dataIndex "organ"
                :valueType "select"

@@ -42,7 +42,7 @@
       [])))
 
 (defn draw-barplot!
-  [{:keys [plot-json-path plot-path task-id log-path payload]}]
+  [{:keys [plot-json-path plot-path plot-data-path task-id log-path payload]}]
   (try
     (let [position (or (:position payload) "dodge")
           datatype (or (:datatype payload) "fpkm")
@@ -58,6 +58,7 @@
           resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
                                                      :position position :log_scale log_scale})
           out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
+      (spit plot-data-path (json/write-str d))
       (ocpu/read-plot! resp plot-json-path)
       (ocpu/read-png! resp plot-path)
       (spit log-path out-log)
@@ -121,7 +122,7 @@
                :title "Gene Symbol"
                :tooltip "Which gene do you want to query?"
                :formItemProps {:rules [{:required true
-                                        :message "gene_symbol filed is required."}]}}
+                                        :message "gene_symbol field is required."}]}}
               {:key "organ"
                :dataIndex "organ"
                :valueType "select"
