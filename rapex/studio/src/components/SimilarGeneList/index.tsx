@@ -1,9 +1,10 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { message, Row } from 'antd';
+import { message, Row, Drawer } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import SingleGene from '@/pages/SingleGene';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
@@ -22,9 +23,13 @@ type SimilarGenesQueryParams = {
 
 type DataType = {
   query_str: string;
-  entrez_id?: string;
-  gene_symbol?: string;
-  PCC: number;
+  queried_ensembl_id: string;
+  queried_entrez_id: string;
+  queried_gene_symbol: string;
+  ensembl_id: string;
+  entrez_id: string;
+  gene_symbol: string;
+  pcc: number;
   pvalue: number;
 }
 
@@ -48,13 +53,37 @@ function formatResponse(response: SimilarGenesDataResponse): Promise<Partial<Sim
 }
 
 export type SimilarGeneListProps = {
+  ensemblId?: string;
   querySimilarGenes: (params: SimilarGenesQueryParams) => Promise<SimilarGenesDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
 };
 
+
 const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
   const { querySimilarGenes, queryGenes } = props;
-  // const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [params, setParams] = useState<{}>({});
+  const [ensemlId, setEnsembl] = useState<string | null>(null);
+  const [searchToolbar, setSearchToolbar] = useState<false | any>();
+  const actionRef = useRef<ActionType>();
+  // const [currentRow, setCurrentRow] = useState<DataType>();
+  const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
+
+  useEffect(() => {
+    if (props.ensemblId) {
+      setSearchToolbar(false);
+      setParams({
+        queried_id: props.ensemblId
+      });
+    } else {
+      setSearchToolbar({
+        labelWidth: 120,
+        defaultCollapsed: false,
+        // Don't worry it.
+        searchText: <FormattedMessage id="pages.SimilarGeneList.analyze" defaultMessage="Analyze" />,
+      });
+    }
+  }, [props.ensemblId])
 
   const requestDEGs = async (
     params: PageParams & SimilarGenesQueryParams,
@@ -77,10 +106,6 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
         return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
       });
   };
-
-  const actionRef = useRef<ActionType>();
-  // const [currentRow, setCurrentRow] = useState<DataType>();
-  const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
 
   const columns: ProColumns<DataType>[] = [
     {
@@ -117,6 +142,21 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
       hideInSetting: true,
       width: '180px',
       tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+      render: (dom: any, entity: any) => {
+        return (
+          <a
+            style={{ cursor: props.ensemblId ? 'unset' : 'pointer' }}
+            onClick={() => {
+              if (!props.ensemblId) {
+                setEnsembl(entity.ensembl_id)
+                setShowDetail(true)
+              }
+            }}
+          >
+            {dom}
+          </a>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.SimilarGeneList.entrezId" defaultMessage="Entrez ID" />,
@@ -180,7 +220,7 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
       sorter: true,
       render: (dom, entity) => {
         return (
-          <span>{entity.pvalue.toFixed(3)}</span>
+          <span>{parseFloat(entity.pvalue).toFixed(5)}</span>
         );
       },
     },
@@ -188,12 +228,12 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
       title: <FormattedMessage id="pages.SimilarGeneList.PCC" defaultMessage="PCC" />,
       align: 'center',
       hideInSearch: true,
-      dataIndex: 'PCC',
+      dataIndex: 'pcc',
       sorter: true,
       tip: 'Pearson correlation coefficient.',
       render: (dom, entity) => {
         return (
-          <span>{entity.PCC.toFixed(3)}</span>
+          <span>{entity.pcc.toFixed(3)}</span>
         );
       },
     }
@@ -203,20 +243,16 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
     <Row className="similar-genelist">
       <ProTable<DataType, PageParams>
         // scroll={{ y: 'calc(100vh - 150px)' }}
-        className="genelist__table"
+        className={props.ensemblId ? 'embeded_genelist_table' : 'genelist__table'}
         actionRef={actionRef}
-        rowKey="id"
-        search={{
-          labelWidth: 120,
-          defaultCollapsed: false,
-          // Don't worry it.
-          searchText: <FormattedMessage id="pages.SimilarGeneList.analyze" defaultMessage="Analyze" />,
-        }}
+        rowKey="ensembl_id"
+        search={searchToolbar}
         cardBordered
         polling={undefined}
         locale={{
           emptyText: <b><FormattedMessage id="pages.SimilarGeneList.nodata" defaultMessage="Please input a gene symbol or ensembl id." /></b>,
         }}
+        params={params}
         pagination={{
           showQuickJumper: true,
           position: ['topLeft'],
@@ -248,6 +284,20 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
           ]
         }}
       />
+
+      <Drawer
+        width={'80%'}
+        visible={showDetail}
+        className="gene-details"
+        onClose={() => {
+          setShowDetail(false)
+          setEnsembl(null)
+        }}
+        closable={true}
+        maskClosable={true}
+      >
+        <SingleGene ensemblId={ensemlId}></SingleGene>
+      </Drawer>
     </Row>
   );
 };

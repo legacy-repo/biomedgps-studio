@@ -5,7 +5,8 @@ import './index.less';
 
 const SimilarGeneListWrapper: React.FC = () => {
   return (
-    <SimilarGeneList querySimilarGenes={getSimilarGenes} queryGenes={getGenes}></SimilarGeneList>
+    <SimilarGeneList querySimilarGenes={getSimilarGenes} queryGenes={getGenes}>
+    </SimilarGeneList>
   );
 };
 
