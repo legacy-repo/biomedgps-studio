@@ -115,7 +115,8 @@
 (s/def ::key string?)
 (s/def ::text string?)
 
-(s/def ::DatasetSchema (s/coll-of (s/keys :req-un [::key ::text])))
+(s/def ::DatasetSchema (s/or :summary (s/coll-of (s/keys :req-un [::key ::text]))
+                             :details (s/coll-of map?)))
 
 (def database-error-body
   "A spec for the body."

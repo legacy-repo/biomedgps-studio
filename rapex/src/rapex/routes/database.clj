@@ -128,10 +128,12 @@
 (defn get-datasets
   []
   {:summary "Get datasets"
-   :parameters {}
+   :parameters {:query {:show_details (or boolean? nil?)}}
    :responses {200 {:body ::ds/DatasetSchema}}
-   :handler (fn [_]
-              (ok (gen-dataset-map)))})
+   :handler (fn [{{{:keys [show_details]} :query} :parameters}]
+              (if show_details
+                (ok (memorized-get-dataset-metadata))
+                (ok (gen-dataset-map))))})
 
 
 (def routes

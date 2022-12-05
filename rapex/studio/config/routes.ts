@@ -65,7 +65,7 @@
     name: 'datasets',
     icon: 'table',
     path: '/datasets',
-    component: './About',
+    component: './DatasetList',
   },
   {
     name: 'about',
