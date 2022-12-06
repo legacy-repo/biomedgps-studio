@@ -1,10 +1,9 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { message, Row, Drawer } from 'antd';
+import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
 import React, { useEffect, useRef, useState } from 'react';
-import SingleGene from '@/pages/SingleGene';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage } from 'umi';
@@ -54,16 +53,15 @@ function formatResponse(response: SimilarGenesDataResponse): Promise<Partial<Sim
 
 export type SimilarGeneListProps = {
   ensemblId?: string;
+  showDetails?: (ensemblId: string) => void;
   querySimilarGenes: (params: SimilarGenesQueryParams) => Promise<SimilarGenesDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
 };
 
 
 const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
-  const { querySimilarGenes, queryGenes } = props;
-  const [showDetail, setShowDetail] = useState<boolean>(false);
+  const { querySimilarGenes, queryGenes, showDetails } = props;
   const [params, setParams] = useState<{}>({});
-  const [ensemlId, setEnsembl] = useState<string | null>(null);
   const [searchToolbar, setSearchToolbar] = useState<false | any>();
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
@@ -148,8 +146,7 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
             style={{ cursor: props.ensemblId ? 'unset' : 'pointer' }}
             onClick={() => {
               if (!props.ensemblId) {
-                setEnsembl(entity.ensembl_id)
-                setShowDetail(true)
+                showDetails ? showDetails(entity.ensembl_id) : null
               }
             }}
           >
@@ -284,20 +281,6 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
           ]
         }}
       />
-
-      <Drawer
-        width={'80%'}
-        visible={showDetail}
-        className="gene-details"
-        onClose={() => {
-          setShowDetail(false)
-          setEnsembl(null)
-        }}
-        closable={true}
-        maskClosable={true}
-      >
-        <SingleGene ensemblId={ensemlId}></SingleGene>
-      </Drawer>
     </Row>
   );
 };

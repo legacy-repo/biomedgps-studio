@@ -32,6 +32,7 @@ export default {
   'pages.GeneList.entrezId': 'Gene ID',
   'pages.GeneList.geneSymbol': 'Symbol',
   'pages.GeneList.organ': 'Organ',
+  'pages.GeneList.gene': 'Gene',
   'pages.GeneList.method': 'Method',
   'pages.GeneList.datatype': 'DataType',
   'pages.GeneList.dataset': 'DataSet',
@@ -62,6 +63,21 @@ export default {
   'pages.StatEngineWrapper.across-organs-barplot': 'Across Organs (Barplot)',
   'pages.StatEngineWrapper.correlation-analysis': 'Correlation Analysis',
   'pages.StatEngineWrapper.multiple-genes-comparison': 'Multiple Genes Comparison',
+
+  // DatasetList
+  'pages.DatasetList.pmid': 'PMID',
+  'pages.DatasetList.title': 'Title',
+  'pages.DatasetList.journal': 'Journal',
+  'pages.DatasetList.database': 'Database',
+  'pages.DatasetList.authors': 'Authors',
+  'pages.DatasetList.year': 'Year',
+  'pages.DatasetList.experimentType': 'Exp Type',
+  'pages.DatasetList.species': 'Species',
+  'pages.DatasetList.country': 'Country',
+  'pages.DatasetList.sampleSize': 'Size',
+  'pages.DatasetList.dataCategory': 'Category',
+  'pages.DatasetList.datasetAbbr': 'Dataset ID',
+
 
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',

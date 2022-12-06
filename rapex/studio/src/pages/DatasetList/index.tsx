@@ -1,8 +1,10 @@
 import { message, Row, Drawer, Table } from 'antd';
-import MarkdownViewer from '@/components/MarkdownViewer';
+// import MarkdownViewer from '@/components/MarkdownViewer';
 import React, { useEffect, useState } from 'react';
 import { getDatasets } from '@/services/swagger/StatEngine';
 import { FormattedMessage } from 'umi';
+import HelpMessage from '@/components/HelpMessage';
+import './index.less';
 
 
 type DataType = {
@@ -33,9 +35,9 @@ function formatResponse(response: DataType[]): Promise<DataResponse> {
 }
 
 const DatasetList: React.FC = () => {
-  const [showDetail, setShowDetail] = useState<boolean>(false);
+  // const [showDetail, setShowDetail] = useState<boolean>(false);
   const [dataSource, setDataSource] = useState<DataType[] | undefined>(undefined);
-  const [dataset, setDataset] = useState<string | null>(null);
+  // const [dataset, setDataset] = useState<string | null>(null);
 
   const requestDatasets = async () => {
     return await getDatasets({
@@ -62,9 +64,20 @@ const DatasetList: React.FC = () => {
 
   const columns = [
     {
+      title: <FormattedMessage id="pages.DatasetList.datasetAbbr" defaultMessage="Dataset ID" />,
+      dataIndex: 'dataset_abbr',
+      key: 'dataset_abbr',
+      width: 90,
+      fixed: true,
+      align: 'center',
+      tip: ''
+    },
+    {
       title: <FormattedMessage id="pages.DatasetList.pmid" defaultMessage="PMID" />,
       dataIndex: 'pmid',
+      key: 'pmid',
       tip: 'Pubmed ID.',
+      fixed: true,
       render: (dom: any, entity: any) => {
         return (
           <a target="_blank" href={`https://pubmed.ncbi.nlm.nih.gov/${entity.pmid}`}>
@@ -72,59 +85,101 @@ const DatasetList: React.FC = () => {
           </a >
         );
       },
+      width: 100,
     },
     {
-      title: <FormattedMessage id="pages.DatasetList.title" defaultMessage="Title" />,
-      dataIndex: 'title',
-      tip: 'Article title.',
-    },
-    {
-      title: <FormattedMessage id="pages.DatasetList.journal" defaultMessage="Journal" />,
-      dataIndex: 'journal'
-    },
-    {
-      title: <FormattedMessage id="pages.DatasetList.external_db_id" defaultMessage="Database" />,
+      title: <FormattedMessage id="pages.DatasetList.database" defaultMessage="Database" />,
       dataIndex: 'external_db_id',
+      key: 'external_db_id',
+      width: 100,
+      align: 'center',
+      fixed: true,
+      render: (dom: any, entity: any) => {
+        return (
+          <a target="_blank" href={`https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${entity.external_db_id}`}>
+            {dom}
+          </a>
+        )
+      },
+      tip: ''
     },
     // {
     //   title: <FormattedMessage id="pages.DatasetList.authors" defaultMessage="Authors" />,
     //   dataIndex: 'authors',
     // },
     {
+      title: <FormattedMessage id="pages.DatasetList.title" defaultMessage="Title" />,
+      dataIndex: 'title',
+      key: 'title',
+      width: 500,
+      tip: 'Article title.',
+    },
+    {
+      title: <FormattedMessage id="pages.DatasetList.journal" defaultMessage="Journal" />,
+      dataIndex: 'journal',
+      key: 'journal',
+      width: 200,
+      tip: ''
+    },
+    {
       title: <FormattedMessage id="pages.DatasetList.year" defaultMessage="Year" />,
       dataIndex: 'year',
+      key: 'year',
+      width: 60,
+      align: 'center',
+      tip: ''
     },
     {
       title: <FormattedMessage id="pages.DatasetList.experimentType" defaultMessage="Exp Type" />,
       dataIndex: 'experiment_type',
+      key: 'experiment_type',
+      width: 120,
+      align: 'center',
+      tip: ''
     },
     {
       title: <FormattedMessage id="pages.DatasetList.species" defaultMessage="Species" />,
       dataIndex: 'species',
+      key: 'species',
+      width: 120,
+      align: 'center',
+      tip: ''
     },
     {
       title: <FormattedMessage id="pages.DatasetList.country" defaultMessage="Country" />,
       dataIndex: 'country',
+      key: 'country',
+      width: 80,
+      align: 'center',
+      tip: ''
     },
     {
-      title: <FormattedMessage id="pages.DatasetList.sample_size" defaultMessage="Sample Size" />,
+      title: <FormattedMessage id="pages.DatasetList.sampleSize" defaultMessage="Size" />,
       dataIndex: 'sample_size',
+      key: 'sample_size',
+      width: 60,
+      align: 'center',
+      tip: ''
     },
     {
-      title: <FormattedMessage id="pages.DatasetList.dataCategory" defaultMessage="Data Category" />,
+      title: <FormattedMessage id="pages.DatasetList.dataCategory" defaultMessage="Category" />,
       dataIndex: 'data_category',
-    },
-    {
-      title: <FormattedMessage id="pages.DatasetList.dataset_abbr" defaultMessage="Dataset Abbr" />,
-      dataIndex: 'dataset_abbr',
+      key: 'data_category',
+      width: 90,
+      align: 'center',
+      tip: ''
     },
   ];
 
   return (
     <Row className="dataset-list">
-      <Table dataSource={dataSource} columns={columns}
+      <HelpMessage position='center'
+        title={"All Datasets"}>
+        <p>This is an example.</p>
+      </HelpMessage>
+      <Table dataSource={dataSource} columns={columns} rowKey="dataset_abbr"
         pagination={{ hideOnSinglePage: true, pageSize: 1000 }}
-        scroll={{ x: 'calc(100vw - 20px)', y: 'calc(100vh - 100px)' }}
+        scroll={{ x: 'calc(100vw - 200px)', y: 'calc(100vh - 100px)' }}
         size="small" />
 
       {/* <Drawer

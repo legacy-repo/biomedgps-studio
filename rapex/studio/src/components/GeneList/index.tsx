@@ -3,7 +3,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { useHistory } from 'react-router-dom';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
@@ -344,4 +344,4 @@ const GeneList: React.FC<GeneListProps> = (props) => {
   );
 };
 
-export default GeneList;
+export default memo(GeneList);

@@ -31,6 +31,7 @@ export default {
   'pages.GeneList.ensemblId': 'Ensembl ID',
   'pages.GeneList.entrezId': 'Entrez ID',
   'pages.GeneList.geneSymbol': '基因名',
+  'pages.GeneList.gene': '待查基因',
   'pages.GeneList.organ': '器官',
   'pages.GeneList.method': '统计方法',
   'pages.GeneList.datatype': '数据类型',
@@ -62,6 +63,21 @@ export default {
   'pages.StatEngineWrapper.across-organs-barplot': '跨器官柱状图',
   'pages.StatEngineWrapper.correlation-analysis': '相关性分析',
   'pages.StatEngineWrapper.multiple-genes-comparison': '多基因比较分析',
+
+  // DatasetList
+  'pages.DatasetList.pmid': 'PMID',
+  'pages.DatasetList.title': '标题',
+  'pages.DatasetList.journal': '杂志',
+  'pages.DatasetList.database': '数据库ID',
+  'pages.DatasetList.authors': '作者列表',
+  'pages.DatasetList.year': '发表年份',
+  'pages.DatasetList.experimentType': '实验类型',
+  'pages.DatasetList.species': '物种',
+  'pages.DatasetList.country': '国家',
+  'pages.DatasetList.sampleSize': '样本量',
+  'pages.DatasetList.dataCategory': '数据类型',
+  'pages.DatasetList.datasetAbbr': '数据集ID',
+
 
   'pages.layouts.userLayout.title': 'Ant Design 是西湖区最具影响力的 Web 设计规范',
   'pages.login.accountLogin.tab': '账户密码登录',
