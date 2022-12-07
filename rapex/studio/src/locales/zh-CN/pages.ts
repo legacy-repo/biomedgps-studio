@@ -78,6 +78,8 @@ export default {
   'pages.DatasetList.dataCategory': '数据类型',
   'pages.DatasetList.datasetAbbr': '数据集ID',
 
+  // RightContent
+  'pages.RightContent.selectDataset': '选择数据集',
 
   'pages.layouts.userLayout.title': 'Ant Design 是西湖区最具影响力的 Web 设计规范',
   'pages.login.accountLogin.tab': '账户密码登录',

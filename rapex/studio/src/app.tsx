@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import RightContent from '@/components/RightContent';
+import RightContent from '@/pages/RightContent';
 import { BookOutlined, BulbOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
@@ -119,6 +119,7 @@ export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   // currentUser?: API.CurrentUser;
   loading?: boolean;
+  defaultDataset?: string;
   // fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }> {
   // const fetchUserInfo = async () => {
@@ -137,11 +138,13 @@ export async function getInitialState(): Promise<{
       // fetchUserInfo,
       // currentUser,
       settings: defaultSettings,
+      defaultDataset: '000000'
     };
   }
   return {
     // fetchUserInfo,
     settings: defaultSettings,
+    defaultDataset: '000000'
   };
 }
 

@@ -78,6 +78,9 @@ export default {
   'pages.DatasetList.dataCategory': 'Category',
   'pages.DatasetList.datasetAbbr': 'Dataset ID',
 
+  // RightContent
+  'pages.RightContent.selectDataset': 'Select Dataset',
+
 
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',

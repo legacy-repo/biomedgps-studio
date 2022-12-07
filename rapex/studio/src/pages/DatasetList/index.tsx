@@ -7,7 +7,7 @@ import HelpMessage from '@/components/HelpMessage';
 import './index.less';
 
 
-type DataType = {
+export type DataType = {
   pmid: number;
   title: string;
   journal: string;
@@ -19,6 +19,7 @@ type DataType = {
   species: number;
   country: string;
   data_category: string;
+  dataset_abbr: string;
 }
 
 type DataResponse = {
@@ -34,7 +35,11 @@ function formatResponse(response: DataType[]): Promise<DataResponse> {
   });
 }
 
-const DatasetList: React.FC = () => {
+type DatasetListProps = {
+  selectDataset?: (record: DataType) => void;
+}
+
+const DatasetList: React.FC<DatasetListProps> = (props) => {
   // const [showDetail, setShowDetail] = useState<boolean>(false);
   const [dataSource, setDataSource] = useState<DataType[] | undefined>(undefined);
   // const [dataset, setDataset] = useState<string | null>(null);
@@ -169,6 +174,26 @@ const DatasetList: React.FC = () => {
       align: 'center',
       tip: ''
     },
+    {
+      title: <FormattedMessage id="pages.DatasetList.action" defaultMessage="Action" />,
+      key: 'actions',
+      align: 'center',
+      width: 90,
+      fixed: 'right',
+      render: (dom: any, entity: any) => {
+        return (
+          <a onClick={() => {
+            if (props.selectDataset) {
+              props.selectDataset(entity)
+            } else {
+              console.log("You need to specify a selectDataset function.")
+            }
+          }}>
+            <FormattedMessage id="pages.DatasetList.select" defaultMessage="Select" />
+          </a>
+        )
+      },
+    }
   ];
 
   return (
@@ -180,7 +205,8 @@ const DatasetList: React.FC = () => {
       <Table dataSource={dataSource} columns={columns} rowKey="dataset_abbr"
         pagination={{ hideOnSinglePage: true, pageSize: 1000 }}
         scroll={{ x: 'calc(100vw - 200px)', y: 'calc(100vh - 100px)' }}
-        size="small" />
+        size="small">
+      </Table>
 
       {/* <Drawer
         width={'80%'}
