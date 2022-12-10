@@ -12,7 +12,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: install
-        run: cd rapex/studio && yarn
+        run: cd studio && yarn
 
       # - name: plugins
       #   run: yarn add umi-plugin-pro
@@ -21,7 +21,7 @@ jobs:
       #   run: yarn run pro fetch-blocks
 
       - name: site
-        run: cd rapex/studio && npm run build
+        run: cd studio && npm run build
         env:
           NODE_ENV: production
 
@@ -29,5 +29,5 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./rapex/studio/dist
+          publish_dir: ./studio/dist
           force_orphan: true
