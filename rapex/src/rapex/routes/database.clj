@@ -92,7 +92,7 @@
 (defn fetch-similar-genes
   []
   {:summary    "Fetch similar genes"
-   :parameters {:query ::ds/SimilarGenesQueryParans}
+   :parameters {:query ::ds/SimilarGenesQueryParams}
    :responses  {200 {:body ::ds/DBDataItems}
                 404 {:body ds/database-error-body}
                 400 {:body ds/database-error-body}
@@ -128,7 +128,7 @@
 (defn get-datasets
   []
   {:summary "Get datasets"
-   :parameters {:query {:show_details (or boolean? nil?)}}
+   :parameters {:query ::ds/DatasetsQueryParams}
    :responses {200 {:body ::ds/DatasetSchema}}
    :handler (fn [{{{:keys [show_details]} :query} :parameters}]
               (if show_details

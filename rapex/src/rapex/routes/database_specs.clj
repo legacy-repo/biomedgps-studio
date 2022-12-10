@@ -62,7 +62,7 @@
     :swagger/default     (first cs/organ-sets)
     :reason              "The organ name is invalid"}))
 
-(s/def ::SimilarGenesQueryParans
+(s/def ::SimilarGenesQueryParams
   (st/spec
    (s/keys :req-un [::query_str]
            :opt-un [::page ::page_size ::dataset ::organ])))
@@ -122,3 +122,11 @@
   "A spec for the body."
   (s/keys :req-un [::context ::msg]
           :opt-un []))
+
+
+(s/def ::show_details boolean)
+
+(s/def ::DatasetsQueryParams
+  (st/spec
+   (s/keys :req-un []
+           :opt-un [::show_details])))

@@ -7,7 +7,7 @@ import React, { useRef, useState, memo } from 'react';
 import { useHistory } from 'react-router-dom';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
-import { FormattedMessage } from 'umi';
+import { FormattedMessage, useModel } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
 
@@ -64,6 +64,15 @@ const GeneList: React.FC<GeneListProps> = (props) => {
   const history = useHistory();
   const { queryDEGs, queryGenes, queryGeneBaseUrl } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
+
+  const { initialState } = useModel('@@initialState');
+
+  let datasetSelectOptions = {}
+  if (initialState?.defaultDataset) {
+    datasetSelectOptions[initialState?.defaultDataset] = {
+      text: initialState?.defaultDataset
+    }
+  }
 
   const requestDEGs = async (
     params: PageParams & DataType,
@@ -245,11 +254,12 @@ const GeneList: React.FC<GeneListProps> = (props) => {
       title: <FormattedMessage id="pages.GeneList.dataset" defaultMessage="Dataset" />,
       align: 'center',
       dataIndex: 'dataset',
-      hideInSearch: true,
       valueType: 'select',
-      valueEnum: {
-        0: { text: "rapex_000000" }
-      },
+      valueEnum: datasetSelectOptions,
+      initialValue: '000000'
+      // valueEnum: {
+      //   0: { text: "rapex_000000" }
+      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.pAdj" defaultMessage="AdjPvalue" />,

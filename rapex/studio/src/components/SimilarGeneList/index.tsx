@@ -6,7 +6,7 @@ import type { SortOrder } from 'antd/es/table/interface';
 import React, { useEffect, useRef, useState } from 'react';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
-import { FormattedMessage } from 'umi';
+import { FormattedMessage, useModel } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
 
@@ -66,6 +66,15 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
   const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
+
+  const { initialState } = useModel('@@initialState');
+
+  let datasetSelectOptions = {}
+  if (initialState?.defaultDataset) {
+    datasetSelectOptions[initialState?.defaultDataset] = {
+      text: initialState?.defaultDataset
+    }
+  }
 
   useEffect(() => {
     if (props.ensemblId) {
@@ -130,6 +139,32 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
           />
         );
       }
+    },
+    {
+      title: <FormattedMessage id="pages.SimilarGeneList.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_ensembl_id',
+      sorter: true,
+      hideInForm: true,
+      hideInSearch: true,
+      tip: 'Ensembl gene IDs begin with ENS for Ensembl, and then a G for gene.',
+    },
+    {
+      title: <FormattedMessage id="pages.SimilarGeneList.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_gene_symbol',
+      sorter: true,
+      hideInForm: true,
+      hideInSearch: true,
+      hideInTable: true,
+      tip: 'A gene symbol is a short-form abbreviation for a particular gene.',
+    },
+    {
+      title: <FormattedMessage id="pages.SimilarGeneList.gene" defaultMessage="Gene" />,
+      dataIndex: 'queried_entrez_id',
+      sorter: true,
+      hideInForm: true,
+      hideInSearch: true,
+      hideInTable: true,
+      tip: 'Entrez Gene provides unique integer identifiers for genes and other loci.',
     },
     {
       title: <FormattedMessage id="pages.SimilarGeneList.ensemblId" defaultMessage="Ensembl ID" />,
@@ -204,9 +239,10 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
       hideInSetting: true,
       hideInTable: true,
       initialValue: "000000",
-      valueEnum: {
-        "000000": { text: "rapex_000000" }
-      },
+      valueEnum: datasetSelectOptions
+      // valueEnum: {
+      //   "000000": { text: "rapex_000000" }
+      // },
     },
     {
       title: <FormattedMessage id="pages.SimilarGeneList.pvalue" defaultMessage="Pvalue" />,
