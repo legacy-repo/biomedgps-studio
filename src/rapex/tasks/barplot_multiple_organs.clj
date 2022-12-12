@@ -56,7 +56,9 @@
           ;; [[{}] [{}] []] -> [{} {}]
           d (apply concat results)
           _ (spit plot-data-path (json/write-str d))
-          resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png" :data_type (clj-str/upper-case datatype)
+          resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png"
+                                                     :levels ["FA" "PM"]
+                                                     :data_type (clj-str/upper-case datatype)
                                                      :position position :log_scale log_scale})
           out-log (json/write-str {:status "Success" :msg (ocpu/read-log! resp)})]
       (ocpu/read-plot! resp plot-json-path)
