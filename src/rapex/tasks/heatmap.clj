@@ -3,7 +3,7 @@
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map]]
+            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
             [rapex.db.query-data :as qd]
             [rapex.tasks.common-sepcs :as cs]
             [rapex.config :refer [get-default-dataset]]
@@ -63,7 +63,7 @@
           ;; [[{}] [{}] []] -> [{} {}]
           d (apply concat results)
           _ (spit plot-data-path (json/write-str d))
-          resp (ocpu/draw-plot! "heatmaply" :params {:d (dissoc d :sample_name) :filetype "png"
+          resp (ocpu/draw-plot! "heatmaply" :params {:d (remove-field d :sample_name) :filetype "png"
                                                      :method method
                                                      :data_type (clj-str/upper-case datatype)
                                                      :log_scale log_scale})

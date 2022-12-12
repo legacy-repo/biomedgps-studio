@@ -8,6 +8,7 @@
             [tservice-core.tasks.async :refer [publish-event!]]
             [local-fs.core :as fs-lib])
   (:import [java.security MessageDigest]
+           [clojure.lang Keyword]
            [java.math BigInteger]))
 
 (defn get-error-response
@@ -28,6 +29,10 @@
        (.digest (MessageDigest/getInstance "MD5"))
        (BigInteger. 1)
        (format "%032x")))
+
+(defn remove-field
+  [coll ^Keyword field]
+  (map #(dissoc % field) coll))
 
 (defn string2uuid
   [string]

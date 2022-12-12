@@ -34,7 +34,7 @@ export function makeQueryStr(
         }
       }
 
-      if (['current', 'pageSize', 'queried_id'].indexOf(key) < 0 && params[key].length > 0) {
+      if (['current', 'pageSize', 'queried_id', 'dataset'].indexOf(key) < 0 && params[key].length > 0) {
         subclauses.push(`[:like [:upper :${key}] [:upper "%${params[key]}%"]]`);
       }
     }

@@ -11,8 +11,7 @@
             [rapex.tasks.barplot :as barplot]
             [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs]
             [rapex.tasks.corrplot :as corrplot]
-            [rapex.tasks.heatmap :as heatmap])
-  (:import [clojure.lang Keyword]))
+            [rapex.tasks.heatmap :as heatmap]))
 
 (def ^:private chart-manifests (atom [boxplot/manifest
                                       boxplot-multiple-organs/manifest

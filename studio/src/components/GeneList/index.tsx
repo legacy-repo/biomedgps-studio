@@ -18,6 +18,7 @@ type DEGQueryParams = {
   page?: number;
   /** Num of items per page. */
   page_size?: number;
+  dataset?: string;
 };
 
 type DataType = {
@@ -85,6 +86,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
         page: params.current,
         page_size: params.pageSize,
         query_str: makeQueryStr(params, sort, filter),
+        dataset: `${params.dataset}`,
       })
         .then((response) => {
           return formatResponse(response);

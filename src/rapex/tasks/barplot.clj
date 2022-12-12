@@ -3,7 +3,7 @@
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map]]
+            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
             [rapex.db.query-data :as qd]
             [rapex.config :refer [get-default-dataset]]
             [rapex.tasks.common-sepcs :as cs]
@@ -56,7 +56,7 @@
           ensembl_id (:gene_symbol payload)
           d (prepare-data ensembl_id organ dataset datatype)
           _ (spit plot-data-path (json/write-str d))
-          resp (ocpu/draw-plot! "barplotly" :params {:d (dissoc d :sample_name) :filetype "png"
+          resp (ocpu/draw-plot! "barplotly" :params {:d (remove-field d :sample_name) :filetype "png"
                                                      :levels ["PM" "FA"]
                                                      :data_type (clj-str/upper-case datatype)
                                                      :position position :log_scale log_scale})]
