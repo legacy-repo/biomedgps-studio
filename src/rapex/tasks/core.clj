@@ -10,21 +10,24 @@
             [rapex.tasks.boxplot-multiple-organs :as boxplot-multiple-organs]
             [rapex.tasks.barplot :as barplot]
             [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs]
-            [rapex.tasks.corrplot :as corrplot])
+            [rapex.tasks.corrplot :as corrplot]
+            [rapex.tasks.heatmap :as heatmap])
   (:import [clojure.lang Keyword]))
 
 (def ^:private chart-manifests (atom [boxplot/manifest
                                       boxplot-multiple-organs/manifest
                                       barplot/manifest
                                       barplot-multiple-organs/manifest
-                                      corrplot/manifest]))
+                                      corrplot/manifest
+                                      heatmap/manifest]))
 
 
 (def ^:private chart-ui-schemas (atom {:boxplot boxplot/ui-schema-fn
                                        :boxplot-organs boxplot-multiple-organs/ui-schema-fn
                                        :barplot barplot/ui-schema-fn
                                        :barplot-organs barplot-multiple-organs/ui-schema-fn
-                                       :corrplot corrplot/ui-schema-fn}))
+                                       :corrplot corrplot/ui-schema-fn
+                                       :multiple-genes-comparison heatmap/ui-schema-fn}))
 
 (defn list-charts
   []
@@ -95,4 +98,7 @@
     {:post (barplot-multiple-organs/post-barplot!)}]
 
    ["/charts/corrplot"
-    {:post (corrplot/post-corrplot!)}]])
+    {:post (corrplot/post-corrplot!)}]
+
+   ["/charts/multiple-genes-comparison"
+    {:post (heatmap/post-heatmap!)}]])

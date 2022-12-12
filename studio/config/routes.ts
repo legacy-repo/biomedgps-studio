@@ -16,12 +16,12 @@
         icon: 'sliders',
         component: './SingleGene',
       },
-      {
-        path: '/expression-analysis/multiple-genes',
-        name: 'multiple-genes',
-        icon: 'dot-chart',
-        component: './MultipleGenes',
-      },
+      // {
+      //   path: '/expression-analysis/multiple-genes',
+      //   name: 'multiple-genes',
+      //   icon: 'dot-chart',
+      //   component: './MultipleGenes',
+      // },
       {
         path: '/expression-analysis/kegg-pathways',
         name: 'kegg-pathways',

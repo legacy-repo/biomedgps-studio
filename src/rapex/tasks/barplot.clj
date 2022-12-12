@@ -20,6 +20,7 @@
   (let [ensembl-id (get record-map :ensembl_id)]
     (map (fn [[key val]] {:group (second (clj-str/split (name key) #"_"))
                           :gene_symbol ensembl-id
+                          :sample_name key
                           :value val})
          (dissoc record-map :ensembl_id))))
 
@@ -55,8 +56,8 @@
           ensembl_id (:gene_symbol payload)
           d (prepare-data ensembl_id organ dataset datatype)
           _ (spit plot-data-path (json/write-str d))
-          resp (ocpu/draw-plot! "barplotly" :params {:d d :filetype "png"
-                                                     :levels ["FA" "PM"]
+          resp (ocpu/draw-plot! "barplotly" :params {:d (dissoc d :sample_name) :filetype "png"
+                                                     :levels ["PM" "FA"]
                                                      :data_type (clj-str/upper-case datatype)
                                                      :position position :log_scale log_scale})]
       (ocpu/read-plot! resp plot-json-path)
