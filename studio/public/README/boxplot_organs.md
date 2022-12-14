@@ -1,19 +1,19 @@
-## Boxplot
+## Across Organs (Boxplot)
 
-RAPEX generates boxplot with jitter for comparing expression in an organ type and several genes.
+RAPEX generates boxplot with jitter for comparing expression in several organs and one gene.
 
 ### Example
-<img src="/README/boxplot_example.svg" style="width: 100%; height: 100%;"/>
+<img src="/README/boxplot_organs_example.svg" style="width: 100%; height: 100%;"/>
 
 ### Parameters
 
 - Gene Symbol
   
-  Select several genes of interest (you can input ensembl_id, gene_symbol or entrez_id for searching).
+  Select a gene of interest. You can input ensembl_id, gene_symbol or entrez_id for searching. (e.g. Dgat2, 67800 or ENSMUSG00000030747)
 
 - Organ
   
-  Select an organ of interest
+  Select organs of interest.
 
 - DataSet
   

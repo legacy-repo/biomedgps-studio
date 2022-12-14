@@ -92,7 +92,7 @@
    :author "Jingcheng Yang"
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
-   :readme "https://rapex.prophetdb.org/README/boxplot-organs.md"
+   :readme "https://rapex.prophetdb.org/README/boxplot_organs.md"
    :id "boxplot-organs"})
 
 (s/def ::gene_symbol string?)
@@ -119,7 +119,7 @@
   [{:keys [organ-map datatype-map]
     :or {organ-map (gen-organ-map :dataset (get-default-dataset))
          datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
-  {:readme "https://rapex.prophetdb.org/README/boxplot.md"
+  {:readme "https://rapex.prophetdb.org/README/boxplot_organs.md"
    :schema
    {:fields  [{:key "gene_symbol"
                :dataIndex "gene_symbol"

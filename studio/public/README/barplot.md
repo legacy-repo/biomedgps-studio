@@ -1,5 +1,6 @@
 ## Barplot
-RAPEX generates barplot for comparing expression in several organ types / genes.
+
+RAPEX generates boxplot with jitter for comparing expression in an organ type and several genes.
 
 ### Example
 <img src="/README/barplot_example.svg" style="width: 100%; height: 100%;"/>

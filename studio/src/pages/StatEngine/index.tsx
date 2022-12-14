@@ -90,7 +90,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
       };
 
       // Reset README
-      setMarkdownLink(response.readme);
+      setMarkdownLink(`${response.readme}?=${(Math.random() + 1).toString(36).substring(7)}`);
 
       // Reset Argument
       setArgumentColumns(schema.fields);

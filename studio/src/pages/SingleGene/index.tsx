@@ -90,7 +90,12 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
     <Space className='single-gene-container'>
       <HelpMessage position='center'
         title={"General Information for Single Gene"}>
-        <p>This is an example.</p>
+        <p>
+          You can search for genes of interest on this page. After a quick search, you can see the trend of the expression level of this gene in different organs between the exposed group and the control group. And you also can view the top 100 genes that most closely resemble your gene expression patterns and related description information.
+          <br />
+          <br />
+          <b>Quick Search</b>: You can input gene_symbol, ensembl_id or entrez_id to analyze. (e.g. Trp53/22059/ENSMUSG00000059552)
+        </p>
       </HelpMessage>
       <Row className='single-gene'>
         <Col className='left' xxl={10} xl={10} lg={10} md={24} sm={24} xs={24}>

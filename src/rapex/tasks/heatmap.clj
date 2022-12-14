@@ -96,7 +96,7 @@
    :author "Jingcheng Yang"
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
-   :readme "https://rapex.prophetdb.org/README/multiple-genes-comparison.md"
+   :readme "https://rapex.prophetdb.org/README/multiple_genes_comparison.md"
    :id "multiple-genes-comparison"})
 
 (s/def ::gene_symbol (s/coll-of string?))
@@ -124,7 +124,7 @@
   [{:keys [organ-map datatype-map]
     :or {organ-map (gen-organ-map :dataset (get-default-dataset))
          datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
-  {:readme "https://rapex.prophetdb.org/README/barplot.md"
+  {:readme "https://rapex.prophetdb.org/README/multiple_genes_comparison.md"
    :schema
    {:fields  [{:key "gene_symbol"
                :dataIndex "gene_symbol"

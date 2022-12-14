@@ -200,7 +200,9 @@ const DatasetList: React.FC<DatasetListProps> = (props) => {
     <Row className="dataset-list">
       <HelpMessage position='center'
         title={"All Datasets"}>
-        <p>This is an example.</p>
+        <p>
+          The dataset contained on the page is mainly obtained from the GEO database, and the table has listed the journal, title and PMID of the article corresponding to the dataset. The datasets sources are mainly homo sapiens,fewer sources of rats, and the Category consists of RNA-Seq and Microarray. Most of datasets are from the United States.
+        </p>
       </HelpMessage>
       <Table dataSource={dataSource} columns={columns} rowKey="dataset_abbr"
         pagination={{ hideOnSinglePage: true, pageSize: 1000 }}

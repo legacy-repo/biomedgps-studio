@@ -134,22 +134,22 @@ const Welcome: React.FC = () => {
       src: '/examples/1.png',
       title: 'Legend 1'
     },
-    {
-      src: '/examples/2.png',
-      title: 'Legend 2'
-    },
-    {
-      src: '/examples/3.png',
-      title: 'Legend 3'
-    },
-    {
-      src: '/examples/4.png',
-      title: 'Legend 4'
-    },
-    {
-      src: '/examples/5.png',
-      title: 'Legend 5'
-    }
+    // {
+    //   src: '/examples/2.png',
+    //   title: 'Legend 2'
+    // },
+    // {
+    //   src: '/examples/3.png',
+    //   title: 'Legend 3'
+    // },
+    // {
+    //   src: '/examples/4.png',
+    //   title: 'Legend 4'
+    // },
+    // {
+    //   src: '/examples/5.png',
+    //   title: 'Legend 5'
+    // }
   ]
 
   const stats: StatItem[] = [
