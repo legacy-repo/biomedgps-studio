@@ -9,6 +9,8 @@ import { ReactSVG } from 'react-svg';
 import GeneSearcher from '@/components/GeneSearcher';
 import { getGenes } from '@/services/swagger/OmicsData';
 import { Carousel } from 'react-responsive-carousel';
+import MarkdownViewer from '@/components/MarkdownViewer';
+import { getDownload as getFile } from '@/services/swagger/File';
 // import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 // import ProDescriptions from '@ant-design/pro-descriptions';
 
@@ -41,6 +43,7 @@ const Welcome: React.FC = () => {
   const history = useHistory();
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [organ, setOrgan] = useState<string>("");
+  const [organDescUrl, setOrganDescUrl] = useState<string>("");
 
   const items: Item[] = [
     {
@@ -177,10 +180,13 @@ const Welcome: React.FC = () => {
     }
   }
 
-  const onClickOrgan = (organ: string) => {
+  const onClickOrgan = (e: any) => {
+    const organ = e.target.parentNode.parentNode.id || e.target.parentNode.id;
+    console.log("onClickOrgan: ", e, organ);
     if (['lung', 'liver', 'gut', 'thyroid', 'brain', 'testis', 'heart', 'kidney'].indexOf(organ) >= 0) {
-      setShowDetail(true)
-      setOrgan(organ)
+      setShowDetail(true);
+      setOrgan(organ);
+      setOrganDescUrl(`/README/${organ}.md`);
     }
   }
 
@@ -229,8 +235,9 @@ const Welcome: React.FC = () => {
                       </Row>
                       <Row className='statistics' gutter={16}>
                         <Col className='data-stat' md={9} sm={24} xs={9} xxl={9}>
-                          <ReactSVG src="/mice-organs.svg" onClick={(e) => { onClickOrgan(e.target.parentNode.parentNode.id) }}></ReactSVG>
-                          <FormattedMessage id="pages.Welcome.description" defaultMessage={description} />
+                          <ReactSVG src="/mice-organs.svg" onClick={(e) => { onClickOrgan(e) }}></ReactSVG>
+                          {/* <FormattedMessage id="pages.Welcome.description" defaultMessage={description} /> */}
+                          <p style={{ textAlign: 'justify' }}>{description}</p>
                         </Col>
                         <Col className='image-container' md={15} sm={24} xs={15} xxl={15}>
                           <Carousel autoPlay dynamicHeight={false} infiniteLoop>
@@ -266,7 +273,7 @@ const Welcome: React.FC = () => {
         closable={true}
         maskClosable={true}
       >
-        hahaha {organ}
+        <MarkdownViewer getFile={getFile} url={organDescUrl} />
       </Drawer>
     </Row >
   );
