@@ -92,7 +92,13 @@
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^6.4.4",
     "react-svg": "^15.1.13",
+    "rehype-autolink-headings": "^6.1.1",
+    "rehype-figure": "^1.0.1",
     "rehype-raw": "^6.1.1",
+    "rehype-slug": "^5.1.0",
+    "rehype-toc": "^3.0.2",
+    "rehype-video": "^1.2.2",
+    "remark-toc": "^8.0.1",
     "umi": "^3.5.0",
     "umi-plugin-pro": "^2.0.1",
     "voca": "^1.4.0"

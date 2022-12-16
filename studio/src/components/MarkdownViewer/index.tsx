@@ -2,10 +2,15 @@ import { Empty } from 'antd';
 import React, { memo, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import rehypeToc from 'rehype-toc';
+import rehypeVideo from 'rehype-video';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import remarkGfm from 'remark-gfm';
+import remarkToc from 'remark-toc';
 import axios from 'axios';
 import './index.less';
 
-const gfm = require('remark-gfm');
 
 export type MarkdownParams = {
   filelink: string,
@@ -13,13 +18,14 @@ export type MarkdownParams = {
 
 export type MarkdownProps = {
   url: string | null;
+  enableToc?: boolean;
   getFile?: (params: MarkdownParams) => Promise<any>;
 };
 
 const MarkdownViewer: React.FC<MarkdownProps> = (props) => {
-  const { url, getFile } = props;
+  const { url, getFile, enableToc } = props;
 
-  const fetchMarkdown = function(url: string): Promise<string> {
+  const fetchMarkdown = function (url: string): Promise<string> {
     if (url.match(/^(minio|file):\/\//)) {
       if (getFile) {
         return getFile({
@@ -61,12 +67,19 @@ const MarkdownViewer: React.FC<MarkdownProps> = (props) => {
 
   console.log('MarkdownViewer: updated');
 
+  let rehypePlugins = []
+  if (enableToc) {
+    rehypePlugins = [rehypeRaw, rehypeSlug, rehypeToc, rehypeAutolinkHeadings, rehypeVideo]
+  } else {
+    rehypePlugins = [rehypeRaw, rehypeSlug, rehypeAutolinkHeadings, rehypeVideo]
+  }
+
   return markdown ? (
     <ReactMarkdown
       key={url}
-      rehypePlugins={[rehypeRaw]}
+      rehypePlugins={rehypePlugins}
       className="markdown-viewer"
-      remarkPlugins={[gfm]}
+      remarkPlugins={[remarkGfm, remarkToc]}
     >
       {markdown}
     </ReactMarkdown>
