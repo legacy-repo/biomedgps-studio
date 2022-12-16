@@ -10,6 +10,7 @@ export default {
   'menu.custom-analysis.similar-genes-detection': 'Similar Genes Detection',
   'menu.knowledge-graph': 'Knowledge Graph',
   'menu.datasets': 'Datasets',
+  'menu.help': 'Help',
   'menu.about': 'About',
 
   'menu.more-blocks': 'More Blocks',

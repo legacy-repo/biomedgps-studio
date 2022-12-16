@@ -36,6 +36,7 @@ type TagItem = {
 
 type StatItem = {
   title: string | React.ReactElement,
+  key: string,
   stat: string
 }
 
@@ -158,18 +159,22 @@ const Welcome: React.FC = () => {
   const stats: StatItem[] = [
     {
       title: <FormattedMessage id="pages.Welcome.datasets" defaultMessage="Datasets" />,
+      key: 'datasets',
       stat: '200',
     },
     {
       title: <FormattedMessage id="pages.Welcome.samples" defaultMessage="Samples" />,
+      key: 'samples',
       stat: '1,000'
     },
     {
       title: <FormattedMessage id="pages.Welcome.organs" defaultMessage="Organs" />,
+      key: 'organs',
       stat: '10'
     },
     {
       title: <FormattedMessage id="pages.Welcome.publications" defaultMessage="Publications" />,
+      key: 'publications',
       stat: '10,000'
     }
   ]
@@ -213,7 +218,7 @@ const Welcome: React.FC = () => {
                           {
                             tags.map(tag => {
                               return (
-                                <Link to={tag.route}>
+                                <Link to={tag.route} key={tag.route}>
                                   <Tag color="#108ee9" key={tag.route}>{tag.title}</Tag>
                                 </Link>
                               )
@@ -225,7 +230,7 @@ const Welcome: React.FC = () => {
                         {
                           stats.map(item => {
                             return (
-                              <Col span={6} className='stat-item'>
+                              <Col span={6} className='stat-item' key={item.key}>
                                 <span>{item.stat}</span>
                                 <span className='title'>{item.title}</span>
                               </Col>

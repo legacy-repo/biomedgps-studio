@@ -10,6 +10,7 @@ export default {
   'menu.custom-analysis.similar-genes-detection': '相似基因分析',
   'menu.knowledge-graph': '知识图谱',
   'menu.datasets': '数据集',
+  'menu.help': '帮助',
   'menu.about': '关于',
 
   'menu.more-blocks': '更多区块',

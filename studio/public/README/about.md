@@ -10,6 +10,8 @@ RAPEX has several customizable functions:
 3. Interactive visualization outputs. Unlike most of outputs provided in other tools, RAPEX provides interactive charts, leading users to other portions of the platform for further analysis. In addition, downloadable outputs are highly modifiable in terms of color, axis, etc.
 In summary, RAPEX is an one-stop RNA-Seq analysis tool that assists researchers and clinicians in discovering organ-specific, inter-organ and inter-species damage patterns caused by air pollution.
 
+The RAPEX platform is developed by Jingcheng Yang (Fudan University), Jun Shang (Fudan University), Tianyuan Chen (Johns Hopkins University), Yiqing Zhang (Shanghai University of Medicine and Health Sciences), Yuqin Huang (Shanghai University of Medicine and Health Sciences), Zihan Ran (Shanghai University of Medicine and Health Sciences).
+
 ## How to cite?
 
 
@@ -17,7 +19,9 @@ In summary, RAPEX is an one-stop RNA-Seq analysis tool that assists researchers 
 
 If any question about the RAPEX, please contact us: yjcyxky@163.com
 
-
 ## Acknowledgement
 
-The knowledge graph RAPEX used is based on the CTD database ( http://ctdbase.org/ ) which is a robust, publicly available database that aims to advance understanding about how environmental exposures affect human health..
+The knowledge graph RAPEX used is based on:
+1. the [CTD database](http://ctdbase.org/) which is a robust, publicly available database that aims to advance understanding about how environmental exposures affect human health.
+2. [CKG]() 
+3. and self-curated knowledge database which is curated by RAPEX team (Yiqing Zhang, Shaobo Wu, Shiqing He and Zihan Ran)

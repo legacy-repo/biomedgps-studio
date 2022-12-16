@@ -176,20 +176,20 @@ export default () => {
 
 ### NoticeIcon API
 
-| 参数 | 说明 | 类型 | 默认值 |
-| --- | --- | --- | --- |
-| count | 有多少未读通知 | `number` | - |
-| bell | 铃铛的图表 | `ReactNode` | - |
-| onClear | 点击清空数据按钮 | `(tabName: string, tabKey: string) => void` | - |
-| onItemClick | 未读消息列被点击 | `(item: API.NoticeIconData, tabProps: NoticeIconTabProps) => void` | - |
-| onViewMore | 查看更多的按钮点击 | `(tabProps: NoticeIconTabProps, e: MouseEvent) => void` | - |
-| onTabChange | 通知 Tab 的切换 | `(tabTile: string) => void;` | - |
-| popupVisible | 通知显示是否展示 | `boolean` | - |
-| onPopupVisibleChange | 通知信息显示隐藏的回调函数 | `(visible: boolean) => void` | - |
-| clearText | 清空按钮的文字 | `string` | - |
-| viewMoreText | 查看更多的按钮文字 | `string` | - |
-| clearClose | 展示清空按钮 | `boolean` | - |
-| emptyImage | 列表为空时的兜底展示 | `ReactNode` | - |
+| 参数                 | 说明                       | 类型                                                               | 默认值 |
+| -------------------- | -------------------------- | ------------------------------------------------------------------ | ------ |
+| count                | 有多少未读通知             | `number`                                                           | -      |
+| bell                 | 铃铛的图表                 | `ReactNode`                                                        | -      |
+| onClear              | 点击清空数据按钮           | `(tabName: string, tabKey: string) => void`                        | -      |
+| onItemClick          | 未读消息列被点击           | `(item: API.NoticeIconData, tabProps: NoticeIconTabProps) => void` | -      |
+| onViewMore           | 查看更多的按钮点击         | `(tabProps: NoticeIconTabProps, e: MouseEvent) => void`            | -      |
+| onTabChange          | 通知 Tab 的切换            | `(tabTile: string) => void;`                                       | -      |
+| popupVisible         | 通知显示是否展示           | `boolean`                                                          | -      |
+| onPopupVisibleChange | 通知信息显示隐藏的回调函数 | `(visible: boolean) => void`                                       | -      |
+| clearText            | 清空按钮的文字             | `string`                                                           | -      |
+| viewMoreText         | 查看更多的按钮文字         | `string`                                                           | -      |
+| clearClose           | 展示清空按钮               | `boolean`                                                          | -      |
+| emptyImage           | 列表为空时的兜底展示       | `ReactNode`                                                        | -      |
 
 ### NoticeIcon.Tab API
 
@@ -257,7 +257,7 @@ RightContent 是以上几个组件的组合，同时新增了 plugins 的 `Selec
         window.location.href = 'https://pro.ant.design/docs/getting-started';
       }}
     >
-      <QuestionCircleOutlined />
+      <QuestionCircleOutlined /> Help
     </span>
   </Tooltip>
   <Avatar />

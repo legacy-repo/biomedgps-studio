@@ -69,9 +69,15 @@
   },
   {
     name: 'about',
-    icon: 'question-circle',
+    icon: 'info-circle',
     path: '/about',
     component: './About',
+  },
+  {
+    name: 'help',
+    icon: 'question-circle',
+    path: '/help',
+    component: './Help',
   },
   {
     path: '/',

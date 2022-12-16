@@ -188,6 +188,8 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
             <SettingDrawer
               disableUrlParams
               enableDarkTheme
+              hideHintAlert={isDev ? false : true}
+              hideCopyButton={isDev ? false : true}
               settings={initialState?.settings}
               onSettingChange={(settings) => {
                 setInitialState((preInitialState) => ({

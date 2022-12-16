@@ -55,14 +55,16 @@ const GlobalHeaderRight: React.FC = () => {
         title="Select Dataset" visible={isModalOpen} footer={null}>
         <DatasetList selectDataset={handleOk}></DatasetList>
       </Modal>
-      <span
-        className={styles.action}
-        onClick={() => {
-          window.open('https://pro.ant.design/docs/getting-started');
-        }}
-      >
-        <QuestionCircleOutlined />
-      </span>
+      {
+        /* <span
+          className={styles.action}
+          onClick={() => {
+            window.open('https://pro.ant.design/docs/getting-started');
+          }}
+        >
+          <QuestionCircleOutlined />
+        </span> */
+      }
       <SelectLang className={styles.action} />
     </Space>
   );
