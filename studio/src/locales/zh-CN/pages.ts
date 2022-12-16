@@ -16,7 +16,7 @@ export default {
   'pages.Welcome.samples': '样本数',
   'pages.Welcome.organs': '器官数',
   'pages.Welcome.publications': '文献数',
-  'pages.Welcome.description': 'RAPEX is a newly developed interactive web server for focusing on pollution-caused damage within and across organ, as well as inter-species by RNA-seq analysis.',
+  'pages.Welcome.description': 'RAPEX is an open-source platform comprising various transcriptome datasets and analyzing tools, as well as a knowledge graph providing a multi-omics network linking vast other factors related to the research questions.',
 
   // KEGGPathway Page
   'pages.KEGGPathway.pathwayId': '通路ID',

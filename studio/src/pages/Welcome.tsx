@@ -132,19 +132,19 @@ const Welcome: React.FC = () => {
   const images: ImageItem[] = [
     {
       src: '/examples/0.png',
-      title: 'Legend 0',
+      title: 'Multi-omics Data',
     },
     {
       src: '/examples/1.png',
-      title: 'Legend 1'
+      title: 'Knowledge Graph & Statistics'
+    },
+    {
+      src: '/examples/2.png',
+      title: 'Interactive Charts'
     },
     // {
-    //   src: '/examples/2.png',
-    //   title: 'Legend 2'
-    // },
-    // {
     //   src: '/examples/3.png',
-    //   title: 'Legend 3'
+    //   title: 'Single Page Analysis'
     // },
     // {
     //   src: '/examples/4.png',
@@ -195,7 +195,7 @@ const Welcome: React.FC = () => {
     }
   }
 
-  const description = 'RAPEX is a newly developed interactive web server for focusing on pollution-caused damage within and across organ, as well as inter-species by RNA-seq analysis. Target users are researchers interested in air pollution health outputs on gene level. Researchers can access datasets we generated from mice in lab, as well as selected from various sources in the server. Upon selecting datasets, featured interactive visual outputs on rich differential gene analysis integrated in the platform are displayed. Analysis portion is consistent of three parts, single gene analysis most useful for inter-organ analysis, multiple gene differential analysis, and custom analysis allowing customized inputs and settings.'
+  const description = 'RAPEX is an open-source platform comprising various transcriptome datasets and analyzing tools, as well as a knowledge graph providing a multi-omics network linking vast other factors related to the research questions.'
 
   return (
     <Row className='welcome'>
@@ -241,11 +241,11 @@ const Welcome: React.FC = () => {
                       <Row className='statistics' gutter={16}>
                         <Col className='data-stat' md={9} sm={24} xs={9} xxl={9}>
                           <ReactSVG src="/mice-organs.svg" onClick={(e) => { onClickOrgan(e) }}></ReactSVG>
-                          {/* <FormattedMessage id="pages.Welcome.description" defaultMessage={description} /> */}
-                          <p style={{ textAlign: 'justify' }}>{description}</p>
+                          <FormattedMessage id="pages.Welcome.description" defaultMessage={description} />
+                          {/* <p style={{ textAlign: 'justify' }}>{description}</p> */}
                         </Col>
                         <Col className='image-container' md={15} sm={24} xs={15} xxl={15}>
-                          <Carousel autoPlay dynamicHeight={false} infiniteLoop>
+                          <Carousel autoPlay dynamicHeight={true} infiniteLoop>
                             {images.map((item: ImageItem) => {
                               return (
                                 <div key={item.title}>
