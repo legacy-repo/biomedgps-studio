@@ -31,10 +31,11 @@ const QueryBuilder: React.FC = (props) => {
     return (
         <Row className="query-builder">
             <Input
+                style={{ width: '400px' }}
                 addonBefore={
                     <Select
                         defaultValue="Gene"
-                        style={{ width: 100 }}
+                        style={{ width: 'auto' }}
                         options={options}
                     />
                 }

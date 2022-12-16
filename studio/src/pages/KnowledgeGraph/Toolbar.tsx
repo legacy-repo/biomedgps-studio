@@ -20,27 +20,27 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     const styleMap = {
         right: {
             right: '0px',
-            top: '40%',
+            top: '45%',
             height: '80px',
             width: '38px',
             borderColor: 'transparent #ddd transparent transparent'
         },
         top: {
             top: '0px',
-            left: '40%',
+            left: '45%',
             width: '80px',
             height: '38px',
             borderColor: '#ddd transparent transparent transparent'
         },
         left: {
             left: '0px',
-            top: '40%',
+            top: '45%',
             height: '80px',
             width: '38px',
             borderColor: 'transparent transparent transparent #ddd'
         },
         bottom: {
-            left: '40%',
+            left: '45%',
             bottom: '0px',
             width: '80px',
             height: '38px',
