@@ -172,7 +172,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         // <ComponentLink></ComponentLink>,
       ]
       : [
-        <DocLink></DocLink>,
+        // <DocLink></DocLink>,
         // <ExampleLink></ExampleLink>
       ],
     menuHeaderRender: undefined,

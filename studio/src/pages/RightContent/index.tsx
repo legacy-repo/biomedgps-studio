@@ -66,7 +66,6 @@ const GlobalHeaderRight: React.FC = () => {
   return (
     <Space className={`${className} right-content`}>
       <Menu onClick={onClick} selectedKeys={[current]} theme="dark" mode="inline" items={items} />
-      <SelectLang className={styles.action} />
       <Row>
         <Dropdown.Button overlay={<></>}
           onClick={showModal}
@@ -84,6 +83,7 @@ const GlobalHeaderRight: React.FC = () => {
           <DatasetList selectDataset={handleOk}></DatasetList>
         </Modal>
       </Row>
+      <SelectLang className={styles.action} />
     </Space>
   );
 };
