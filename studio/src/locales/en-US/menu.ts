@@ -1,5 +1,6 @@
 export default {
   'menu.welcome': 'Home',
+  'menu.quick-start': 'Quick Start',
   'menu.expression-analysis': 'Expression Analysis',
   'menu.expression-analysis.single-gene': 'Single Gene Analysis',
   'menu.expression-analysis.multiple-genes': 'Multiple Genes Analysis',

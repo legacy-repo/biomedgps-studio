@@ -1,7 +1,7 @@
 ﻿export default [
   {
     path: '/welcome',
-    name: 'welcome',
+    name: 'quick-start',
     icon: 'home',
     component: './Welcome',
   },
@@ -65,18 +65,22 @@
     name: 'datasets',
     icon: 'table',
     path: '/datasets',
+    // More details on https://procomponents.ant.design/components/layout/#menu
+    hideInMenu: true,
     component: './DatasetList',
   },
   {
     name: 'about',
     icon: 'info-circle',
     path: '/about',
+    hideInMenu: true,
     component: './About',
   },
   {
     name: 'help',
     icon: 'question-circle',
     path: '/help',
+    hideInMenu: true,
     component: './Help',
   },
   {

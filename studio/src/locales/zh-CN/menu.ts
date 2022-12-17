@@ -1,5 +1,6 @@
 export default {
   'menu.welcome': '首页',
+  'menu.quick-start': '快速分析',
   'menu.expression-analysis': '基因表达分析',
   'menu.expression-analysis.single-gene': '单基因分析',
   'menu.expression-analysis.multiple-genes': '多基因分析',
