@@ -19,27 +19,44 @@ from Bio import Entrez
 Entrez.email = "yjcyxky@163.com"
 
 
+def format_key(key):
+    formated_key = re.sub(r'[\-:*.]', '_', key).lower()
+    if formated_key in ["type", "unique", "select", "database", "table", "default"]:
+        return "_" + formated_key
+    else:
+        return formated_key
+
+
 def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
     line = next(reader)
     db_fields = {}
     db_columns = []
 
     for key in line.keys():
-        db_columns.append(key)
+        formated_key = format_key(key)
+        db_columns.append(formated_key)
         if line[key].isdigit():
             # is integer
-            db_fields[key] = 'INTEGER'
+            db_fields[formated_key] = 'INTEGER'
         elif line[key].lstrip('-').replace('.', '', 1).isdigit():
             # is float/complex
-            db_fields[key] = 'FLOAT'
+            db_fields[formated_key] = 'FLOAT'
         else:
-            db_fields[key] = 'TEXT'
+            db_fields[formated_key] = 'TEXT'
+
     # reset file line iterator
     filein.seek(0)
     next(reader)
+
     # run db init with key value concatenated to string
-    cur.execute('CREATE TABLE IF NOT EXISTS '+table+' (' +
-                ', '.join(['%s %s' % (key, value) for (key, value) in db_fields.items()]) + ')')
+    query_str = 'CREATE TABLE IF NOT EXISTS '+table+' (' + \
+                ', '.join(['%s %s' % (key, value)
+                          for (key, value) in db_fields.items()]) + ')'
+    try:
+        cur.execute(query_str)
+    except Exception as err:
+        print(query_str)
+        raise Exception(err)
 
     return db_columns
 
@@ -285,6 +302,39 @@ def format_genes_output(results):
 @click.group()
 def database():
     pass
+
+
+@database.command(help="Parse graph files and make a graph labels database.")
+@click.option('--data-dir', '-d', required=True,
+              type=click.Path(exists=True, dir_okay=True),
+              help="The directory which saved the data files.")
+@click.option('--output-dir', '-o', required=True,
+              type=click.Path(exists=True, dir_okay=True),
+              help="The directory which saved the database file.")
+@click.option('--db', '-b', required=False, default="duckdb",
+              type=click.Choice(["sqlite", "duckdb"]),
+              help="Which type of database.")
+def graph_labels(data_dir, output_dir, db):
+    labels = {
+        "gene": "HGNC_MGI/Gene.tsv",
+        "metabolite": "HMDB/Metabolite.tsv",
+        "pathway": "PathwayCommons/Pathway.tsv",
+        "transcript": "RefSeq/Transcript.tsv",
+        "protein": "UniProt/Protein.tsv",
+        "peptide": "UniProt/Peptide.tsv",
+        "disease": "Ontologies/Disease.tsv",
+        "phenotype": "Ontologies/Phenotype.tsv",
+        "publication": "JensenLab/Publications.tsv"
+    }
+
+    dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
+
+    for key in labels.keys():
+        file = os.path.join(data_dir, labels[key])
+        if os.path.exists(file):
+            func_map.get(db)(file, dbfile, table_name=key, skip=True)
+        else:
+            print("Cannot find the datafile (%s)" % file)
 
 
 @database.command(help="Parse data files and make a dataset database.")

@@ -104,6 +104,10 @@
   (let [content (slurp (:dataset-metadata env))]
     (json/read-str content :key-fn keyword)))
 
+(defn get-label-blacklist
+  []
+  (or (:label-blacklist (:graph-config env)) []))
+
 (def memorized-get-dataset-metadata (memoize get-dataset-metadata))
 
 (def memorized-get-version (memoize (fn [] (v/get-version "com.github.rapex-lab" "rapex"))))

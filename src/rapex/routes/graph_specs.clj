@@ -105,3 +105,42 @@
 (def node-properties-query-spec
   (s/keys :req-un []
           :opt-un [::node_name]))
+
+
+;; More Details for `:type`: https://cljdoc.org/d/metosin/spec-tools/0.6.1/doc/readme#type-based-conforming
+(s/def ::label_type
+  (st/spec
+   {:spec                (s/and string? #(some? (re-matches #"[0-9A-Za-z]+" %)))  ;; such as 00000000
+    :description         "Label type."
+    :swagger/default     "Gene"
+    :swagger/type        "string"
+    :reason              "Not a valid label type."}))
+
+(s/def ::query_str
+  (st/spec
+   {:spec                string?
+    :description         "Query string with honeysql specification."
+    :swagger/default     "{:select [:*] :from :xxx}"
+    :swagger/type        "string"
+    :reason              "Not a valid query string."}))
+
+(s/def ::page
+  (st/spec
+   {:spec                nat-int?
+    :type                :long
+    :description         "Page, From 1."
+    :swagger/default     1
+    :reason              "The page parameter can't be none."}))
+
+(s/def ::page_size
+  (st/spec
+   {:spec                nat-int?
+    :type                :long
+    :description         "Num of items per page."
+    :swagger/default     10
+    :reason              "The page_size parameter can't be none."}))
+
+(s/def ::DBQueryParams
+  (st/spec
+   (s/keys :req-un [::query_str ::label_type]
+           :opt-un [::page ::page_size])))

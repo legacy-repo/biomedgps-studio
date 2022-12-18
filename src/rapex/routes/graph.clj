@@ -4,8 +4,10 @@
             [clojure.spec.alpha :as s]
             [rapex.db.neo4j.core :as db]
             [rapex.db.query-data :as qd]
+            [clojure.string :as clj-str]
             [rapex.routes.database-specs :as ds]
             [rapex.db.query-gdata :as gdb]
+            [rapex.config :refer [get-datadir]]
             [clojure.tools.logging :as log]))
 
 (defn get-error-response
@@ -31,6 +33,32 @@
                           (log/info "Get the type of all nodes from Neo4j database...")
                           (with-open [session (db/get-session @gdb/gdb-conn)]
                             (ok {:node_types (gdb/list-labels session)})))}}]
+
+   ["/labels"
+    {:get {:summary    "Query the labels."
+           :parameters {:query ::specs/DBQueryParams}
+           :responses  {200 {:body ::ds/DBDataItems}
+                        404 {:body ds/database-error-body}
+                        400 {:body ds/database-error-body}
+                        500 {:body ds/database-error-body}}
+           :handler    (fn [{{{:keys [page page_size query_str label_type]} :query} :parameters
+                             {:as headers} :headers}]
+                         (try
+                           (let [page (or page 1)
+                                 page_size (or page_size 50)
+                                 query-map (qd/read-string-as-map query_str)
+                                 query-map (merge query-map {:limit page_size
+                                                             :offset (* (- page 1) page_size)
+                                                             :from (keyword (clj-str/lower-case label_type))})
+                                 dbpath (qd/get-db-path "graph_labels" :datadir (get-datadir))]
+                             (log/info "database:" dbpath "query-map:" query-map)
+                             (ok {:total (qd/get-total dbpath query-map)
+                                  :page page
+                                  :page_size page_size
+                                  :data (qd/get-results dbpath query-map)}))
+                           (catch Exception e
+                             (log/error "Error: " e)
+                             (get-error-response e))))}}]
 
    ["/relationship-types"
     {:get  {:summary    "Get the type of all relationships."
@@ -59,20 +87,23 @@
                          404 {:body ds/database-error-body}
                          400 {:body ds/database-error-body}
                          500 {:body ds/database-error-body}}
-            :handler    (fn [{{{:keys [query_str]} :query} :parameters}]
-                          "An example of query string
-                           {:match \"(n)-[r]-(m)\"
-                            :return \"n, r, m\"
-                            :where (format \"id(n) = %s\" id)
-                            :limit 10}"
+            :handler    (fn
+                          ^{:doc "An example of query string
+                                  {:match \"(n)-[r]-(m)\"
+                                   :return \"n, r, m\"
+                                   :where (format \"id(n) = %s\" id)
+                                   :limit 10}"}
+                          [{{{:keys [query_str]} :query} :parameters}]
                           (try
-                            (log/info "Get the nodes which matched the query conditions")
-                            (with-open [session (db/get-session @gdb/gdb-conn)]
-                              (let [r (gdb/query-gdb session (qd/read-string-as-map query_str))]
-                                (ok (if (empty? r)
-                                      {:nodes []
-                                       :edges []}
-                                      r))))
+                            (log/info (format "Get the nodes which matched the query conditions: %s" query_str))
+                            (let [query-map (qd/read-string-as-map query_str)]
+                              (log/info "Graph Query Map: " query-map)
+                              (with-open [session (db/get-session @gdb/gdb-conn)]
+                                (let [r (gdb/query-gdb session query-map)]
+                                  (ok (if (empty? r)
+                                        {:nodes []
+                                         :edges []}
+                                        r)))))
                             (catch Exception e
                               (log/error "Error: " e)
                               (get-error-response e))))}}]])

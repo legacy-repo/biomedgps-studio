@@ -180,6 +180,25 @@ declare namespace API {
     page_size?: number;
   };
 
+  type getLabelsParams = {
+    /** Query string with honeysql specification. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** Label type. */
+    label_type: string;
+  };
+
+  type getNodePropertiesParams = {
+    node_name?: string;
+  };
+
+  type getNodesParams = {
+    query_str?: string;
+  };
+
   type getPathwaysParams = {
     /** Query string with honeysql specification. */
     query_str: string;

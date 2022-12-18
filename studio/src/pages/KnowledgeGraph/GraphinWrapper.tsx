@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Graphin, { Components, Behaviors, GraphinContext } from '@antv/graphin';
 import { ContextMenu, FishEye } from '@antv/graphin-components';
 import {
@@ -19,7 +19,10 @@ import './graphin-wrapper.less';
 
 const { MiniMap, SnapLine, Tooltip } = Components;
 
-const { ZoomCanvas, ActivateRelations, ClickSelect, Hoverable, FitView } = Behaviors;
+const {
+    ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
+    FitView, DragNodeWithForce
+} = Behaviors;
 const { Menu } = ContextMenu;
 
 export type GraphinProps = {
@@ -28,7 +31,7 @@ export type GraphinProps = {
     data: any;
     layout: any;
     style: any;
-    handleChange?: (item: any, data: any) => void
+    handleChange?: (item: any, data: any, graph: any, graphin: any) => void
 }
 
 const snapLineOptions = {
@@ -38,23 +41,41 @@ const snapLineOptions = {
     },
 };
 
-const options = [
-    {
-        key: 'expand',
-        icon: <ExpandAltOutlined />,
-        name: 'Expand One Level',
-    },
-    {
-        key: 'tag',
-        icon: <TagFilled />,
-        name: 'Tag Node',
-    },
-    {
-        key: 'delete',
-        icon: <DeleteFilled />,
-        name: 'Delete Node',
-    },
-];
+type MenuProps = {
+    onChange: ((item: any, data: any, graph: any, graphin: any) => void) | undefined
+}
+
+const NodeMenu = (props: MenuProps) => {
+    const { graph, apis } = React.useContext(GraphinContext);
+
+    const options = [
+        {
+            key: 'expand',
+            icon: <ExpandAltOutlined />,
+            name: 'Expand One Level',
+        },
+        // {
+        //     key: 'tag',
+        //     icon: <TagFilled />,
+        //     name: 'Tag Node',
+        // },
+        {
+            key: 'delete',
+            icon: <DeleteFilled />,
+            name: 'Delete Node',
+        },
+    ];
+
+    const onChange = function (item: any, data: any) {
+        if (props.onChange && graph && apis) {
+            props.onChange(item, data, graph, apis)
+        } else {
+            message.warn("Cannot catch the changes.")
+        }
+    }
+
+    return <Menu options={options} onChange={onChange} bindType="node" />
+}
 
 const CanvasMenu = (props: any) => {
     const { graph, contextmenu } = React.useContext(GraphinContext);
@@ -124,11 +145,12 @@ const HighlightNode = (props: { selectedNode?: string }) => {
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const { data, layout, style, handleChange, config, selectedNode } = props
+    const [visible, setVisible] = useState(false);
 
-    const [visible, setVisible] = React.useState(false);
     const handleOpenFishEye = () => {
         setVisible(true);
     };
+
     const handleClose = () => {
         setVisible(false);
     };
@@ -138,7 +160,11 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         const dataSource = makeDataSource(data, ["comboId", "degree", "depth", "layoutOrder", "x", "y", "type", "category"])
         const items = Object.keys(dataSource).map(key => {
             if (dataSource[key]) {
-                return (<Descriptions.Item key={key} label={voca.titleCase(key)}>{dataSource[key]}</Descriptions.Item>)
+                return (
+                    <Descriptions.Item key={key} label={voca.titleCase(key)}>
+                        {dataSource[key]}
+                    </Descriptions.Item>
+                )
             } else {
                 return null
             }
@@ -155,7 +181,10 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     return (
         data && <Graphin fitCenter={true} data={data} layout={layout} style={style}>
             <FitView></FitView>
+            <DragNodeWithForce autoPin={true} />
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
+            <ZoomCanvas />
+            <FishEye options={{}} visible={visible} handleEscListener={handleClose} />
             <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
             {(config ? config.nodeTooltipEnabled : null) ?
                 <Tooltip bindType="node" hasArrow>
@@ -163,7 +192,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         if (value.model) {
                             const { model } = value;
                             return (
-                                <HoverText data={model} style={{ padding: '10px', width: '300px' }}></HoverText>
+                                <HoverText data={model} style={{ padding: '10px', minWidth: '300px', maxWidth: '500px' }}></HoverText>
                             );
                         }
                         return null;
@@ -183,28 +212,26 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     }}
                 </Tooltip>
                 : null}
-            <ZoomCanvas />
             {(config ? config.miniMapEnabled : null) ? <MiniMap /> : null}
             <Hoverable bindType="node" />
             {/* <Hoverable bindType="edge" /> */}
             {(config ? config.snapLineEnabled : null) ? <SnapLine options={snapLineOptions} visible /> : null}
             <ActivateRelations />
             <ContextMenu style={{ width: '150px' }}>
-                <Menu options={options} onChange={handleChange} bindType="node" />
+                <NodeMenu onChange={handleChange}></NodeMenu>
             </ContextMenu>
             <ContextMenu style={{ width: '150px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
             </ContextMenu>
-            <ContextMenu style={{ width: '200px' }} bindType="edge">
+            {/* <ContextMenu style={{ width: '200px' }} bindType="edge">
                 <Menu
                     options={options.map(item => {
                         return { ...item, name: `${item.name}-EDGE` };
                     })}
-                    onChange={handleChange}
+                    onChange={onChange}
                     bindType="edge"
                 />
-            </ContextMenu>
-            <FishEye options={{}} visible={visible} handleEscListener={handleClose} />
+            </ContextMenu> */}
         </Graphin>
     );
 }

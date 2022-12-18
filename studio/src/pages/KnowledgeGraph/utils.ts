@@ -18,7 +18,8 @@ export const makeColumns = (dataSource: Array<Record<string, any>>, blackList: A
       title: voca.titleCase(item),
       key: item,
       dataIndex: item,
-      align: 'center'
+      align: 'center',
+      ellipsis: true
     })
   });
 

@@ -1,20 +1,21 @@
 /* eslint-disable no-undef */
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Tabs, Table } from 'antd';
+import { Row, Col, Tabs, Table, message, Descriptions } from 'antd';
 import type { TableColumnType } from 'antd';
-import { Utils } from '@antv/graphin';
+// import { Utils } from '@antv/graphin';
 import { Config } from './MenuButton';
 import Toolbar from './Toolbar';
+import { uniqBy } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
 import MenuButton from './MenuButton';
 import QueryBuilder from './QueryBuilder';
-import { request } from 'umi';
+import { getNodes } from '@/services/swagger/Graph';
 import { makeColumns, makeDataSources } from './utils';
 
 import './index.less';
 
 const oldLayout = {
-  type: 'concentric',
+  type: 'graphin-force',
   minNodeSpacing: 20,
   getId: function getId(d: any) {
     return d.id;
@@ -57,12 +58,20 @@ export type GraphEdge = {
   data: Record<string, any>
 }
 
+export function makeQueryStr(
+  match_clause: string,
+  where_clause: string
+): string {
+  return `{:match "${match_clause}" :where "${where_clause}" :limit 100 :return "n, r, m"}`;
+}
+
 const KnowledgeGraph: React.FC = () => {
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
   const [data, setData] = useState<{ nodes: Array<GraphNode>, edges: Array<GraphEdge> }>({
     nodes: [],
     edges: []
   });
+  const [statistics, setStatistics] = useState<Record<string, any>>({});
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
   const [edgeColumns, setEdgeColumns] = useState<TableColumnType<any>[]>([]);
@@ -73,24 +82,12 @@ const KnowledgeGraph: React.FC = () => {
 
   const [layout, setLayout] = React.useState<any>({});
   const [config, setConfig] = React.useState<Config & { layout?: any } | undefined>({
-    layout: 'concentric',
-    miniMapEnabled: false,
+    layout: 'graphin-force',
+    miniMapEnabled: true,
     snapLineEnabled: true,
     nodeTooltipEnabled: true,
     edgeTooltipEnabled: false
   });
-
-  useEffect(() => {
-    request('/api/v1/nodes', {
-      method: 'GET',
-      params: {
-        "query_str": "{:match \"(n:Gene)-[r]-(m)\" :return \"n, r, m\"  :limit 10}"
-      }
-    }).then(response => {
-      console.log("Get Knowledge Graph Data: ", response)
-      setData(response)
-    })
-  }, [])
 
   useEffect(() => {
     const nodes = makeDataSources(data.nodes)
@@ -105,6 +102,11 @@ const KnowledgeGraph: React.FC = () => {
     const edgeColumns = makeColumns(edges, []);
     setEdgeColumns(edgeColumns)
     console.log("Node & Edge Columns: ", nodeColumns, edgeColumns);
+
+    setStatistics({
+      node: data.nodes.length,
+      edge: data.edges.length
+    })
   }, [data])
 
   const onChangeConfig = (config: Config, layout: any) => {
@@ -112,19 +114,54 @@ const KnowledgeGraph: React.FC = () => {
     setConfig(config)
   }
 
-  const handleChange = (menuItem: any, menuData: any) => {
-    console.log(menuItem, menuData);
-    const count = 4;
-    const expandData = Utils.mock(count)
-      .expand([menuData])
-      .type('company')
-      .graphin();
+  const searchLabel = (label: string, value: string | undefined) => {
+    if (label && value) {
+      getNodes({
+        query_str: makeQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${value}'`)
+      }).then(response => {
+        setData(response)
+      }).catch(error => {
+        message.warn("Unknown error, please retry later.")
+        console.log("getNodes Error: ", error)
+      })
 
-    setData({
-      nodes: [...data.nodes, ...expandData.nodes],
-      edges: [...data.edges, ...expandData.edges],
-    });
-    console.log("Data: ", data.nodes, data.edges)
+    }
+  }
+
+  const searchRelationshipsById = (label: string, id: string | undefined) => {
+    if (label && id) {
+      getNodes({
+        query_str: makeQueryStr(`(n:${label})-[r]-(m)`, `id(n) = ${id}`)
+      }).then(response => {
+        const merged_data = {
+          nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
+          edges: [...data.edges, ...response.edges],
+        };
+        setData(merged_data);
+      }).catch(error => {
+        message.warn("Unknown error, please retry later.")
+        console.log("getNodes Error: ", error)
+      })
+    }
+  }
+
+  const handleChange = (menuItem: any, menuData: any, graph: any, graphin: any) => {
+    console.log(`handleChange [${menuItem.name}]: `, menuItem, menuData);
+    if (menuItem.key == 'delete' && menuItem.name == 'Delete Node') {
+      const id = menuData.id;
+      const item = graph.findById(id);
+
+      if (item) {
+        graph.removeItem(item);
+      }
+    } else if (menuItem.key == 'expand' && menuItem.name == 'Expand One Level') {
+      const node_label = menuData.nlabel;
+      const id = menuData.id;
+      console.log("Expand node: ", node_label, id)
+      searchRelationshipsById(node_label, id);
+    } else {
+      message.warn("Don't support this action, please contact administrator.");
+    }
   };
 
   const rowSelection = {
@@ -151,10 +188,30 @@ const KnowledgeGraph: React.FC = () => {
     )
   }
 
+  const DataArea: React.FC<{ data: Record<string, any>, style?: any }> = ({ data, style }) => {
+    const items = Object.keys(data).map(key => {
+      return (
+        <Descriptions.Item key={key} label={key}>
+          {data[key]}
+        </Descriptions.Item>
+      )
+    })
+    return (
+      items.length > 0 ?
+        (<Descriptions size={"small"} column={1} title={null} bordered style={style}>
+          {items}
+        </Descriptions>)
+        : (<span style={style}>No Properties</span>)
+    )
+  }
+
   return (
     <Row className='knowledge-graph-container'>
-      <MenuButton config={config} onChangeConfig={onChangeConfig} style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}></MenuButton>
-      <QueryBuilder></QueryBuilder>
+      <DataArea data={statistics} style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 10 }}></DataArea>
+      <MenuButton config={config} onChangeConfig={onChangeConfig}
+        style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}>
+      </MenuButton>
+      <QueryBuilder onChange={searchLabel}></QueryBuilder>
       <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
         <Toolbar position='right'>
         </Toolbar>
@@ -181,7 +238,9 @@ const KnowledgeGraph: React.FC = () => {
               : null}
           </TableTabs>
         </Toolbar>
-        <GraphinWrapper selectedNode={currentNode} handleChange={handleChange} config={config} data={data} layout={{ ...oldLayout, ...layout }} style={style}></GraphinWrapper>
+        <GraphinWrapper selectedNode={currentNode} handleChange={handleChange}
+          config={config} data={data} layout={{ ...oldLayout, ...layout }} style={style}>
+        </GraphinWrapper>
       </Col>
     </Row >
   );

@@ -3,4 +3,12 @@
     border: 1px solid #ddd;
     min-height: 500px;
     background: url("/graph-background.png") rgb(255, 255, 255);
+
+    .ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
 }

@@ -1,7 +1,7 @@
 (ns rapex.db.query-gdata
   (:require [rapex.db.neo4j.core :as db]
             [clojure.string :as clj-str]
-            [rapex.config :refer [env]]
+            [rapex.config :refer [env get-label-blacklist]]
             [clojure.tools.logging :as log]
             [reitit.ring.middleware.parameters :as parameters])
   (:import (java.net URI)))
@@ -84,7 +84,7 @@
   (if (empty? @labels)
     (let [all-labels (doall (sort (format-labels (q-all-labels tx))))]
       (reset! labels all-labels)
-      all-labels)
+      (filter (fn [item] (< (.indexOf (get-label-blacklist) item) 0)) all-labels))
     @labels))
 
 (defn list-relationships
@@ -133,6 +133,7 @@
       {:comboId  nil
        :id       (str (:identity node))
        :label    label
+       :nlabel   nlabel
        :style    (set-style node-label nlabel)
        :category :nodes
        :type     "graphin-circle"
@@ -167,6 +168,12 @@
     (format "LIMIT %s" limit-clause)
     ""))
 
+(defn skip
+  [skip-clause]
+  (if skip-clause
+    (format "SKIP %s" skip-clause)
+    ""))
+
 (defn where
   [where-clause]
   (if where-clause
@@ -190,11 +197,12 @@
    {:match xxx :where xxx :return xxx :limit xxx}
   "
   [query-map]
-  (let [query (format "%s %s %s %s"
+  (let [query (format "%s %s %s %s %s"
                       (match (:match query-map))
                       (where (:where query-map))
                       (return (:return query-map))
-                      (limit (:limit query-map)))]
+                      (limit (:limit query-map))
+                      (skip (:skip query-map)))]
     (log/info "Query neo4j with " query)
     (db/create-query query)))
 
@@ -234,16 +242,23 @@
            :id \"NM_001242525.2\",
            :taxid \"9606\"}}}]
   "
-  [tx limit]
-  (->> (q-node-relationships tx {:limit limit})
+  [tx node-type & {:keys [limit skip]}]
+  (->> (query-gdb tx {:match (format "(n:%s)-[r]-(m)" node-type)
+                      :return "n, r, m"
+                      :limit limit
+                      :skip skip})
        (format-node-relationships)
        (merge-node-relationships)
        (distinct)
        (group-by :category)))
 
 (defn search-node-relationships-by-id
-  [tx id limit]
-  (->> (q-node-relationships-by-id tx {:id id :limit limit})
+  [tx node-type id & {:keys [limit skip]}]
+  (->> (query-gdb tx {:match (format "(n:%s)-[r]-(m)" node-type)
+                      :where (format "id(n) = %s" id)
+                      :return "n, r, m"
+                      :limit limit
+                      :skip skip})
        (format-node-relationships)
        (merge-node-relationships)
        (distinct)
