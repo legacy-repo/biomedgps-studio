@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-import React, { useEffect, useState } from 'react';
-import { Row, Col, Tabs, Table, message, Descriptions } from 'antd';
+import React, { ReactNode, useEffect, useState } from 'react';
+import { Row, Col, Tag, Tabs, Table, message, Descriptions } from 'antd';
 import type { TableColumnType } from 'antd';
 // import { Utils } from '@antv/graphin';
 import { Config } from './MenuButton';
@@ -71,7 +71,7 @@ const KnowledgeGraph: React.FC = () => {
     nodes: [],
     edges: []
   });
-  const [statistics, setStatistics] = useState<Record<string, any>>({});
+  const [statistics, setStatistics] = useState<[ReactNode, string | number][]>([]);
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
   const [edgeColumns, setEdgeColumns] = useState<TableColumnType<any>[]>([]);
@@ -86,7 +86,8 @@ const KnowledgeGraph: React.FC = () => {
     miniMapEnabled: true,
     snapLineEnabled: true,
     nodeTooltipEnabled: true,
-    edgeTooltipEnabled: false
+    edgeTooltipEnabled: false,
+    infoPanelEnabled: true,
   });
 
   useEffect(() => {
@@ -103,10 +104,12 @@ const KnowledgeGraph: React.FC = () => {
     setEdgeColumns(edgeColumns)
     console.log("Node & Edge Columns: ", nodeColumns, edgeColumns);
 
-    setStatistics({
-      node: data.nodes.length,
-      edge: data.edges.length
-    })
+    setStatistics([
+      [<span>Entities <Tag color="#2db7f5">canvas</Tag></span>, data.nodes.length],
+      [<span>Relationships <Tag color="#2db7f5">canvas</Tag></span>, data.edges.length],
+      [<span>Entities <Tag color="#108ee9">graph</Tag></span>, "14,543,042"],
+      [<span>Relationships <Tag color="#108ee9">graph</Tag></span>, "188,266,233"],
+    ])
   }, [data])
 
   const onChangeConfig = (config: Config, layout: any) => {
@@ -188,17 +191,19 @@ const KnowledgeGraph: React.FC = () => {
     )
   }
 
-  const DataArea: React.FC<{ data: Record<string, any>, style?: any }> = ({ data, style }) => {
-    const items = Object.keys(data).map(key => {
+  const DataArea: React.FC<{ data: [ReactNode, string | number][], style?: any }> = ({ data, style }) => {
+    const items = data.map((item, index) => {
       return (
-        <Descriptions.Item key={key} label={key}>
-          {data[key]}
+        <Descriptions.Item key={index} label={item[0]}>
+          {item[1]}
         </Descriptions.Item>
       )
     })
     return (
       items.length > 0 ?
-        (<Descriptions size={"small"} column={1} title={null} bordered style={style}>
+        (<Descriptions size={"small"} column={1} title={null}
+          labelStyle={{ backgroundColor: 'transparent' }}
+          bordered style={{ ...style }}>
           {items}
         </Descriptions>)
         : (<span style={style}>No Properties</span>)
@@ -207,7 +212,12 @@ const KnowledgeGraph: React.FC = () => {
 
   return (
     <Row className='knowledge-graph-container'>
-      <DataArea data={statistics} style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 10 }}></DataArea>
+      {
+        config?.infoPanelEnabled ?
+          <DataArea data={statistics}
+            style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 10 }}></DataArea>
+          : null
+      }
       <MenuButton config={config} onChangeConfig={onChangeConfig}
         style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}>
       </MenuButton>

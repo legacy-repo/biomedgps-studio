@@ -24,7 +24,8 @@ export type Config = {
     snapLineEnabled: boolean,
     miniMapEnabled: boolean,
     nodeTooltipEnabled: boolean,
-    edgeTooltipEnabled: boolean
+    edgeTooltipEnabled: boolean,
+    infoPanelEnabled: boolean
 }
 
 export type MenuButtonProps = {
@@ -80,7 +81,8 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                             miniMapEnabled: values.miniMapEnabled,
                                             snapLineEnabled: values.snapLineEnabled,
                                             nodeTooltipEnabled: values.nodeTooltipEnabled,
-                                            edgeTooltipEnabled: values.edgeTooltipEnabled
+                                            edgeTooltipEnabled: values.edgeTooltipEnabled,
+                                            infoPanelEnabled: values.infoPanelEnabled,
                                         }
 
                                         const layout = layouts.find(item => item.type === values.layout);
@@ -112,6 +114,9 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                         <Switch />
                                     </Form.Item>
                                     <Form.Item label="Edge Tooltip" name="edgeTooltipEnabled" valuePropName="checked">
+                                        <Switch />
+                                    </Form.Item>
+                                    <Form.Item label="Info Panel" name="infoPanelEnabled" valuePropName="checked">
                                         <Switch />
                                     </Form.Item>
                                 </Form>
