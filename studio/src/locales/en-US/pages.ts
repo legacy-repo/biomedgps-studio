@@ -13,9 +13,10 @@ export default {
   'pages.Welcome.similar-genes-detection': 'Similar Genes Detection',
   'pages.Welcome.knowledge-graph': 'Knowledge Graph',
   'pages.Welcome.datasets': 'Datasets',
+  'pages.Welcome.species': 'Species',
   'pages.Welcome.samples': 'Samples',
   'pages.Welcome.organs': 'Organs',
-  'pages.Welcome.publications': 'Publications',
+  'pages.Welcome.publications': 'Curated Publications',
   'pages.Welcome.description': 'RAPEX is an open-source platform comprising various transcriptome datasets and analyzing tools, as well as a knowledge graph providing a multi-omics network linking vast other factors related to the research questions.',
 
   // KEGGPathway Page

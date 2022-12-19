@@ -160,22 +160,27 @@ const Welcome: React.FC = () => {
     {
       title: <FormattedMessage id="pages.Welcome.datasets" defaultMessage="Datasets" />,
       key: 'datasets',
-      stat: '200',
+      stat: '18',
+    },
+    // {
+    //   title: <FormattedMessage id="pages.Welcome.species" defaultMessage="Species" />,
+    //   key: 'species',
+    //   stat: '2'
+    // },
+    {
+      title: <FormattedMessage id="pages.Welcome.organs" defaultMessage="Organs" />,
+      key: 'organs',
+      stat: '11'
     },
     {
       title: <FormattedMessage id="pages.Welcome.samples" defaultMessage="Samples" />,
       key: 'samples',
-      stat: '1,000'
+      stat: '2,494'
     },
     {
-      title: <FormattedMessage id="pages.Welcome.organs" defaultMessage="Organs" />,
-      key: 'organs',
-      stat: '10'
-    },
-    {
-      title: <FormattedMessage id="pages.Welcome.publications" defaultMessage="Publications" />,
+      title: <FormattedMessage id="pages.Welcome.publications" defaultMessage="Curated Publications" />,
       key: 'publications',
-      stat: '10,000'
+      stat: '1,000'
     }
   ]
 
