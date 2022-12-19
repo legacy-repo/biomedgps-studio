@@ -215,7 +215,7 @@ const KnowledgeGraph: React.FC = () => {
       {
         config?.infoPanelEnabled ?
           <DataArea data={statistics}
-            style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 10 }}></DataArea>
+            style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 1 }}></DataArea>
           : null
       }
       <MenuButton config={config} onChangeConfig={onChangeConfig}
