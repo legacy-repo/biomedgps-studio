@@ -82,9 +82,10 @@
 (defn list-labels
   [tx]
   (if (empty? @labels)
-    (let [all-labels (doall (sort (format-labels (q-all-labels tx))))]
+    (let [all-labels (doall (sort (format-labels (q-all-labels tx))))
+          all-labels (filter (fn [item] (< (.indexOf (get-label-blacklist) item) 0)) all-labels)]
       (reset! labels all-labels)
-      (filter (fn [item] (< (.indexOf (get-label-blacklist) item) 0)) all-labels))
+      all-labels)
     @labels))
 
 (defn list-relationships
