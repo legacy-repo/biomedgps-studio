@@ -120,6 +120,7 @@ export async function getInitialState(): Promise<{
   // currentUser?: API.CurrentUser;
   loading?: boolean;
   defaultDataset?: string;
+  collapsed?: boolean;
   // fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
 }> {
   // const fetchUserInfo = async () => {
@@ -132,19 +133,21 @@ export async function getInitialState(): Promise<{
   //   return undefined;
   // };
   // 如果不是登录页面，执行
-  if (history.location.pathname !== loginPath) {
+  if (history.location.pathname == '/welcome') {
     // const currentUser = await fetchUserInfo();
     return {
       // fetchUserInfo,
       // currentUser,
       settings: defaultSettings,
-      defaultDataset: '000000'
+      defaultDataset: '000000',
+      collapsed: true,
     };
   }
   return {
     // fetchUserInfo,
     settings: defaultSettings,
-    defaultDataset: '000000'
+    defaultDataset: '000000',
+    collapsed: false,
   };
 }
 
@@ -156,13 +159,19 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     waterMarkProps: {
       // content: initialState?.currentUser?.name,
     },
+    onCollapse: (collapsed) => {
+      setInitialState({ ...initialState, collapsed: collapsed });
+    },
+    collapsed: initialState?.collapsed,
     footerRender: () => <Footer />,
     onPageChange: () => {
-      // const { location } = history;
-      // // 如果没有登录，重定向到 login
-      // if (!initialState?.currentUser && location.pathname !== loginPath) {
-      //   history.push(loginPath);
-      // }
+      const { location } = history;
+      // Change the collapsed status of menu
+      if (location.pathname !== '/welcome') {
+        setInitialState({ ...initialState, collapsed: false });
+      } else {
+        setInitialState({ ...initialState, collapsed: true });
+      }
     },
     links: isDev
       ? [
