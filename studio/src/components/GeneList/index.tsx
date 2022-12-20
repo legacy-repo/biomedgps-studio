@@ -9,6 +9,7 @@ import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
 import { FormattedMessage, useModel } from 'umi';
 import { makeQueryStr } from './util';
+
 import './index.less';
 
 type DEGQueryParams = {
@@ -69,9 +70,10 @@ const GeneList: React.FC<GeneListProps> = (props) => {
   const { initialState } = useModel('@@initialState');
 
   let datasetSelectOptions = {}
-  if (initialState?.defaultDataset) {
-    datasetSelectOptions[initialState?.defaultDataset] = {
-      text: initialState?.defaultDataset
+  const defaultDataset = initialState?.customSettings?.defaultDataset;
+  if (defaultDataset) {
+    datasetSelectOptions[defaultDataset] = {
+      text: defaultDataset
     }
   }
 

@@ -70,9 +70,10 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
   const { initialState } = useModel('@@initialState');
 
   let datasetSelectOptions = {}
-  if (initialState?.defaultDataset) {
-    datasetSelectOptions[initialState?.defaultDataset] = {
-      text: initialState?.defaultDataset
+  const defaultDataset = initialState?.customSettings?.defaultDataset;
+  if (defaultDataset) {
+    datasetSelectOptions[defaultDataset] = {
+      text: defaultDataset
     }
   }
 

@@ -37,3 +37,12 @@ export const customSettings = {
   websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
   defaultDataset: '000000'
 }
+
+export type AppVersion = {
+  version: string;
+  dbVersion: {
+    id: number;
+    applied: string;
+    description: string;
+  }
+}

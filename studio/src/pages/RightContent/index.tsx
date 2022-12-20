@@ -37,7 +37,11 @@ const GlobalHeaderRight: React.FC = () => {
 
   const handleOk = (record: DataType) => {
     setIsModalOpen(false);
-    setInitialState({ ...initialState, defaultDataset: record.dataset_abbr });
+    const customSettings = {
+      ...initialState?.customSettings,
+      defaultDataset: record.dataset_abbr
+    }
+    setInitialState({ ...initialState, ...customSettings });
   };
 
   const handleCancel = () => {

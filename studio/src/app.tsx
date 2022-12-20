@@ -5,9 +5,9 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
 import { history, Link, RequestConfig, useIntl } from 'umi';
-import defaultSettings, { CustomSettings, customSettings } from '../config/defaultSettings';
+import defaultSettings, { CustomSettings, customSettings, AppVersion } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
-import { getStudioConfig } from '@/services/swagger/Utility';
+import { getStudioConfig, getVersion } from '@/services/swagger/Utility';
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
@@ -121,6 +121,7 @@ export async function getInitialState(): Promise<{
   loading?: boolean;
   collapsed?: boolean;
   customSettings?: CustomSettings;
+  appVersion?: AppVersion;
 }> {
   const fetchStudioConfig = async () => {
     try {
@@ -138,20 +139,49 @@ export async function getInitialState(): Promise<{
     }
   };
 
-  if (history.location.pathname == '/welcome') {
-    const customSettings = await fetchStudioConfig();
+  const fetchVersion = async () => {
+    try {
+      const version = await getVersion();
+      const latest_db_version = version.db_version[version.db_version.length - 1];
+      return {
+        version: version.version,
+        dbVersion: {
+          id: latest_db_version.id,
+          applied: latest_db_version.applied,
+          description: latest_db_version.description
+        }
+      }
+    } catch (error) {
+      return {
+        version: 'unknown',
+        dbVersion: {
+          id: 0,
+          applied: 'unknown',
+          description: 'Cannot get version.'
+        }
+      }
+    }
+  }
+
+  const customSettings: CustomSettings = await fetchStudioConfig();
+  const appVersion: AppVersion = await fetchVersion();
+
+  const settings = {
+    settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
+    customSettings: customSettings,
+    appVersion: appVersion,
+  }
+
+  if (history.location.pathname.startsWith('/welcome')) {
     return {
-      settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
-      customSettings: customSettings,
-      collapsed: true,
+      ...settings,
+      collapsed: false,
     };
   }
 
   return {
-    // fetchUserInfo,
-    settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
-    customSettings: customSettings,
-    collapsed: false,
+    ...settings,
+    collapsed: true,
   };
 }
 

@@ -14,23 +14,12 @@ import './index.less';
 import SimilarGeneList from '@/components/SimilarGeneList';
 
 const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
-  const [ensemblId, setEnsemblId] = useState<string>("");
+  const search = useLocation().search;
+  const id = new URLSearchParams(search).get('ensemblId') || props.ensemblId || "ENSMUSG00000059552";
+  const [ensemblId, setEnsemblId] = useState<string>(id);
   const [gene, setGene] = useState<GeneData | undefined>(undefined);
   const [barPlot, setBarPlot] = useState<PlotlyChart | null>(null);
   const [boxPlot, setBoxPlot] = useState<PlotlyChart | null>(null);
-
-  const search = useLocation().search;
-  let id = new URLSearchParams(search).get('ensemblId') || props.ensemblId;
-
-  if (!id) {
-    id = "ENSMUSG00000059552"
-  }
-
-  useEffect(() => {
-    if (id) {
-      setEnsemblId(id);
-    }
-  }, [id])
 
   useEffect(() => {
     if (ensemblId && ensemblId !== "NA") {
@@ -147,6 +136,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
                         return (
                           <a href={`https://www.rcsb.org/structure/${item}`}
                             target="_blank"
+                            key={item}
                             style={{ marginRight: '10px' }}>
                             {item}
                           </a>
@@ -168,6 +158,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
                         return (
                           <a href={`https://www.ebi.ac.uk/interpro/search/text/${item}`}
                             target="_blank"
+                            key={item}
                             style={{ marginRight: '10px' }}>
                             {item}
                           </a>
@@ -189,6 +180,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
                         return (
                           <a href={`https://prosite.expasy.org/cgi-bin/prosite/prosite_search_full.pl?SEARCH=${item}`}
                             target="_blank"
+                            key={item}
                             style={{ marginRight: '10px' }}>
                             {item}
                           </a>

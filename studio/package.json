@@ -101,6 +101,7 @@
     "rehype-video": "^1.2.2",
     "remark-toc": "^8.0.1",
     "umi": "^3.5.0",
+    "umi-plugin-git": "^1.0.3",
     "umi-plugin-pro": "^2.0.1",
     "voca": "^1.4.0"
   },
