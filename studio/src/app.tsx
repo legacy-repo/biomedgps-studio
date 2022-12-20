@@ -5,8 +5,9 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
 import { history, Link, RequestConfig, useIntl } from 'umi';
-import defaultSettings from '../config/defaultSettings';
+import defaultSettings, { CustomSettings, customSettings } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
+import { getStudioConfig } from '@/services/swagger/Utility';
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
@@ -117,36 +118,39 @@ export const initialStateConfig = {
  * */
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
-  // currentUser?: API.CurrentUser;
   loading?: boolean;
-  defaultDataset?: string;
   collapsed?: boolean;
-  // fetchUserInfo?: () => Promise<API.CurrentUser | undefined>;
+  customSettings?: CustomSettings;
 }> {
-  // const fetchUserInfo = async () => {
-  //   try {
-  //     const msg = await queryCurrentUser();
-  //     return msg.data;
-  //   } catch (error) {
-  //     history.push(loginPath);
-  //   }
-  //   return undefined;
-  // };
-  // 如果不是登录页面，执行
+  const fetchStudioConfig = async () => {
+    try {
+      const data = await getStudioConfig();
+      return {
+        aboutUrl: data.about_url,
+        helpUrl: data.help_url,
+        websiteTitle: data.website_title,
+        websiteLogo: data.website_logo,
+        websiteDescription: data.website_description,
+        defaultDataset: data.default_dataset
+      };
+    } catch (error) {
+      return customSettings;
+    }
+  };
+
   if (history.location.pathname == '/welcome') {
-    // const currentUser = await fetchUserInfo();
+    const customSettings = await fetchStudioConfig();
     return {
-      // fetchUserInfo,
-      // currentUser,
-      settings: defaultSettings,
-      defaultDataset: '000000',
+      settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
+      customSettings: customSettings,
       collapsed: true,
     };
   }
+
   return {
     // fetchUserInfo,
-    settings: defaultSettings,
-    defaultDataset: '000000',
+    settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
+    customSettings: customSettings,
     collapsed: false,
   };
 }

@@ -76,7 +76,7 @@ const GlobalHeaderRight: React.FC = () => {
               <FormattedMessage id="pages.RightContent.selectDataset" defaultMessage="Select Dataset" />
             </span>
           }>
-          {initialState.defaultDataset}
+          {initialState.customSettings?.defaultDataset}
         </Dropdown.Button>
         <Modal className="dataset-selector" width={'80%'} onCancel={handleCancel}
           title="Select Dataset" visible={isModalOpen} footer={null}>

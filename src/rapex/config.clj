@@ -65,10 +65,37 @@
 
 (s/def ::default-dataset string?)
 
+; Studio Configuration
+(s/def ::about_url #(some? (re-matches #"(https?://|/).*" %)))
+
+(s/def ::help_url #(some? (re-matches #"(https?://|/).*" %)))
+
+(s/def ::website_title string?)
+
+(s/def ::website_description string?)
+
+(s/def ::website_logo #(some? (re-matches #"(https?://|/).*" %)))
+
+(s/def ::default_dataset string?)
+
+(s/def ::studio-config (s/keys :req-un [::about_url ::help_url ::website_title
+                                        ::website_logo ::website_description]
+                               :opt-un [::default_dataset]))
+
 (s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
                                  ::graph-database-url ::database-url]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors
-                                 ::fs-services ::default-fs-service]))
+                                 ::fs-services ::default-fs-service ::studio-config]))
+
+(defn check-config
+  [env]
+  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset
+                                 :cors-origins :enable-cors :database-url :dbtype :graph-database-url
+                                 :fs-services :default-fs-service :dataset-metadata
+                                 :studio-config])]
+    (when (not (s/valid? ::config config))
+      (log/error "Configuration errors:\n" (expound-str ::config config))
+      (System/exit 1))))
 
 (defn get-minio-rootdir
   [env]
@@ -139,11 +166,16 @@
                          fs-rootdir))
       (System/exit 1))))
 
-(defn check-config
-  [env]
-  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset
-                                 :cors-origins :enable-cors :database-url :dbtype :graph-database-url
-                                 :fs-services :default-fs-service :dataset-metadata])]
-    (when (not (s/valid? ::config config))
-      (log/error "Configuration errors:\n" (expound-str ::config config))
-      (System/exit 1))))
+(defn get-studio-config
+  []
+  (let [studio-config (:studio-config env)
+        default-studio-config {:about_url "/about.md"
+                               :help_url "/help.md"
+                               :website_title "BioMedGPS"
+                               :website_logo "/logo.png"
+                               :website_description "An analytics platform based on omics data and knowledge graph."
+                               :default_dataset (:default-dataset env)}]
+    (if studio-config
+      (merge default-studio-config (select-keys studio-config [:about_url :help_url :website_title
+                                                               :website_logo :website_description]))
+      default-studio-config)))

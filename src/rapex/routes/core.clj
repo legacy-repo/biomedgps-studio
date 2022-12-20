@@ -13,7 +13,7 @@
             [clojure.java.io :as io]
             [ring.util.http-response :refer [ok not-found]]
             [ring.util.mime-type :as mime-type]
-            [rapex.config :refer [env get-real-path]]
+            [rapex.config :refer [env get-real-path] :as config]
             [local-fs.core :as fs-lib]
             [rapex.util :as u]
             [rapex.middleware.exception :as exception]
@@ -92,6 +92,14 @@
             :handler (fn [_]
                        (ok {:version (v/get-version "com.github.rapex-lab" "rapex")
                             :db_version (db/get-db-version)}))}}]
+
+    ["/studio-config"
+     {:tags ["Utility"]
+      :get {:summary "Get the config for studio."
+            :parameters {}
+            :responses {200 {:body ::config/studio-config}}
+            :handler (fn [_]
+                       (ok (config/get-studio-config)))}}]
 
     ["/download"
      {:tags ["File"]

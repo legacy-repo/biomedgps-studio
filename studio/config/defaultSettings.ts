@@ -19,3 +19,21 @@ const Settings: LayoutSettings & {
 };
 
 export default Settings;
+
+export type CustomSettings = {
+  aboutUrl: string;
+  helpUrl: string;
+  websiteTitle: string;
+  websiteLogo: string;
+  websiteDescription: string;
+  defaultDataset: string;
+}
+
+export const customSettings = {
+  aboutUrl: '/README/about.md',
+  helpUrl: '/README/help.md',
+  websiteTitle: 'RAPEX',
+  websiteLogo: '/logo.png',
+  websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
+  defaultDataset: '000000'
+}
