@@ -140,7 +140,49 @@
     :swagger/default     10
     :reason              "The page_size parameter can't be none."}))
 
+(s/def ::data
+  (st/spec
+   {:spec                (s/coll-of map? :into #{})
+    :type                :array
+    :description         "Records."
+    :swagger/type        "array"
+    :swagger/default     []
+    :reason              "The data parameter can't be none."}))
+
+(s/def ::context
+  (st/spec
+   {:spec                map?
+    :type                :map
+    :description         "Error context"
+    :swagger/type        "object"
+    :swagger/default     []
+    :reason              "The context parameter can't be none."}))
+
+(s/def ::msg
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Error message"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The msg parameter can't be none."}))
+
 (s/def ::DBQueryParams
   (st/spec
    (s/keys :req-un [::query_str ::label_type]
            :opt-un [::page ::page_size])))
+
+(s/def ::DBItems
+  (st/spec
+   (s/keys :req-un [::page ::page_size ::data ::total]
+           :opt-un [])))
+
+(s/def ::DBDataItems
+  (st/spec
+   (s/keys :req-un [::data]
+           :opt-un [])))
+
+(def database-error-body
+  "A spec for the body."
+  (s/keys :req-un [::context ::msg]
+          :opt-un []))

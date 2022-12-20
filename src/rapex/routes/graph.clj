@@ -5,7 +5,6 @@
             [rapex.db.neo4j.core :as db]
             [rapex.db.query-data :as qd]
             [clojure.string :as clj-str]
-            [rapex.routes.database-specs :as ds]
             [rapex.db.query-gdata :as gdb]
             [rapex.config :refer [get-datadir]]
             [clojure.tools.logging :as log]))
@@ -37,10 +36,10 @@
    ["/labels"
     {:get {:summary    "Query the labels."
            :parameters {:query ::specs/DBQueryParams}
-           :responses  {200 {:body ::ds/DBDataItems}
-                        404 {:body ds/database-error-body}
-                        400 {:body ds/database-error-body}
-                        500 {:body ds/database-error-body}}
+           :responses  {200 {:body ::specs/DBDataItems}
+                        404 {:body specs/database-error-body}
+                        400 {:body specs/database-error-body}
+                        500 {:body specs/database-error-body}}
            :handler    (fn [{{{:keys [page page_size query_str label_type]} :query} :parameters
                              {:as headers} :headers}]
                          (try
@@ -84,9 +83,9 @@
             :parameters {:query {:query_str string?}}
             :responses  {200 {:body {:nodes (s/coll-of any?)
                                      :edges (s/coll-of any?)}}
-                         404 {:body ds/database-error-body}
-                         400 {:body ds/database-error-body}
-                         500 {:body ds/database-error-body}}
+                         404 {:body specs/database-error-body}
+                         400 {:body specs/database-error-body}
+                         500 {:body specs/database-error-body}}
             :handler    (fn
                           ^{:doc "An example of query string
                                   {:match \"(n)-[r]-(m)\"

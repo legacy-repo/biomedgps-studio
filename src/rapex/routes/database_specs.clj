@@ -104,7 +104,7 @@
 
 (s/def ::DBItems
   (st/spec
-   (s/keys :req-un [::page ::page_size ::data ::total ::data]
+   (s/keys :req-un [::page ::page_size ::data ::total]
            :opt-un [])))
 
 (s/def ::DBDataItems

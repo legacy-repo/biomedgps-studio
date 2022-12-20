@@ -5,8 +5,6 @@
 {:port 3000
  ;; when :nrepl-port is set the application starts the nREPL server on load
  :nrepl-port 7000
- :r-serve-port 6311
- :r-init-script nil
  ;; :database-url "jdbc:postgresql://localhost:54320/rapex_dev?user=postgres&password=password"
  :workdir "/app"
  :datadir "/app"
