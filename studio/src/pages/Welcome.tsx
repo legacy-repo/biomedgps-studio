@@ -1,10 +1,11 @@
 /* eslint-disable no-undef */
 import { Drawer } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tabs, Row, Col, Tag } from 'antd';
 import { FormattedMessage } from 'umi';
 import { filter } from 'lodash';
 import { Link, useHistory } from 'react-router-dom';
+import CookieConsent, { Cookies } from "react-cookie-consent";
 import { ReactSVG } from 'react-svg';
 import GeneSearcher from '@/components/GeneSearcher';
 import { getGenes } from '@/services/swagger/OmicsData';
@@ -45,6 +46,25 @@ const Welcome: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [organ, setOrgan] = useState<string>("");
   const [organDescUrl, setOrganDescUrl] = useState<string>("");
+  const [cookieName, setCookieName] = useState<string>("rapex-cookie-consent-form");
+  const [cookieEnabled, setCookieEnabled] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    const v = Cookies.get(cookieName);
+    setCookieEnabled(v === "true" ? true : false);
+    console.log("Cookie Status: ", v, typeof v, cookieEnabled);
+    if (v) {
+      allowTrack()
+    }
+  }, []);
+
+  const allowTrack = function () {
+    var custom_script = document.createElement('script');
+    custom_script.setAttribute('src', '//rf.revolvermaps.com/0/0/5.js?i=506fpu66up3&amp;m=0&amp;c=ff0000&amp;cr1=ffffff');
+    custom_script.setAttribute('async', "async");
+    var dlAnchorElem = document.getElementsByTagName('body')[0];
+    dlAnchorElem.appendChild(custom_script);
+  };
 
   const items: Item[] = [
     {
@@ -285,6 +305,19 @@ const Welcome: React.FC = () => {
       >
         <MarkdownViewer getFile={getFile} url={organDescUrl} />
       </Drawer>
+      <CookieConsent
+        location="bottom"
+        cookieName={cookieName}
+        style={{ background: "#2B373B" }}
+        enableDeclineButton
+        buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+        expires={150}
+        onAccept={() => {
+          allowTrack()
+        }}
+      >
+        This website uses an toolbox from revolvermaps.com to count the number of visitors, but we don't gather and track your personal information.
+      </CookieConsent>
     </Row >
   );
 };
