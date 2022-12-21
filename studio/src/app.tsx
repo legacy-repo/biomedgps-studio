@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import RightContent from '@/pages/RightContent';
+import Header from '@/pages/Header';
 import { BookOutlined, BulbOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
@@ -188,7 +188,7 @@ export async function getInitialState(): Promise<{
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   return {
-    rightContentRender: () => <RightContent />,
+    rightContentRender: () => <Header />,
     disableContentMargin: false,
     waterMarkProps: {
       // content: initialState?.currentUser?.name,

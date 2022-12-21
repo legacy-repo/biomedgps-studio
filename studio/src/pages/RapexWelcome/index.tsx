@@ -16,7 +16,7 @@ import { getDownload as getFile } from '@/services/swagger/File';
 // import ProDescriptions from '@ant-design/pro-descriptions';
 
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import './Welcome.less';
+import './index.less';
 
 type Item = {
   label: any,

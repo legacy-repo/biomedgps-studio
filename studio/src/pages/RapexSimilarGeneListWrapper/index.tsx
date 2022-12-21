@@ -2,7 +2,7 @@ import SimilarGeneList from '@/components/SimilarGeneList';
 import { getDatasetRapexSimilarGenes, getDatasetRapexGenes } from '@/services/swagger/RapexDataset'
 import { Drawer, Row } from 'antd';
 import HelpMessage from '@/components/HelpMessage';
-import SingleGene from '@/pages/SingleGene';
+import SingleGene from '@/pages/RapexSingleGene';
 import React, { useState } from 'react';
 import './index.less';
 

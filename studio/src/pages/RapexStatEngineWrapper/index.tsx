@@ -5,7 +5,7 @@ import { FormattedMessage } from 'umi';
 import type { StaticContext } from 'react-router';
 import type { RouteComponentProps } from 'react-router-dom';
 import { getDatasetRapexGenes } from '@/services/swagger/RapexDataset';
-import StatEngine from '../StatEngine';
+import StatEngine from '@/custom/StatEngine';
 
 import './index.less';
 

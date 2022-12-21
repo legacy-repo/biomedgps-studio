@@ -1,9 +1,9 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { message, Row, Form } from 'antd';
+import { message, Row } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
-import React, { useRef, useState, memo, useEffect } from 'react';
+import React, { useRef, useState, memo } from 'react';
 import { useHistory } from 'react-router-dom';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
