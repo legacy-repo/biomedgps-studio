@@ -3,7 +3,7 @@
     path: '/welcome',
     name: 'quick-start',
     icon: 'home',
-    component: './RapexWelcome',
+    component: './RapexPlugin/Welcome',
   },
   {
     path: '/expression-analysis',
@@ -14,13 +14,13 @@
         path: '/expression-analysis/single-gene',
         name: 'single-gene',
         icon: 'sliders',
-        component: './RapexSingleGene',
+        component: './RapexPlugin/SingleGene',
       },
       {
         path: '/expression-analysis/kegg-pathways',
         name: 'kegg-pathways',
         icon: 'partition',
-        component: './RapexKEGGPathwayWrapper'
+        component: './RapexPlugin/KEGGPathwayWrapper'
       },
     ]
   },
@@ -33,19 +33,19 @@
         path: '/custom-analysis/differential-expression-analysis',
         name: 'diff-genes',
         icon: 'table',
-        component: './RapexGeneListWrapper',
+        component: './RapexPlugin/GeneListWrapper',
       },
       {
         path: '/custom-analysis/gene-expression-profile',
         name: 'gene-expression-profile',
         icon: 'smile',
-        component: './RapexStatEngineWrapper'
+        component: './RapexPlugin/StatEngineWrapper'
       },
       {
         path: '/custom-analysis/similar-genes-detection',
         name: 'similar-genes-detection',
         icon: 'smile',
-        component: './RapexSimilarGeneListWrapper',
+        component: './RapexPlugin/SimilarGeneListWrapper',
       },
     ],
   },

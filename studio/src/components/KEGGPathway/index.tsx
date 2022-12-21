@@ -136,7 +136,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
             dataset={dataset}
             queryGenes={queryGenes}
             {...rest}
-            style={{ width: '300px' }}
+            style={{}}
           />
         );
       }

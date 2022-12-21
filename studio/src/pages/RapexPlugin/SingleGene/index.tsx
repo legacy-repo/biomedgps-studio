@@ -70,9 +70,9 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
     }
   }, [ensemblId])
 
-  const onSearch = (value: string, gene: GeneData) => {
+  const onSearch = (value: string | string[], gene: GeneData | undefined) => {
     console.log("onSearch: ", value, gene)
-    if (value) {
+    if (value && typeof value === 'string') {
       setEnsemblId(value)
     }
 
@@ -98,6 +98,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
             <Col className='header' span={24}>
               <span style={{ fontWeight: 500 }}>Quick Search</span>
               <GeneSearcher
+                dataset={defaultDataset}
                 queryGenes={getDatasetRapexGenes}
                 placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059"
                 style={{ width: '100%' }} initialValue={ensemblId}

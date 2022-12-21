@@ -34,8 +34,7 @@ const GeneListWrapper: React.FC = () => {
         defaultDataset={defaultDataset}
         queryDEGs={getDatasetRapexDegs}
         queryGenes={getDatasetRapexGenes}
-        queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=">
-      </GeneList>
+        queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=" />
     </Row>
   );
 };

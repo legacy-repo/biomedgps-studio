@@ -2,13 +2,19 @@ import SimilarGeneList from '@/components/SimilarGeneList';
 import { getDatasetRapexSimilarGenes, getDatasetRapexGenes } from '@/services/swagger/RapexDataset'
 import { Drawer, Row } from 'antd';
 import HelpMessage from '@/components/HelpMessage';
-import SingleGene from '@/pages/RapexSingleGene';
+import SingleGene from '@/pages/RapexPlugin/SingleGene';
 import React, { useState } from 'react';
+import { useModel } from 'umi';
 import './index.less';
 
 const SimilarGeneListWrapper: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [ensemlId, setEnsembl] = useState<string | null>(null);
+
+  const { defaultDataset } = useModel('dataset', (ret: any) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
 
   return (
     <Row className='similar-genelist-wrapper'>
@@ -23,6 +29,7 @@ const SimilarGeneListWrapper: React.FC = () => {
         </p>
       </HelpMessage>
       <SimilarGeneList
+        defaultDataset={defaultDataset}
         querySimilarGenes={getDatasetRapexSimilarGenes}
         queryGenes={getDatasetRapexGenes}
         showDetails={(ensemblId) => {

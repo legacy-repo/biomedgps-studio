@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
-import { Drawer } from 'antd';
+import { Drawer, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { Tabs, Row, Col, Tag } from 'antd';
-import { FormattedMessage } from 'umi';
+import { FormattedMessage, useModel } from 'umi';
 import { filter } from 'lodash';
 import { Link, useHistory } from 'react-router-dom';
 import CookieConsent, { Cookies } from "react-cookie-consent";
@@ -48,6 +48,11 @@ const Welcome: React.FC = () => {
   const [organDescUrl, setOrganDescUrl] = useState<string>("");
   const [cookieName, setCookieName] = useState<string>("rapex-cookie-consent-form");
   const [cookieEnabled, setCookieEnabled] = useState<boolean | undefined>(undefined);
+
+  const { defaultDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
 
   useEffect(() => {
     const v = Cookies.get(cookieName);
@@ -204,9 +209,11 @@ const Welcome: React.FC = () => {
     }
   ]
 
-  const onSearch = (value: string) => {
-    if (value) {
+  const onSearch = (value: string | string[]) => {
+    if (value && typeof value === 'string') {
       history.push(`/expression-analysis/single-gene?ensemblId=${value}`);
+    } else {
+      message.warn("Unknown error, please contact administrators.")
     }
   }
 
@@ -238,7 +245,12 @@ const Welcome: React.FC = () => {
                     <Row className='gene-searcher-box'>
                       <Row className='search-box'>
                         <span className='title'>Enter gene symbol, ensembl id or entrez id</span>
-                        <GeneSearcher queryGenes={getDatasetRapexGenes} placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059" style={{ width: '100%' }} onChange={onSearch} />
+                        <GeneSearcher
+                          dataset={defaultDataset}
+                          queryGenes={getDatasetRapexGenes}
+                          placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059"
+                          style={{ width: '100%' }}
+                          onChange={onSearch} />
                         <div className='tag-container'>
                           {
                             tags.map(tag => {
