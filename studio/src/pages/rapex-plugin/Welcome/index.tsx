@@ -11,7 +11,7 @@ import GeneSearcher from '@/components/GeneSearcher';
 import { getDatasetRapexGenes } from '@/services/swagger/RapexDataset';
 import { Carousel } from 'react-responsive-carousel';
 import MarkdownViewer from '@/components/MarkdownViewer';
-import { getDownload as getFile } from '@/services/swagger/File';
+import { getDownload as getFile } from '@/services/swagger/Instance';
 // import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 // import ProDescriptions from '@ant-design/pro-descriptions';
 

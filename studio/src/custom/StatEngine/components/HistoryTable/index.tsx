@@ -6,7 +6,7 @@ import type { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
 import type { ProDescriptionsItemProps } from '@ant-design/pro-descriptions';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { getTasks } from '@/services/swagger/Task';
+import { getTasks } from '@/services/swagger/StatEngine';
 import type { SortOrder } from 'antd/es/table/interface';
 import { ChartResult } from '../ChartList/data';
 import './index.less';

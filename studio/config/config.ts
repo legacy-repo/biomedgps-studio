@@ -4,7 +4,7 @@ import { defineConfig } from 'umi';
 
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
-import routes from './routes';
+// import routes from './routes';
 
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
 
@@ -39,7 +39,7 @@ export default defineConfig({
     ie: 11,
   },
   // umi routes: https://umijs.org/docs/routing
-  routes,
+  // routes,
   access: {},
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {

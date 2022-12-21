@@ -160,6 +160,10 @@ declare namespace API {
     label_type: string;
   };
 
+  type getMenusDatasetParams = {
+    dataset: string;
+  };
+
   type getNodePropertiesParams = {
     node_name?: string;
   };

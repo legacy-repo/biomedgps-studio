@@ -29,7 +29,7 @@ import {
   postChartsChartName as postChart
 } from '@/services/swagger/StatEngine';
 import { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher';
-import { getDownload as getFile } from '@/services/swagger/File';
+import { getDownload as getFile } from '@/services/swagger/Instance';
 
 // Custom Data
 import { langData } from './lang';

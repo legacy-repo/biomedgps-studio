@@ -21,7 +21,7 @@ import { TaskListItem } from '../HistoryTable';
 import { JsonViewer } from '@textea/json-viewer';
 import { CSVLink } from "react-csv";
 
-import { getDownload as getFile } from '@/services/swagger/File';
+import { getDownload as getFile } from '@/services/swagger/Instance';
 import type { ChartResult } from '../ChartList/data';
 import type { PlotlyChart } from '@/components/PlotlyViewer/data';
 

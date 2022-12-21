@@ -21,15 +21,15 @@ const Settings: LayoutSettings & {
 export default Settings;
 
 export type CustomSettings = {
-  aboutUrl: string;
-  helpUrl: string;
-  websiteTitle: string;
-  websiteLogo: string;
-  websiteDescription: string;
-  defaultDataset: string;
+  aboutUrl?: string;
+  helpUrl?: string;
+  websiteTitle?: string;
+  websiteLogo?: string;
+  websiteDescription?: string;
+  defaultDataset?: string;
 }
 
-export const customSettings = {
+export const defaultCustomSettings = {
   aboutUrl: '/README/about.md',
   helpUrl: '/README/help.md',
   websiteTitle: 'RAPEX',

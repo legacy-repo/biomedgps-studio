@@ -153,3 +153,19 @@
 
 (s/def ::DatasetSchema (s/or :summary (s/coll-of (s/keys :req-un [::key ::text]))
                              :details (s/coll-of map?)))
+
+(s/def ::dataset string?)
+
+(s/def ::MenuParams (s/keys :req-un [::dataset]))
+
+(s/def ::path string?)
+(s/def ::name string?)
+(s/def ::icon string?)
+(s/def ::component string?)
+(s/def ::hideInMenu boolean)
+(s/def ::redirect string?)
+(s/def ::menu-item (s/keys :req-un []
+                           :opt-un [::hideInMenu ::path ::name ::routes
+                                    ::icon ::component ::redirect]))
+(s/def ::routes (s/coll-of ::menu-item))
+(s/def ::Menus (s/keys :req-un [::routes]))

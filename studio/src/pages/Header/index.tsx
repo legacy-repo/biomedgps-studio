@@ -5,8 +5,8 @@ import { SelectLang, useModel, FormattedMessage } from 'umi';
 // import HeaderSearch from '../HeaderSearch';
 import { useHistory } from 'react-router-dom';
 import type { MenuProps } from 'antd';
-import type { DataType } from '@/pages/DatasetList';
-import DatasetList from '../DatasetList';
+import type { DataType } from '@/pages/Datasets';
+import DatasetList from '../Datasets';
 import styles from './index.less';
 import './extra.less'
 
@@ -51,6 +51,11 @@ const GlobalHeaderRight: React.FC = () => {
 
     setDataset(record.dataset_abbr);
     setCurrentDataset(record.dataset_abbr);
+    const customSettings = {
+      ...initialState?.customSettings,
+      defaultDataset: record.dataset_abbr
+    }
+    setInitialState({ ...initialState, customSettings: customSettings })
   };
 
   const handleCancel = () => {

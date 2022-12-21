@@ -78,9 +78,21 @@
                 (ok (memorized-get-dataset-metadata))
                 (ok (gen-dataset-map))))})
 
+(defn get-menus
+  []
+  {:summary "Get menus"
+   :parameters {:path ::specs/MenuParams}
+   :responses {200 {:body ::specs/Menus}}
+   :handler (fn [{{{:keys [dataset]} :path} :parameters}]
+              (when dataset
+                (ok rapex/menus)))})
+
 (def routes
   [[""
     {:swagger {:tags ["Visualization for Omics Data"]}}
+
+    ["/menus/:dataset"
+     {:get (get-menus)}]
 
     ["/datasets"
      {:get (get-datasets)}]

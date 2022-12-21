@@ -8,7 +8,7 @@ import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
 import type { PlotlyChart } from '@/components/PlotlyViewer/data';
 import { useLocation } from "react-router-dom";
 import HelpMessage from '@/components/HelpMessage';
-import { getDownload as getFile } from '@/services/swagger/File';
+import { getDownload as getFile } from '@/services/swagger/Instance';
 import { useModel } from 'umi';
 
 import './index.less';

@@ -60,6 +60,21 @@ export async function getDatasets(options?: { [key: string]: any }) {
   });
 }
 
+/** Get chart tasks. Get chart tasks. GET /api/v1/tasks */
+export async function getTasks(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getTasksParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.ChartTaskResponse>('/api/v1/tasks', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** Get chart task Get the information of a chart task. GET /api/v1/tasks/${param0} */
 export async function getTasksId(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
