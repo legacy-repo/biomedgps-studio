@@ -1,9 +1,9 @@
 import type { ProFormColumnsType } from '@ant-design/pro-form';
 import { GridContent } from '@ant-design/pro-layout';
-import { Col, message, Row, Spin, Tabs, Form } from 'antd';
+import { Col, message, Row, Spin, Tabs, Form, Empty, Select } from 'antd';
 import type { StaticContext } from 'react-router';
 import type { RouteComponentProps } from 'react-router-dom';
-import { useIntl } from 'umi';
+import { useIntl, useModel } from 'umi';
 
 import {
   CheckCircleOutlined,
@@ -17,8 +17,6 @@ import ArgumentForm from '@/components/ArgumentForm';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import Resizer from '@/components/Resizer';
 import ResultPanel from './components/ResultPanel';
-import DatasetSelect from '@/components/DatasetSelect';
-import { getDatasets } from '@/services/swagger/StatEngine';
 
 // Custom DataType
 import type { ChartResult, DataItem } from './components/ChartList/data';
@@ -30,19 +28,21 @@ import {
   getChartsUiSchemaChartName as getChartUiSchema,
   postChartsChartName as postChart
 } from '@/services/swagger/StatEngine';
-import {
-  getDownload as getFile
-} from '@/services/swagger/File';
-import { getGenes } from '@/services/swagger/OmicsData';
+import { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher';
+import { getDownload as getFile } from '@/services/swagger/File';
 
 // Custom Data
 import { langData } from './lang';
 
 const { TabPane } = Tabs;
 
-const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (props) => {
-  const intl = useIntl();
+export type StatEngineProps = {
+  queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
+}
 
+const StatEngine: React.FC<StatEngineProps & RouteComponentProps<{}, StaticContext>> = (props) => {
+  const { queryGenes } = props;
+  const intl = useIntl();
   console.log('StatEngine Props: ', props);
 
   const uiContext: UIContext = {};
@@ -57,11 +57,21 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   const [currentActiveKey, setCurrentActiveKey] = useState<string>('arguments');
 
   // Chart
-  const [currentDataset, setCurrentDataset] = useState<string>('000000');
+  const { defaultDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
   const [currentChart, setCurrentChart] = useState<string | null>('');
   const [markdownLink, setMarkdownLink] = useState<string>('');
   const [argumentColumns, setArgumentColumns] = useState<ProFormColumnsType<DataItem>[] & any>([]);
   const [fieldsValue, setFieldsValue] = useState<any>({});
+
+  const [form] = Form.useForm();
+  useEffect(() => {
+    form.setFieldsValue({
+      dataset: defaultDataset
+    })
+  }, [defaultDataset])
 
   const [resultData, setResultData] = useState<ChartResult | undefined>({
     results: [],
@@ -107,7 +117,6 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
     if (fieldsValue) {
       setFieldsValue(fieldsValue);
       setCurrentChart(chart);
-      setCurrentDataset(fieldsValue.dataset);
     }
 
     if (result) {
@@ -166,7 +175,7 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
     console.log('onSubmit Chart: ', currentChart, values);
     values = {
       ...values,
-      dataset: currentDataset
+      dataset: defaultDataset
     }
     return new Promise<{ task_id: string }>((resolve, reject) => {
       postChart({ chart_name: chartName }, values)
@@ -190,10 +199,10 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
   };
 
   useEffect(() => {
-    if (currentChart && currentDataset) {
-      setChart(currentDataset, currentChart, fieldsValue);
+    if (currentChart && defaultDataset) {
+      setChart(defaultDataset, currentChart, fieldsValue);
     }
-  }, [currentChart, currentDataset]);
+  }, [currentChart, defaultDataset]);
 
   return (
     <GridContent>
@@ -219,23 +228,38 @@ const StatEngine: React.FC<any & RouteComponentProps<{}, StaticContext>> = (prop
                     }
                     key="arguments"
                   >
-                    <Form layout={"vertical"}>
+                    <Form layout={"vertical"} form={form}>
                       <Form.Item
+                        shouldUpdate
                         label="Data Set"
                         name="dataset"
+                        initialValue={defaultDataset}
                         rules={[{ required: true, message: 'Please select a dataset!' }]}
                       >
-                        <DatasetSelect
-                          listDatasets={getDatasets}
+                        <Select
+                          allowClear
+                          showSearch
                           placeholder={"Select a dataset"}
-                          initialValue={currentDataset}
-                          onChange={setCurrentDataset}
-                          style={{}}>
-                        </DatasetSelect>
+                          defaultActiveFirstOption={false}
+                          showArrow={true}
+                          filterOption={false}
+                          options={
+                            [
+                              {
+                                value: `${defaultDataset}`,
+                                label: `${defaultDataset}`,
+                              },
+                            ]
+                          }
+                          disabled
+                          notFoundContent={<Empty description="No Dataset" />}
+                        >
+                        </Select>
                       </Form.Item>
                     </Form>
                     <ArgumentForm
-                      queryGenes={getGenes}
+                      defaultDataset={defaultDataset}
+                      queryGenes={queryGenes}
                       fieldsValue={fieldsValue}
                       labelSpan={24}
                       height="calc(100% - 10px)"

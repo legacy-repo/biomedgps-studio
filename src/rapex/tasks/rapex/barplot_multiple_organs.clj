@@ -1,13 +1,15 @@
-(ns rapex.tasks.barplot-multiple-organs
+(ns rapex.tasks.rapex.barplot-multiple-organs
   (:require [clojure.data.json :as json]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
+            [rapex.tasks.rapex.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
             [rapex.db.query-data :as qd]
-            [rapex.tasks.common-sepcs :as cs]
+            [rapex.tasks.rapex.chart-sepcs :as cs]
             [rapex.config :refer [get-default-dataset]]
             [clojure.string :as clj-str]))
+
+(def chart-name "rapex-boxplot-organs")
 
 (defn- convert-record-map
   [organ record-map]
@@ -74,7 +76,7 @@
   "Automatically called during startup; start event listener for barplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "barplot-organs" draw-barplot!))
+  (make-events-init chart-name draw-barplot!))
 
 (def manifest
   {:name "Barplot for multiple organs"
@@ -83,7 +85,7 @@
    :category "Chart"
    :home "https://github.com/rapex-lab/rapex/tree/master/rapex/src/rapex/tasks"
    :source "Rapex Team"
-   :short_name "barplot-organs"
+   :short_name chart-name
    :icons [{:src ""
             :type "image/png"
             :sizes "144x144"}]
@@ -91,7 +93,7 @@
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
    :readme "https://rapex.prophetdb.org/README/barplot_organs.md"
-   :id "barplot-organs"})
+   :id chart-name})
 
 (s/def ::gene_symbol string?)
 (s/def ::organ (s/coll-of cs/organ-sets))
@@ -111,57 +113,57 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "barplot-organs" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn chart-name payload :owner (or (get headers "x-auth-users") "default")))})
 
 (defn ui-schema-fn
-  [{:keys [organ-map datatype-map]
-    :or {organ-map (gen-organ-map :dataset (get-default-dataset))
-         datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
-  {:readme "https://rapex.prophetdb.org/README/barplot_organs.md"
-   :schema
-   {:fields  [{:key "gene_symbol"
-               :dataIndex "gene_symbol"
-               :valueType "gene_searcher"
-               :title "Gene Symbol"
-               :tooltip "Which gene do you want to query?"
-               :formItemProps {:rules [{:required true
-                                        :message "gene_symbol field is required."}]}}
-              {:key "organ"
-               :dataIndex "organ"
-               :valueType "select"
-               :title "Organ"
-               :tooltip "Which organ do you want to query?"
-               :valueEnum organ-map
-               :fieldProps {:mode "multiple"}
-               :formItemProps {:rules [{:required true
-                                        :message "organ filed is required."}]}}
-              {:key "datatype"
-               :dataIndex "datatype"
-               :valueType "select"
-               :title "Data Type"
-               :tooltip "Which datatype do you want to query?"
-               :valueEnum datatype-map
-               :formItemProps {:rules [{:required true
-                                        :message "datatype filed is required."}]}}
-              {:key "position"
-               :dataIndex "position"
-               :valueType "select"
-               :title "Position"
-               :tooltip "Allowed values are dodge (default), stack, fill"
-               :valueEnum {:dodge {:text "Dodge"} :fill {:text "Fill"}
-                           :stack {:text "Stack"}}
-               :formItemProps {:initialValue "dodge"
-                               :rules [{:required true
-                                        :message "position filed is required."}]}}
-              {:key "log_scale"
-               :dataIndex "log_scale"
-               :valueType "switch"
-               :title "Log Scale"
-               :tooltip
-               "Logical value. If TRUE input data will be transformation using log2 function."
-               :formItemProps {:initialValue true}}]
-    :examples [{:title "Example 1"
-                :key "example-1"
-                :arguments {:log_scale false
-                            :position "dodge"
-                            :datatype "FPKM"}}]}})
+  [dataset]
+  (let [organ-map (gen-organ-map :dataset dataset)
+        datatype-map {:fpkm {:text (clj-str/upper-case "fpkm")}}]
+    {:readme "https://rapex.prophetdb.org/README/barplot_organs.md"
+     :schema
+     {:fields  [{:key "gene_symbol"
+                 :dataIndex "gene_symbol"
+                 :valueType "gene_searcher"
+                 :title "Gene Symbol"
+                 :tooltip "Which gene do you want to query?"
+                 :formItemProps {:rules [{:required true
+                                          :message "gene_symbol field is required."}]}}
+                {:key "organ"
+                 :dataIndex "organ"
+                 :valueType "select"
+                 :title "Organ"
+                 :tooltip "Which organ do you want to query?"
+                 :valueEnum organ-map
+                 :fieldProps {:mode "multiple"}
+                 :formItemProps {:rules [{:required true
+                                          :message "organ filed is required."}]}}
+                {:key "datatype"
+                 :dataIndex "datatype"
+                 :valueType "select"
+                 :title "Data Type"
+                 :tooltip "Which datatype do you want to query?"
+                 :valueEnum datatype-map
+                 :formItemProps {:rules [{:required true
+                                          :message "datatype filed is required."}]}}
+                {:key "position"
+                 :dataIndex "position"
+                 :valueType "select"
+                 :title "Position"
+                 :tooltip "Allowed values are dodge (default), stack, fill"
+                 :valueEnum {:dodge {:text "Dodge"} :fill {:text "Fill"}
+                             :stack {:text "Stack"}}
+                 :formItemProps {:initialValue "dodge"
+                                 :rules [{:required true
+                                          :message "position filed is required."}]}}
+                {:key "log_scale"
+                 :dataIndex "log_scale"
+                 :valueType "switch"
+                 :title "Log Scale"
+                 :tooltip
+                 "Logical value. If TRUE input data will be transformation using log2 function."
+                 :formItemProps {:initialValue true}}]
+      :examples [{:title "Example 1"
+                  :key "example-1"
+                  :arguments {:log_scale false
+                              :position "dodge"
+                              :datatype "FPKM"}}]}}))

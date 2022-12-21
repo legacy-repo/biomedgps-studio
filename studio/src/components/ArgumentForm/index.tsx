@@ -20,13 +20,14 @@ export type ArgumentProps = {
   fieldsValue?: any;
   height?: string;
   labelSpan?: number;
+  defaultDataset: string;
   onSubmit?: (values: any) => Promise<ChartResult>;
 };
 
 type UIContext = Record<string, any>;
 
 const ArgumentForm: React.FC<ArgumentProps> = (props) => {
-  const { columns, height, labelSpan, onSubmit, queryGenes, fieldsValue } = props;
+  const { columns, height, labelSpan, onSubmit, queryGenes, fieldsValue, defaultDataset } = props;
 
   const activateBtn = (
     <FormItem
@@ -78,6 +79,7 @@ const ArgumentForm: React.FC<ArgumentProps> = (props) => {
                 const initialValue = form.getFieldValue(props?.id)
                 return (<GeneSearcher
                   placeholder="Enter gene symbol, entrez id or ensembl id"
+                  dataset={defaultDataset}
                   queryGenes={queryGenes}
                   initialValue={initialValue ? initialValue : props?.formItemProps?.initialValue}
                   {...props?.fieldProps}

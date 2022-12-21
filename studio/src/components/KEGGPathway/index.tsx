@@ -19,6 +19,7 @@ type PathwayQueryParams = {
   page?: number;
   /** Num of items per page. */
   page_size?: number;
+  dataset: string;
 };
 
 type PathwayData = {
@@ -55,11 +56,12 @@ export type KEGGPathwayProps = {
   queryPathways: (params: PathwayQueryParams) => Promise<PathwayDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
   queryGeneBaseUrl?: string;
+  dataset: string;
 };
 
 const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
   const history = useHistory();
-  const { queryPathways, queryGenes, queryGeneBaseUrl } = props;
+  const { queryPathways, queryGenes, queryGeneBaseUrl, dataset } = props;
   // const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const requestPathways = async (
@@ -73,6 +75,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
       page: params.current,
       page_size: params.pageSize,
       query_str: query_str,
+      dataset: dataset
     })
       .then((response) => {
         return formatResponse(response);
@@ -130,6 +133,7 @@ const KEGGPathway: React.FC<KEGGPathwayProps> = (props) => {
 
         return (
           <GeneSearcher
+            dataset={dataset}
             queryGenes={queryGenes}
             {...rest}
             style={{ width: '300px' }}

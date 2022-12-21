@@ -141,3 +141,15 @@
 (def list-chart-response
   (s/keys :req-un [::total ::page ::page_size ::data]))
 
+(s/def ::show_details boolean)
+
+(s/def ::DatasetsQueryParams
+  (st/spec
+   (s/keys :req-un []
+           :opt-un [::show_details])))
+
+(s/def ::key string?)
+(s/def ::text string?)
+
+(s/def ::DatasetSchema (s/or :summary (s/coll-of (s/keys :req-un [::key ::text]))
+                             :details (s/coll-of map?)))

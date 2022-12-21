@@ -4,6 +4,7 @@ import { Tabs } from 'antd';
 import { FormattedMessage } from 'umi';
 import type { StaticContext } from 'react-router';
 import type { RouteComponentProps } from 'react-router-dom';
+import { getDatasetRapexGenes } from '@/services/swagger/RapexDataset';
 import StatEngine from '../StatEngine';
 
 import './index.less';
@@ -11,32 +12,32 @@ import './index.less';
 const StatEngineWrapper: React.FC<{ chart?: string } & RouteComponentProps<{}, StaticContext> & any> = (props) => {
   const { chart } = props;
 
-  const [currentKey, setCurrentKey] = useState<string>('boxplot');
+  const [currentKey, setCurrentKey] = useState<string>('rapex-boxplot');
 
   const items = [
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.boxplot" defaultMessage="Boxplot" />,
-      key: "boxplot"
+      key: "rapex-boxplot"
     },
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.barplot" defaultMessage="Barplot" />,
-      key: "barplot",
+      key: "rapex-barplot",
     },
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.across-organs-boxplot" defaultMessage="Across Organs (Boxplot)" />,
-      key: "boxplot-organs"
+      key: "rapex-boxplot-organs"
     },
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.across-organs-barplot" defaultMessage="Across Organs (Barplot)" />,
-      key: "barplot-organs",
+      key: "rapex-barplot-organs",
     },
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.correlation-analysis" defaultMessage="Correlation Analysis" />,
-      key: "corrplot"
+      key: "rapex-corrplot"
     },
     {
       label: <FormattedMessage id="pages.StatEngineWrapper.multiple-genes-comparison" defaultMessage="Multiple Genes Comparison" />,
-      key: "multiple-genes-comparison",
+      key: "rapex-multiple-genes-comparison",
     }
   ]
 
@@ -53,7 +54,7 @@ const StatEngineWrapper: React.FC<{ chart?: string } & RouteComponentProps<{}, S
       {items.map(item => {
         return (
           <Tabs.TabPane tab={item.label} key={item.key}>
-            <StatEngine chart={item.key}></StatEngine>
+            <StatEngine chart={item.key} queryGenes={getDatasetRapexGenes}></StatEngine>
           </Tabs.TabPane>
         )
       })}

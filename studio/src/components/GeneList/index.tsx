@@ -1,13 +1,13 @@
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { message, Row } from 'antd';
+import { message, Row, Form } from 'antd';
 import { CSVLink } from "react-csv";
 import type { SortOrder } from 'antd/es/table/interface';
-import React, { useRef, useState, memo } from 'react';
+import React, { useRef, useState, memo, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
-import { FormattedMessage, useModel } from 'umi';
+import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 
 import './index.less';
@@ -19,7 +19,7 @@ type DEGQueryParams = {
   page?: number;
   /** Num of items per page. */
   page_size?: number;
-  dataset?: string;
+  dataset: string;
 };
 
 type DataType = {
@@ -30,7 +30,6 @@ type DataType = {
   organ: string;
   method: string;
   datatype: string;
-  dataset?: string;
   padj: number;
   pvalue: number;
   logfc: number;
@@ -60,22 +59,12 @@ export type GeneListProps = {
   queryDEGs: (params: DEGQueryParams) => Promise<DEGDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
   queryGeneBaseUrl?: string;
+  defaultDataset: string;
 };
 
 const GeneList: React.FC<GeneListProps> = (props) => {
   const history = useHistory();
-  const { queryDEGs, queryGenes, queryGeneBaseUrl } = props;
-  // const [showDetail, setShowDetail] = useState<boolean>(false);
-
-  const { initialState } = useModel('@@initialState');
-
-  let datasetSelectOptions = {}
-  const defaultDataset = initialState?.customSettings?.defaultDataset;
-  if (defaultDataset) {
-    datasetSelectOptions[defaultDataset] = {
-      text: defaultDataset
-    }
-  }
+  const { queryDEGs, queryGenes, queryGeneBaseUrl, defaultDataset } = props;
 
   const requestDEGs = async (
     params: PageParams & DataType,
@@ -88,7 +77,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
         page: params.current,
         page_size: params.pageSize,
         query_str: makeQueryStr(params, sort, filter),
-        dataset: `${params.dataset}`,
+        dataset: `${defaultDataset}`,
       })
         .then((response) => {
           return formatResponse(response);
@@ -125,6 +114,7 @@ const GeneList: React.FC<GeneListProps> = (props) => {
 
         return (
           <GeneSearcher
+            dataset={defaultDataset}
             queryGenes={queryGenes}
             {...rest}
             style={{ width: '280px' }}
@@ -253,17 +243,6 @@ const GeneList: React.FC<GeneListProps> = (props) => {
         tpm: { text: "TPM" },
         counts: { text: "Counts" }
       },
-    },
-    {
-      title: <FormattedMessage id="pages.GeneList.dataset" defaultMessage="Dataset" />,
-      align: 'center',
-      dataIndex: 'dataset',
-      valueType: 'select',
-      valueEnum: datasetSelectOptions,
-      initialValue: '000000'
-      // valueEnum: {
-      //   0: { text: "rapex_000000" }
-      // },
     },
     {
       title: <FormattedMessage id="pages.GeneList.pAdj" defaultMessage="AdjPvalue" />,

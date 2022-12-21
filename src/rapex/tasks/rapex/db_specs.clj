@@ -1,7 +1,7 @@
-(ns rapex.routes.database-specs
+(ns rapex.tasks.rapex.db-specs
   (:require [clojure.spec.alpha :as s]
             [spec-tools.core :as st]
-            [rapex.tasks.common-sepcs :as cs]))
+            [rapex.tasks.rapex.chart-sepcs :as cs]))
 
 ;; More Details for `:type`: https://cljdoc.org/d/metosin/spec-tools/0.6.1/doc/readme#type-based-conforming
 (s/def ::dataset
@@ -14,7 +14,7 @@
 
 (s/def ::query_str
   (st/spec
-   {:spec                string?
+   {:spec                string?  ;; TODO: How to improve spec for avoiding confused error messages.
     :description         "Query string with honeysql specification."
     :swagger/default     "{:select [:*] :from :xxx}"
     :swagger/type        "string"
@@ -38,13 +38,13 @@
 
 (s/def ::DBQueryParams
   (st/spec
-   (s/keys :req-un [::query_str]
-           :opt-un [::page ::page_size ::dataset])))
+   (s/keys :req-un [::query_str ::dataset]
+           :opt-un [::page ::page_size])))
 
 (s/def ::DBDataQueryParams
   (st/spec
-   (s/keys :req-un [::query_str]
-           :opt-un [::dataset ::page ::page_size])))
+   (s/keys :req-un [::query_str ::dataset]
+           :opt-un [::page ::page_size])))
 
 (s/def ::queried_ensembl_id
   (st/spec
@@ -64,8 +64,8 @@
 
 (s/def ::SimilarGenesQueryParams
   (st/spec
-   (s/keys :req-un [::query_str]
-           :opt-un [::page ::page_size ::dataset ::organ])))
+   (s/keys :req-un [::query_str ::dataset]
+           :opt-un [::page ::page_size ::organ])))
 
 (s/def ::total
   (st/spec
@@ -112,21 +112,7 @@
    (s/keys :req-un [::data]
            :opt-un [])))
 
-(s/def ::key string?)
-(s/def ::text string?)
-
-(s/def ::DatasetSchema (s/or :summary (s/coll-of (s/keys :req-un [::key ::text]))
-                             :details (s/coll-of map?)))
-
 (def database-error-body
   "A spec for the body."
   (s/keys :req-un [::context ::msg]
           :opt-un []))
-
-
-(s/def ::show_details boolean)
-
-(s/def ::DatasetsQueryParams
-  (st/spec
-   (s/keys :req-un []
-           :opt-un [::show_details])))

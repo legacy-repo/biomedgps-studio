@@ -1,11 +1,17 @@
 import KEGGPathway from '@/components/KEGGPathway';
-import { getPathways, getGenes } from '@/services/swagger/OmicsData'
+import { getDatasetRapexPathways, getDatasetRapexGenes } from '@/services/swagger/RapexDataset'
 import React from 'react';
 import { Row } from 'antd';
 import HelpMessage from '@/components/HelpMessage';
+import { useModel } from 'umi';
 import './index.less';
 
 const KEGGPathwayWrapper: React.FC = () => {
+  const { defaultDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
+
   return (
     <Row className='kegg-pathway-wrapper'>
       <HelpMessage position='center'
@@ -20,7 +26,10 @@ const KEGGPathwayWrapper: React.FC = () => {
           <b>Gene:</b> Select genes of interest. You can input gene_symbol,ensembl_id or entrez_id to analyze.
         </p>
       </HelpMessage>
-      <KEGGPathway queryPathways={getPathways} queryGenes={getGenes}
+      <KEGGPathway
+        dataset={defaultDataset}
+        queryPathways={getDatasetRapexPathways}
+        queryGenes={getDatasetRapexGenes}
         queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=">
       </KEGGPathway>
     </Row>

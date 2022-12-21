@@ -1,17 +1,17 @@
 import { Row, Col, Tag, message, Space } from 'antd';
 import React, { useEffect, useState } from 'react';
 import GeneSearcher from '@/components/GeneSearcher';
-import { getGenes, getSimilarGenes } from '@/services/swagger/OmicsData';
+import SimilarGeneList from '@/components/SimilarGeneList';
+import { getDatasetRapexGenes, getDatasetRapexSimilarGenes } from '@/services/swagger/RapexDataset';
 import type { GeneData } from '@/components/GeneSearcher';
 import PlotlyViewer from '@/components/PlotlyViewer/indexClass';
 import type { PlotlyChart } from '@/components/PlotlyViewer/data';
 import { useLocation } from "react-router-dom";
 import HelpMessage from '@/components/HelpMessage';
-
 import { getDownload as getFile } from '@/services/swagger/File';
+import { useModel } from 'umi';
 
 import './index.less';
-import SimilarGeneList from '@/components/SimilarGeneList';
 
 const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
   const search = useLocation().search;
@@ -21,12 +21,18 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
   const [barPlot, setBarPlot] = useState<PlotlyChart | null>(null);
   const [boxPlot, setBoxPlot] = useState<PlotlyChart | null>(null);
 
+  const { defaultDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
+
   useEffect(() => {
     if (ensemblId && ensemblId !== "NA") {
       const query_str = `{:select [:*] :where [:like [:upper :ensembl_id] [:upper "%${ensemblId}%"]]}`
-      getGenes({
+      getDatasetRapexGenes({
         // rapex_degs.duckdb has a data table.
         query_str: query_str,
+        dataset: defaultDataset
       })
         .then((response) => {
           const { data } = response;
@@ -37,7 +43,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
           setGene(undefined)
         });
 
-      getFile({ filelink: `file:///000000/single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+      getFile({ filelink: `file:///${defaultDataset}/single_gene/barplot_across_organs/${ensemblId}.json` }).then((response: any) => {
         setBarPlot({
           data: response.data,
           layout: response.layout,
@@ -47,7 +53,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
         message.warn("Cannot fetch the result, please retry later.")
       });
 
-      getFile({ filelink: `file:///000000/single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
+      getFile({ filelink: `file:///${defaultDataset}/single_gene/boxplot_across_organs/${ensemblId}.json` }).then((response: any) => {
         setBoxPlot({
           data: response.data,
           layout: response.layout,
@@ -91,7 +97,9 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
           <Row className='gene-searcher'>
             <Col className='header' span={24}>
               <span style={{ fontWeight: 500 }}>Quick Search</span>
-              <GeneSearcher queryGenes={getGenes} placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059"
+              <GeneSearcher
+                queryGenes={getDatasetRapexGenes}
+                placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059"
                 style={{ width: '100%' }} initialValue={ensemblId}
                 onChange={onSearch} />
             </Col>
@@ -206,9 +214,10 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
               </h3>
               <p>The similar detection are based on the datasets used above.</p>
               <SimilarGeneList
+                defaultDataset={defaultDataset}
                 ensemblId={ensemblId}
-                querySimilarGenes={getSimilarGenes}
-                queryGenes={getGenes}>
+                querySimilarGenes={getDatasetRapexSimilarGenes}
+                queryGenes={getDatasetRapexGenes}>
               </SimilarGeneList>
             </Row>
           </Row>

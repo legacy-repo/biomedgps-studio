@@ -6,14 +6,14 @@ import type { SortOrder } from 'antd/es/table/interface';
 import React, { useEffect, useRef, useState } from 'react';
 import GeneSearcher from '@/components/GeneSearcher';
 import type { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher'
-import { FormattedMessage, useModel } from 'umi';
+import { FormattedMessage } from 'umi';
 import { makeQueryStr } from './util';
 import './index.less';
 
 type SimilarGenesQueryParams = {
   query_str: string;
   organ?: string;
-  dataset?: string;
+  dataset: string;
   /** Page, From 1. */
   page?: number;
   /** Num of items per page. */
@@ -21,15 +21,14 @@ type SimilarGenesQueryParams = {
 };
 
 type DataType = {
-  query_str: string;
   queried_ensembl_id: string;
-  queried_entrez_id: string;
+  queried_entrez_id: number;
   queried_gene_symbol: string;
   ensembl_id: string;
-  entrez_id: string;
+  entrez_id: number;
   gene_symbol: string;
   pcc: number;
-  pvalue: number;
+  pvalue: string;
 }
 
 type SimilarGenesDataResponse = {
@@ -56,21 +55,19 @@ export type SimilarGeneListProps = {
   showDetails?: (ensemblId: string) => void;
   querySimilarGenes: (params: SimilarGenesQueryParams) => Promise<SimilarGenesDataResponse>;
   queryGenes: (params: GenesQueryParams) => Promise<GeneDataResponse>;
+  defaultDataset: string;
 };
 
 
 const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
-  const { querySimilarGenes, queryGenes, showDetails } = props;
+  const { querySimilarGenes, queryGenes, showDetails, defaultDataset } = props;
   const [params, setParams] = useState<{}>({});
   const [searchToolbar, setSearchToolbar] = useState<false | any>();
   const actionRef = useRef<ActionType>();
   // const [currentRow, setCurrentRow] = useState<DataType>();
   const [selectedRowsState, setSelectedRows] = useState<DataType[]>([]);
 
-  const { initialState } = useModel('@@initialState');
-
   let datasetSelectOptions = {}
-  const defaultDataset = initialState?.customSettings?.defaultDataset;
   if (defaultDataset) {
     datasetSelectOptions[defaultDataset] = {
       text: defaultDataset
@@ -93,12 +90,12 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
     }
   }, [props.ensemblId])
 
-  const requestDEGs = async (
+  const requestSimilarGenes = async (
     params: PageParams & SimilarGenesQueryParams,
     sort: Record<string, SortOrder>,
     filter: Record<string, React.ReactText[] | null>,
   ) => {
-    console.log('requestDEGs: ', sort, filter);
+    console.log('requestSimilarGenes: ', sort, filter);
     return await querySimilarGenes({
       page: params.current,
       page_size: params.pageSize,
@@ -110,7 +107,7 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
         return formatResponse(response);
       })
       .catch((error) => {
-        console.log('requestDEGs Error: ', error);
+        console.log('requestSimilarGenes Error: ', error);
         return formatResponse({ total: 0, page: 1, page_size: 10, data: [] });
       });
   };
@@ -134,6 +131,7 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
 
         return (
           <GeneSearcher
+            dataset={defaultDataset}
             queryGenes={queryGenes}
             {...rest}
             style={{ width: '280px' }}
@@ -292,7 +290,7 @@ const SimilarGeneList: React.FC<SimilarGeneListProps> = (props) => {
           position: ['topLeft'],
         }}
         // Don't worry it.
-        request={requestDEGs}
+        request={requestSimilarGenes}
         columns={columns}
         rowSelection={
           {

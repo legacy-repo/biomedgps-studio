@@ -74,27 +74,6 @@ declare namespace API {
     description: string;
   };
 
-  type DEGData = {
-    pvalue: number;
-    ensembl_id: string;
-    method: string;
-    datatype: string;
-    padj: number;
-    gene_symbol: string;
-    entrez_id: string;
-    organ: string;
-    id: number;
-    logfc: number;
-    direction: string;
-  };
-
-  type DEGDataResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: DEGData[];
-  };
-
   type deleteTasksIdParams = {
     /** Task ID */
     id: string;
@@ -105,34 +84,6 @@ declare namespace API {
     msg: string;
     /** 错误上下文 Error context */
     context: Record<string, any>;
-  };
-
-  type ExprData = {
-    ensembl_id: string;
-  };
-
-  type ExprDataResponse = {
-    /** 页码 Page, From 1. */
-    page: number;
-    /** 条目数 Num of items per page. */
-    page_size: number;
-    /** 数据 Records. */
-    data: ExprData[];
-    /** 总数 How many records. */
-    total: number;
-  };
-
-  type GeneData = {
-    ensembl_id: string;
-    entrez_id: number;
-    gene_symbol: string;
-  };
-
-  type GeneDataResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: GeneData[];
   };
 
   type getChartsParams = {
@@ -148,36 +99,54 @@ declare namespace API {
     dataset?: string;
   };
 
-  type getDegsParams = {
+  type getDatasetRapexDegsParams = {
     /** Query string with honeysql specification. */
     query_str: string;
     /** Page, From 1. */
     page?: number;
     /** Num of items per page. */
     page_size?: number;
+    /** A standalone dataset. */
+    dataset: string;
+  };
+
+  type getDatasetRapexGenesParams = {
+    /** Query string with honeysql specification. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** A standalone dataset. */
+    dataset: string;
+  };
+
+  type getDatasetRapexPathwaysParams = {
+    /** Query string with honeysql specification. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** A standalone dataset. */
+    dataset: string;
+  };
+
+  type getDatasetRapexSimilarGenesParams = {
+    /** Queried ensembl id. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** Organ name. */
+    organ?: string;
+    dataset: string;
   };
 
   type getDownloadParams = {
     /** A file link which prefix starts with oss://, minio:// or file://. */
     filelink: string;
-  };
-
-  type getGeneExprDataParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-  };
-
-  type getGenesParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
   };
 
   type getLabelsParams = {
@@ -199,25 +168,15 @@ declare namespace API {
     query_str?: string;
   };
 
-  type getPathwaysParams = {
+  type getRapexGeneExprDataParams = {
     /** Query string with honeysql specification. */
     query_str: string;
     /** Page, From 1. */
     page?: number;
     /** Num of items per page. */
     page_size?: number;
-  };
-
-  type getSimilarGenesParams = {
-    /** Queried ensembl id. */
-    queried_ensembl_id: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Organ name. */
-    organ?: string;
-    dataset?: string;
+    /** A standalone dataset. */
+    dataset: string;
   };
 
   type getTasksIdParams = {
@@ -240,7 +199,76 @@ declare namespace API {
     plugin_name?: string;
   };
 
-  type PathwayData = {
+  type postChartsChartNameParams = {
+    chart_name: string;
+  };
+
+  type RapexDEGData = {
+    pvalue: number;
+    ensembl_id: string;
+    method: string;
+    datatype: string;
+    padj: number;
+    gene_symbol: string;
+    entrez_id: string;
+    organ: string;
+    id: number;
+    logfc: number;
+    direction: string;
+  };
+
+  type RapexDEGDataResponse = {
+    total: number;
+    page: number;
+    page_size: number;
+    data: RapexDEGData[];
+  };
+
+  type RapexExprData = {
+    ensembl_id: string;
+  };
+
+  type RapexExprDataResponse = {
+    /** 页码 Page, From 1. */
+    page: number;
+    /** 条目数 Num of items per page. */
+    page_size: number;
+    /** 数据 Records. */
+    data: RapexExprData[];
+    /** 总数 How many records. */
+    total: number;
+  };
+
+  type RapexGeneData = {
+    ensembl_id: string;
+    entrez_id: number;
+    gene_symbol: string;
+    description: string;
+    pfam: string;
+    chromosome: number;
+    mgi_id: string;
+    pubmed_ids: string;
+    taxid: number;
+    swiss_p: string;
+    name: string;
+    strand: number;
+    start: number;
+    end: number;
+    prosite: string;
+    type_of_gene: string;
+    alias: string;
+    pdb: string;
+    pubmed: string;
+  };
+
+  type RapexGeneDataResponse = {
+    total: number;
+    page: number;
+    page_size: number;
+    data: RapexGeneData[];
+  };
+
+  type RapexPathwayData = {
     entrez_id: number;
     pathway_id: string;
     gene_symbol: string;
@@ -248,30 +276,29 @@ declare namespace API {
     pathway_name: string;
   };
 
-  type PathwayDataResponse = {
+  type RapexPathwayDataResponse = {
     total: number;
     page: number;
     page_size: number;
-    data: PathwayData[];
+    data: RapexPathwayData[];
   };
 
-  type postChartsChartNameParams = {
-    chart_name: string;
-  };
-
-  type SimilarGenesData = {
-    pvalue: number;
+  type RapexSimilarGenesData = {
+    queried_ensembl_id: string;
     ensembl_id: string;
-    gene_symbol?: string;
-    entrez_id?: string;
-    PCC: number;
+    pcc: number;
+    pvalue: string;
+    queried_gene_symbol: string;
+    queried_entrez_id: number;
+    gene_symbol: string;
+    entrez_id: number;
   };
 
-  type SimilarGenesDataResponse = {
+  type RapexSimilarGenesDataResponse = {
     total: number;
     page: number;
     page_size: number;
-    data: SimilarGenesData[];
+    data: RapexSimilarGenesData[];
   };
 
   type TaskCreationResponse = {

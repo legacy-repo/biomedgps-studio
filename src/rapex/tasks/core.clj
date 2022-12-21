@@ -1,32 +1,15 @@
 (ns rapex.tasks.core
   (:require [rapex.tasks.core-specs :as specs]
             [ring.util.http-response :refer [ok not-found]]
-            [rapex.tasks.common-sepcs :as cs]
-            [clojure.string :as clj-str]
+            [rapex.tasks.rapex.chart-sepcs :as cs]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [gen-organ-map]]
-            ;; Chats
-            [rapex.tasks.boxplot :as boxplot]
-            [rapex.tasks.boxplot-multiple-organs :as boxplot-multiple-organs]
-            [rapex.tasks.barplot :as barplot]
-            [rapex.tasks.barplot-multiple-organs :as barplot-multiple-organs]
-            [rapex.tasks.corrplot :as corrplot]
-            [rapex.tasks.heatmap :as heatmap]))
+            [rapex.config :refer [memorized-get-dataset-metadata]]
+            ;; Plugin
+            [rapex.tasks.rapex.core :as rapex]))
 
-(def ^:private chart-manifests (atom [boxplot/manifest
-                                      boxplot-multiple-organs/manifest
-                                      barplot/manifest
-                                      barplot-multiple-organs/manifest
-                                      corrplot/manifest
-                                      heatmap/manifest]))
+(def ^:private chart-manifests (atom (concat [] rapex/chart-manifests)))
 
-
-(def ^:private chart-ui-schemas (atom {:boxplot boxplot/ui-schema-fn
-                                       :boxplot-organs boxplot-multiple-organs/ui-schema-fn
-                                       :barplot barplot/ui-schema-fn
-                                       :barplot-organs barplot-multiple-organs/ui-schema-fn
-                                       :corrplot corrplot/ui-schema-fn
-                                       :multiple-genes-comparison heatmap/ui-schema-fn}))
+(def ^:private chart-ui-schemas (atom (merge {} rapex/chart-ui-schemas)))
 
 (defn list-charts
   []
@@ -48,8 +31,8 @@
                         :data (->> (drop (* (- page 1) page_size) @chart-manifests)
                                    (take page_size))})))})
 
-(def schema (s/keys :req-un []
-                    :opt-un [::cs/dataset]))
+(def schema (s/keys :req-un [::cs/dataset]
+                    :opt-un []))
 
 (defn get-chart-ui-schema
   []
@@ -67,37 +50,45 @@
                       {:keys [dataset]} :query} :parameters}]
                  (let [ui-schema-fn (get @chart-ui-schemas (keyword chart_name))]
                    (if ui-schema-fn
-                     (if dataset
-                       (ok (ui-schema-fn {:organ-map (gen-organ-map :dataset dataset)
-                                          :datatype-map {:fpkm {:text (clj-str/upper-case "fpkm")}}}))
-                       (ok (ui-schema-fn {})))
+                     (ok (ui-schema-fn dataset))
                      (not-found {:msg "No such chart."
                                  :context nil}))))})
 
+(defn gen-dataset-map
+  "Generate dataset map for ui schema.
+   
+   Output: {:key \"000000\" :text \"000000-GSE000000\"} 
+  "
+  [& {:keys [dataset]}]
+  (let [dataset-metadata (memorized-get-dataset-metadata)
+        dataset-metadata (if dataset
+                           (filter #(= (:dataset_abbr %) dataset) dataset-metadata)
+                           dataset-metadata)]
+    (map (fn [dataset] {:key (:dataset_abbr dataset)
+                        :text (format "PMID:%s-%s" (:dataset_abbr dataset) (:external_db_id dataset))})
+         dataset-metadata)))
+
+(defn get-datasets
+  []
+  {:summary "Get datasets"
+   :parameters {:query ::specs/DatasetsQueryParams}
+   :responses {200 {:body ::specs/DatasetSchema}}
+   :handler (fn [{{{:keys [show_details]} :query} :parameters}]
+              (if show_details
+                (ok (memorized-get-dataset-metadata))
+                (ok (gen-dataset-map))))})
+
 (def routes
-  [""
-   {:swagger {:tags ["Visualization for Omics Data"]}}
+  [[""
+    {:swagger {:tags ["Visualization for Omics Data"]}}
 
-   ["/charts"
-    {:get (list-charts)}]
+    ["/datasets"
+     {:get (get-datasets)}]
 
-   ["/charts/ui-schema/:chart_name"
-    {:get (get-chart-ui-schema)}]
+    ["/charts"
+     {:get (list-charts)}]
 
-   ["/charts/boxplot"
-    {:post (boxplot/post-boxplot!)}]
+    ["/charts/ui-schema/:chart_name"
+     {:get (get-chart-ui-schema)}]]
 
-   ["/charts/boxplot-organs"
-    {:post (boxplot-multiple-organs/post-boxplot!)}]
-
-   ["/charts/barplot"
-    {:post (barplot/post-barplot!)}]
-
-   ["/charts/barplot-organs"
-    {:post (barplot-multiple-organs/post-barplot!)}]
-
-   ["/charts/corrplot"
-    {:post (corrplot/post-corrplot!)}]
-
-   ["/charts/multiple-genes-comparison"
-    {:post (heatmap/post-heatmap!)}]])
+   rapex/routes])

@@ -78,6 +78,8 @@ export default {
   'pages.DatasetList.sampleSize': '样本量',
   'pages.DatasetList.dataCategory': '数据类型',
   'pages.DatasetList.datasetAbbr': '数据集ID',
+  'pages.DatasetList.action': '操作',
+  'pages.DatasetList.select': '选中',
 
   // RightContent
   'pages.RightContent.selectDataset': '选择数据集',

@@ -1,5 +1,5 @@
 import SimilarGeneList from '@/components/SimilarGeneList';
-import { getSimilarGenes, getGenes } from '@/services/swagger/OmicsData'
+import { getDatasetRapexSimilarGenes, getDatasetRapexGenes } from '@/services/swagger/RapexDataset'
 import { Drawer, Row } from 'antd';
 import HelpMessage from '@/components/HelpMessage';
 import SingleGene from '@/pages/SingleGene';
@@ -22,8 +22,9 @@ const SimilarGeneListWrapper: React.FC = () => {
           <b>DataSet:</b> Click the red box in the upper right corner of the page to select the data set you are interested in, and then select the data set from the drop-down menu here.
         </p>
       </HelpMessage>
-      <SimilarGeneList querySimilarGenes={getSimilarGenes}
-        queryGenes={getGenes}
+      <SimilarGeneList
+        querySimilarGenes={getDatasetRapexSimilarGenes}
+        queryGenes={getDatasetRapexGenes}
         showDetails={(ensemblId) => {
           setEnsembl(ensemblId);
           setShowDetail(true);

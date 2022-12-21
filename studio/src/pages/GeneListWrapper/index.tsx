@@ -1,11 +1,17 @@
 import GeneList from '@/components/GeneList';
-import { getDegs, getGenes } from '@/services/swagger/OmicsData'
+import { getDatasetRapexDegs, getDatasetRapexGenes } from '@/services/swagger/RapexDataset';
 import { Row } from 'antd';
 import React, { memo } from 'react';
 import HelpMessage from '@/components/HelpMessage';
+import { useModel } from 'umi';
 import './index.less';
 
 const GeneListWrapper: React.FC = () => {
+  const { defaultDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
+
   return (
     <Row className='gene-list-wrapper'>
       <HelpMessage position='center'
@@ -24,7 +30,10 @@ const GeneListWrapper: React.FC = () => {
           <b>DataSet:</b> Click the red box in the upper right corner of the page to select the data set you are interested in, and then select the data set from the drop-down menu here.
         </p>
       </HelpMessage>
-      <GeneList queryDEGs={getDegs} queryGenes={getGenes}
+      <GeneList
+        defaultDataset={defaultDataset}
+        queryDEGs={getDatasetRapexDegs}
+        queryGenes={getDatasetRapexGenes}
         queryGeneBaseUrl="/expression-analysis/single-gene?ensemblId=">
       </GeneList>
     </Row>

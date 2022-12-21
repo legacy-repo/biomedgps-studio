@@ -1,6 +1,6 @@
 import { QuestionCircleOutlined, InfoCircleOutlined, DatabaseOutlined } from '@ant-design/icons';
 import { Space, Modal, Dropdown, Menu, Row } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SelectLang, useModel, FormattedMessage } from 'umi';
 // import HeaderSearch from '../HeaderSearch';
 import { useHistory } from 'react-router-dom';
@@ -14,9 +14,20 @@ export type SiderTheme = 'light' | 'dark';
 
 const GlobalHeaderRight: React.FC = () => {
   const { initialState, setInitialState } = useModel('@@initialState');
+  const { defaultDataset, setDataset } = useModel('dataset', (ret) => ({
+    defaultDataset: ret.defaultDataset,
+    setDataset: ret.setDataset,
+  }));
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentDataset, setCurrentDataset] = useState("");
   const [current, setCurrent] = useState('mail');
   const history = useHistory();
+
+  useEffect(() => {
+    if (!currentDataset) {
+      setDataset(initialState?.customSettings?.defaultDataset || "");
+    }
+  }, [initialState])
 
   const items: MenuProps['items'] = [
     {
@@ -37,11 +48,9 @@ const GlobalHeaderRight: React.FC = () => {
 
   const handleOk = (record: DataType) => {
     setIsModalOpen(false);
-    const customSettings = {
-      ...initialState?.customSettings,
-      defaultDataset: record.dataset_abbr
-    }
-    setInitialState({ ...initialState, ...customSettings });
+
+    setDataset(record.dataset_abbr);
+    setCurrentDataset(record.dataset_abbr);
   };
 
   const handleCancel = () => {
@@ -80,7 +89,7 @@ const GlobalHeaderRight: React.FC = () => {
               <FormattedMessage id="pages.RightContent.selectDataset" defaultMessage="Select Dataset" />
             </span>
           }>
-          {initialState.customSettings?.defaultDataset}
+          {defaultDataset}
         </Dropdown.Button>
         <Modal className="dataset-selector" width={'80%'} onCancel={handleCancel}
           title="Select Dataset" visible={isModalOpen} footer={null}>

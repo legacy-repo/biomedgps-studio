@@ -1,13 +1,15 @@
-(ns rapex.tasks.boxplot-multiple-organs
+(ns rapex.tasks.rapex.boxplot-multiple-organs
   (:require [clojure.data.json :as json]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
+            [rapex.tasks.rapex.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
             [rapex.config :refer [get-default-dataset]]
             [rapex.db.query-data :as qd]
-            [rapex.tasks.common-sepcs :as cs]
+            [rapex.tasks.rapex.chart-sepcs :as cs]
             [clojure.string :as clj-str]))
+
+(def chart-name "rapex-boxplot-organs")
 
 (defn- convert-record-map
   [organ record-map]
@@ -76,7 +78,7 @@
   "Automatically called during startup; start event listener for boxplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "boxplot-organs" draw-boxplot!))
+  (make-events-init chart-name draw-boxplot!))
 
 (def manifest
   {:name "Boxplot for multiple organs"
@@ -85,7 +87,7 @@
    :category "Chart"
    :home "https://github.com/rapex-lab/rapex/tree/master/rapex/src/rapex/tasks"
    :source "Rapex Team"
-   :short_name "boxplot-organs"
+   :short_name chart-name
    :icons [{:src ""
             :type "image/png"
             :sizes "144x144"}]
@@ -93,7 +95,7 @@
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
    :readme "https://rapex.prophetdb.org/README/boxplot_organs.md"
-   :id "boxplot-organs"})
+   :id chart-name})
 
 (s/def ::gene_symbol string?)
 (s/def ::organ (s/coll-of cs/organ-sets))
@@ -113,65 +115,65 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "boxplot-organs" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn chart-name payload :owner (or (get headers "x-auth-users") "default")))})
 
 (defn ui-schema-fn
-  [{:keys [organ-map datatype-map]
-    :or {organ-map (gen-organ-map :dataset (get-default-dataset))
-         datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
-  {:readme "https://rapex.prophetdb.org/README/boxplot_organs.md"
-   :schema
-   {:fields  [{:key "gene_symbol"
-               :dataIndex "gene_symbol"
-               :valueType "gene_searcher"
-               :title "Gene Symbol"
-               :tooltip "Which gene do you want to query?"
-               :formItemProps {:rules [{:required true
-                                        :message "gene_symbol field is required."}]}}
-              {:key "organ"
-               :dataIndex "organ"
-               :valueType "select"
-               :title "Organ"
-               :tooltip "Which organ do you want to query?"
-               :valueEnum organ-map
-               :fieldProps {:mode "multiple"}
-               :formItemProps {:rules [{:required true
-                                        :message "organ filed is required."}]}}
-              {:key "datatype"
-               :dataIndex "datatype"
-               :valueType "select"
-               :title "Data Type"
-               :tooltip "Which datatype do you want to query?"
-               :valueEnum datatype-map
-               :formItemProps {:rules [{:required true
-                                        :message "datatype filed is required."}]}}
-              {:key "method"
-               :dataIndex "method"
-               :valueType "select"
-               :title "Method"
-               :tooltip "The statistical test method to be used. Allowed values are t.test (default) wilcox.test anova kruskal.test"
-               :valueEnum {:t.test {:text "T Test"} :wilcox.test {:text "Wilcox Test"}
-                           :anova {:text "Anova"} :kruskal.test {:text "Kruskal Test"}}
-               :formItemProps {:initialValue "t.test"
-                               :rules [{:required true
-                                        :message "method filed is required."}]}}
-              {:key "log_scale"
-               :dataIndex "log_scale"
-               :valueType "switch"
-               :title "Log Scale"
-               :tooltip
-               "Logical value. If TRUE input data will be transformation using log2 function."
-               :formItemProps {:initialValue true}}
-              {:key "jitter_size"
-               :dataIndex "jitter_size"
-               :valueType "digit"
-               :title "Jitter Size"
-               :tooltip "Jitter size greater than 0 and less than 1."
-               :fieldProps {:step 0.1}
-               :formItemProps {:initialValue 0.4}}]
-    :examples [{:title "Example 1"
-                :key "example-1"
-                :arguments {:method "t.test"
-                            :log_scale false
-                            :jitter_size 0.4
-                            :datatype "FPKM"}}]}})
+  [dataset]
+  (let [organ-map (gen-organ-map :dataset dataset)
+        datatype-map {:fpkm {:text (clj-str/upper-case "fpkm")}}]
+    {:readme "https://rapex.prophetdb.org/README/boxplot_organs.md"
+     :schema
+     {:fields  [{:key "gene_symbol"
+                 :dataIndex "gene_symbol"
+                 :valueType "gene_searcher"
+                 :title "Gene Symbol"
+                 :tooltip "Which gene do you want to query?"
+                 :formItemProps {:rules [{:required true
+                                          :message "gene_symbol field is required."}]}}
+                {:key "organ"
+                 :dataIndex "organ"
+                 :valueType "select"
+                 :title "Organ"
+                 :tooltip "Which organ do you want to query?"
+                 :valueEnum organ-map
+                 :fieldProps {:mode "multiple"}
+                 :formItemProps {:rules [{:required true
+                                          :message "organ filed is required."}]}}
+                {:key "datatype"
+                 :dataIndex "datatype"
+                 :valueType "select"
+                 :title "Data Type"
+                 :tooltip "Which datatype do you want to query?"
+                 :valueEnum datatype-map
+                 :formItemProps {:rules [{:required true
+                                          :message "datatype filed is required."}]}}
+                {:key "method"
+                 :dataIndex "method"
+                 :valueType "select"
+                 :title "Method"
+                 :tooltip "The statistical test method to be used. Allowed values are t.test (default) wilcox.test anova kruskal.test"
+                 :valueEnum {:t.test {:text "T Test"} :wilcox.test {:text "Wilcox Test"}
+                             :anova {:text "Anova"} :kruskal.test {:text "Kruskal Test"}}
+                 :formItemProps {:initialValue "t.test"
+                                 :rules [{:required true
+                                          :message "method filed is required."}]}}
+                {:key "log_scale"
+                 :dataIndex "log_scale"
+                 :valueType "switch"
+                 :title "Log Scale"
+                 :tooltip
+                 "Logical value. If TRUE input data will be transformation using log2 function."
+                 :formItemProps {:initialValue true}}
+                {:key "jitter_size"
+                 :dataIndex "jitter_size"
+                 :valueType "digit"
+                 :title "Jitter Size"
+                 :tooltip "Jitter size greater than 0 and less than 1."
+                 :fieldProps {:step 0.1}
+                 :formItemProps {:initialValue 0.4}}]
+      :examples [{:title "Example 1"
+                  :key "example-1"
+                  :arguments {:method "t.test"
+                              :log_scale false
+                              :jitter_size 0.4
+                              :datatype "FPKM"}}]}}))

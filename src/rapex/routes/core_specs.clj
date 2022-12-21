@@ -24,7 +24,7 @@
             :reason          "Applied id is not valid."}))
 
 (s/def ::description
-  (st/spec {:spec            string? 
+  (st/spec {:spec            string?
             :description     "The description of database migration."
             :swagger/default "init-tables"
             :swagger/type    "string"
@@ -37,10 +37,12 @@
 
 (s/def ::db_version (s/coll-of db-version))
 
+(s/def ::revision any?)
+
 (def instance-version
   "A spec for the version"
   (s/keys :req-un [::version ::db_version]
-          :opt-un []))
+          :opt-un [::revision]))
 
 (s/def ::filelink
   (st/spec

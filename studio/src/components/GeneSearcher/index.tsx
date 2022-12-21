@@ -1,5 +1,5 @@
 import { Select, Empty } from 'antd';
-import { filter, map } from 'lodash';
+import { filter } from 'lodash';
 import React, { useEffect, useState } from 'react';
 
 const { Option } = Select;
@@ -14,7 +14,7 @@ export type GeneData = {
     entrez_id: number;
     gene_symbol: string;
     name: string;
-    taxid: string;
+    taxid: number;
     type_of_gene: string;
     description: string;
     mgi_id: string;
@@ -23,10 +23,10 @@ export type GeneData = {
     pubmed_ids: string;
     pubmed: string;
     alias: string;
-    chromosome: string;
-    start: string;
-    end: string;
-    strand: string;
+    chromosome: number;
+    start: number;
+    end: number;
+    strand: number;
     swiss_p: string;
     prosite: string;
 };
@@ -45,6 +45,7 @@ export type GenesQueryParams = {
     page?: number;
     /** Num of items per page. */
     page_size?: number;
+    dataset: string;
 };
 
 export function makeQueryStr(
@@ -91,13 +92,14 @@ export type GeneSearcherProps = {
     placeholder?: string;
     initialValue?: any;
     mode?: any;
+    dataset: string;
     // When multiple values was returned, the gene variable will be undefined.
     onChange?: (value: string | string[], gene: GeneData | undefined) => void;
     style: React.CSSProperties;
 };
 
 const GeneSearcher: React.FC<GeneSearcherProps> = props => {
-    const { queryGenes, initialValue } = props;
+    const { queryGenes, initialValue, dataset } = props;
     const [geneData, setGeneData] = useState<GeneData[]>([]);
     const [data, setData] = useState<any[]>([]);
     const [value, setValue] = useState<string>();
@@ -124,6 +126,7 @@ const GeneSearcher: React.FC<GeneSearcherProps> = props => {
             queryGenes({
                 // rapex_degs.duckdb has a data table.
                 query_str: makeQueryStr({ gene_symbol: value, ensembl_id: value, entrez_id: value }, {}, {}),
+                dataset: dataset
             })
                 .then((response) => {
                     if (currentValue === value) {

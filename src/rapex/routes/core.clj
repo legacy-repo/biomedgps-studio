@@ -19,7 +19,6 @@
             [rapex.middleware.exception :as exception]
             [rapex.middleware.formats :as formats]
             [rapex.routes.task :as task-route]
-            [rapex.routes.database :as db-route]
             [rapex.tasks.core :as tasks-route]
             [rapex.routes.graph :as gdb-route]
             [remote-fs.route :as fs-route]
@@ -91,6 +90,7 @@
             :responses {200 {:body specs/instance-version}}
             :handler (fn [_]
                        (ok {:version (v/get-version "com.github.rapex-lab" "rapex")
+                            :revision (v/get-revision "com.github.rapex-lab" "rapex")
                             :db_version (db/get-db-version)}))}}]
 
     ["/studio-config"
@@ -140,6 +140,5 @@
    ["/v1" {:no-doc false}
     task-route/routes
     fs-route/routes
-    db-route/routes
-    tasks-route/routes
-    gdb-route/routes]])
+    gdb-route/routes
+    tasks-route/routes]])

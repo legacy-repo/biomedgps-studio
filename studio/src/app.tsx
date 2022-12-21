@@ -200,7 +200,9 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;
+
       // Change the collapsed status of menu
+      console.log("onPageChange: ", initialState);
       if (location.pathname !== '/welcome') {
         setInitialState({ ...initialState, collapsed: false });
       } else {

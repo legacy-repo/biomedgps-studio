@@ -1,4 +1,4 @@
-(ns rapex.tasks.common-sepcs
+(ns rapex.tasks.rapex.chart-sepcs
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::datatype #{"fpkm" "tpm" "counts"})

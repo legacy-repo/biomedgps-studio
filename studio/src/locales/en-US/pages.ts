@@ -78,6 +78,8 @@ export default {
   'pages.DatasetList.sampleSize': 'Size',
   'pages.DatasetList.dataCategory': 'Category',
   'pages.DatasetList.datasetAbbr': 'Dataset ID',
+  'pages.DatasetList.action': 'Action',
+  'pages.DatasetList.select': 'Select',
 
   // RightContent
   'pages.RightContent.selectDataset': 'Select Dataset',

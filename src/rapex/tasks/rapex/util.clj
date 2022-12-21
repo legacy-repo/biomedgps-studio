@@ -1,4 +1,4 @@
-(ns rapex.tasks.util
+(ns rapex.tasks.rapex.util
   (:require [ring.util.http-response :refer [created not-found bad-request internal-server-error]]
             [clojure.tools.logging :as log]
             [clojure.data.json :as json]

@@ -1,5 +1,6 @@
 (ns rapex.version
-  (:require [clojure.string])
+  (:require [clojure.string]
+            [clojure.tools.logging :as log])
   (:import [java.util Properties]))
 
 ;; More details on https://github.com/trptcolin/versioneer
@@ -40,6 +41,8 @@
   ([group artifact]
    (get-revision group artifact ""))
   ([group artifact default-revision]
+   (log/info (-> (get-properties-filename group artifact)
+                 map-from-property-filepath))
    (or (-> (get-properties-filename group artifact)
            map-from-property-filepath
            (get "revision"))

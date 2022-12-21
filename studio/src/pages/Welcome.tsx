@@ -8,7 +8,7 @@ import { Link, useHistory } from 'react-router-dom';
 import CookieConsent, { Cookies } from "react-cookie-consent";
 import { ReactSVG } from 'react-svg';
 import GeneSearcher from '@/components/GeneSearcher';
-import { getGenes } from '@/services/swagger/OmicsData';
+import { getDatasetRapexGenes } from '@/services/swagger/RapexDataset';
 import { Carousel } from 'react-responsive-carousel';
 import MarkdownViewer from '@/components/MarkdownViewer';
 import { getDownload as getFile } from '@/services/swagger/File';
@@ -238,7 +238,7 @@ const Welcome: React.FC = () => {
                     <Row className='gene-searcher-box'>
                       <Row className='search-box'>
                         <span className='title'>Enter gene symbol, ensembl id or entrez id</span>
-                        <GeneSearcher queryGenes={getGenes} placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059" style={{ width: '100%' }} onChange={onSearch} />
+                        <GeneSearcher queryGenes={getDatasetRapexGenes} placeholder="e.g Trp53 / ENSMUSG00000059552 / 22059" style={{ width: '100%' }} onChange={onSearch} />
                         <div className='tag-container'>
                           {
                             tags.map(tag => {

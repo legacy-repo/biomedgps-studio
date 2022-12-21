@@ -1,10 +1,31 @@
-(ns rapex.routes.database
-  (:require [ring.util.http-response :refer [ok not-found bad-request internal-server-error]]
+(ns rapex.tasks.rapex.core
+  (:require [rapex.tasks.rapex.boxplot :as boxplot]
+            [rapex.tasks.rapex.boxplot-multiple-organs :as boxplot-multiple-organs]
+            [rapex.tasks.rapex.barplot :as barplot]
+            [rapex.tasks.rapex.barplot-multiple-organs :as barplot-multiple-organs]
+            [rapex.tasks.rapex.corrplot :as corrplot]
+            [rapex.tasks.rapex.heatmap :as heatmap]
+            [ring.util.http-response :refer [ok not-found bad-request internal-server-error]]
             [rapex.db.query-data :as qd]
             [clojure.tools.logging :as log]
-            [rapex.routes.database-specs :as ds]
-            [rapex.config :refer [get-default-dataset memorized-get-dataset-metadata]]
-            [rapex.tasks.common-sepcs :as cs]))
+            [rapex.tasks.rapex.db-specs :as ds]
+            [rapex.tasks.rapex.chart-sepcs :as cs]))
+
+(def chart-manifests [boxplot/manifest
+                      boxplot-multiple-organs/manifest
+                      barplot/manifest
+                      barplot-multiple-organs/manifest
+                      corrplot/manifest
+                      heatmap/manifest])
+
+
+(def chart-ui-schemas {:rapex-boxplot boxplot/ui-schema-fn
+                       :rapex-boxplot-organs boxplot-multiple-organs/ui-schema-fn
+                       :rapex-barplot barplot/ui-schema-fn
+                       :rapex-barplot-organs barplot-multiple-organs/ui-schema-fn
+                       :rapex-corrplot corrplot/ui-schema-fn
+                       :rapex-multiple-genes-comparison heatmap/ui-schema-fn})
+
 
 (defn get-error-response
   [e]
@@ -19,20 +40,6 @@
 
 (def get-default-organ (first cs/organ-sets))
 
-(defn gen-dataset-map
-  "Generate dataset map for ui schema.
-   
-   Output: {:key \"000000\" :text \"000000-GSE000000\"} 
-  "
-  [& {:keys [dataset]}]
-  (let [dataset-metadata (memorized-get-dataset-metadata)
-        dataset-metadata (if dataset
-                           (filter #(= (:dataset_abbr %) dataset) dataset-metadata)
-                           dataset-metadata)]
-    (map (fn [dataset] {:key (:dataset_abbr dataset)
-                        :text (format "PMID:%s-%s" (:dataset_abbr dataset) (:external_db_id dataset))})
-         dataset-metadata)))
-
 (defn get-results
   [title table]
   {:summary    title
@@ -46,7 +53,6 @@
                  (try
                    (let [page (or page 1)
                          page_size (or page_size 10)
-                         dataset (or dataset (get-default-dataset))
                          query-map (qd/read-string-as-map query_str)
                          query-map (merge query-map {:limit page_size
                                                      :offset (* (- page 1) page_size)
@@ -74,7 +80,6 @@
                  (try
                    (let [page (or page 1)
                          page_size (or page_size 50)
-                         dataset (or dataset (get-default-dataset))
                          query-map (qd/read-string-as-map query_str)
                          query-map (merge query-map {:limit page_size
                                                      :offset (* (- page 1) page_size)
@@ -102,7 +107,6 @@
                  (try
                    (let [page (or page 1)
                          page_size (or page_size 50)
-                         dataset (or dataset (get-default-dataset))
                          organ   (or organ (get-default-organ))
                          query-map (qd/read-string-as-map query_str)
                          ;; How to handle the exception when the table doesn't exist.
@@ -125,32 +129,36 @@
                      (log/error "Error: " e)
                      (get-error-response e))))})
 
-(defn get-datasets
-  []
-  {:summary "Get datasets"
-   :parameters {:query ::ds/DatasetsQueryParams}
-   :responses {200 {:body ::ds/DatasetSchema}}
-   :handler (fn [{{{:keys [show_details]} :query} :parameters}]
-              (if show_details
-                (ok (memorized-get-dataset-metadata))
-                (ok (gen-dataset-map))))})
-
-
 (def routes
   [""
-   {:swagger {:tags ["Omics Data"]}}
+   {:swagger {:tags ["Visualization for Rapex Omics Dataset"]}}
 
-   ["/datasets"
-    {:get (get-datasets)}]
+   ["/chart/rapex-boxplot"
+    {:post (boxplot/post-boxplot!)}]
 
-   ["/degs"
+   ["/chart/rapex-boxplot-organs"
+    {:post (boxplot-multiple-organs/post-boxplot!)}]
+
+   ["/chart/rapex-barplot"
+    {:post (barplot/post-barplot!)}]
+
+   ["/chart/rapex-barplot-organs"
+    {:post (barplot-multiple-organs/post-barplot!)}]
+
+   ["/chart/rapex-corrplot"
+    {:post (corrplot/post-corrplot!)}]
+
+   ["/chart/rapex-multiple-genes-comparison"
+    {:post (heatmap/post-heatmap!)}]
+
+   ["/dataset/rapex-degs"
     {:get  (get-results "Get DEGs" :degs)}]
 
-   ["/genes"
+   ["/dataset/rapex-genes"
     {:get (fetch-genes "Get Genes")}]
 
-   ["/similar-genes"
+   ["/dataset/rapex-similar-genes"
     {:get (fetch-similar-genes)}]
 
-   ["/pathways"
+   ["/dataset/rapex-pathways"
     {:get  (get-results "Get Pathways" :pathways)}]])

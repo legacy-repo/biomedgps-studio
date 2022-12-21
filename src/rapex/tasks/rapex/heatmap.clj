@@ -1,13 +1,16 @@
-(ns rapex.tasks.heatmap
+(ns rapex.tasks.rapex.heatmap
   (:require [clojure.data.json :as json]
             [tservice-core.tasks.async :refer [make-events-init]]
             [rapex.rwrapper.opencpu :as ocpu]
             [clojure.spec.alpha :as s]
-            [rapex.tasks.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
+            [rapex.tasks.rapex.util :refer [draw-chart-fn update-process! gen-organ-map remove-field]]
             [rapex.db.query-data :as qd]
-            [rapex.tasks.common-sepcs :as cs]
+            [rapex.tasks.rapex.chart-sepcs :as cs]
             [rapex.config :refer [get-default-dataset]]
             [clojure.string :as clj-str]))
+
+;; Naming Convention: [plugin_name]-[chart_name]
+(def chart-name "rapex-multiple-genes-comparison")
 
 (defn- convert-record-map
   [record-map]
@@ -80,7 +83,7 @@
   "Automatically called during startup; start event listener for barplot events.
    
    Known Issue: The instance will generate several same async tasks when you reload the jar."
-  (make-events-init "multiple-genes-comparison" draw-heatmap!))
+  (make-events-init chart-name draw-heatmap!))
 
 (def manifest
   {:name "Heatmap for multiple genes in multiple organs"
@@ -89,7 +92,7 @@
    :category "Chart"
    :home "https://github.com/rapex-lab/rapex/tree/master/rapex/src/rapex/tasks"
    :source "Rapex Team"
-   :short_name "multiple-genes-comparison"
+   :short_name chart-name
    :icons [{:src ""
             :type "image/png"
             :sizes "144x144"}]
@@ -97,7 +100,7 @@
    :maintainers ["Jingcheng Yang" "Tianyuan Cheng"]
    :tags ["R" "Chart"]
    :readme "https://rapex.prophetdb.org/README/multiple_genes_comparison.md"
-   :id "multiple-genes-comparison"})
+   :id chart-name})
 
 (s/def ::gene_symbol (s/coll-of string?))
 (s/def ::method #{"median" "mean"})
@@ -118,57 +121,57 @@
                             :context any?}}}
    :handler    (fn [{{{:as payload} :body} :parameters
                      {:as headers} :headers}]
-                 (draw-chart-fn "multiple-genes-comparison" payload :owner (or (get headers "x-auth-users") "default")))})
+                 (draw-chart-fn chart-name payload :owner (or (get headers "x-auth-users") "default")))})
 
 (defn ui-schema-fn
-  [{:keys [organ-map datatype-map]
-    :or {organ-map (gen-organ-map :dataset (get-default-dataset))
-         datatype-map {:fpkm {:text "FPKM"} :tpm {:text "TPM"}}}}]
-  {:readme "https://rapex.prophetdb.org/README/multiple_genes_comparison.md"
-   :schema
-   {:fields  [{:key "gene_symbol"
-               :dataIndex "gene_symbol"
-               :valueType "gene_searcher"
-               :title "Gene Symbol"
-               :tooltip "Which gene do you want to query?"
-               :fieldProps {:mode "multiple"}
-               :formItemProps {:rules [{:required true
-                                        :message "gene_symbol field is required."}]}}
-              {:key "organ"
-               :dataIndex "organ"
-               :valueType "select"
-               :title "Organ"
-               :tooltip "Which organ do you want to query?"
-               :valueEnum organ-map
-               :fieldProps {:mode "multiple"}
-               :formItemProps {:rules [{:required true
-                                        :message "organ filed is required."}]}}
-              {:key "datatype"
-               :dataIndex "datatype"
-               :valueType "select"
-               :title "Data Type"
-               :tooltip "Which datatype do you want to query?"
-               :valueEnum datatype-map
-               :formItemProps {:rules [{:required true
-                                        :message "datatype filed is required."}]}}
-              {:key "method"
-               :dataIndex "method"
-               :valueType "select"
-               :title "Method"
-               :tooltip "Allowed values are mean (default), median"
-               :valueEnum {:median {:text "Median"} :mean {:text "Mean"}}
-               :formItemProps {:initialValue "mean"
-                               :rules [{:required true
-                                        :message "mean filed is required."}]}}
-              {:key "log_scale"
-               :dataIndex "log_scale"
-               :valueType "switch"
-               :title "Log Scale"
-               :tooltip
-               "Logical value. If TRUE input data will be transformation using log2 function."
-               :formItemProps {:initialValue true}}]
-    :examples [{:title "Example 1"
-                :key "example-1"
-                :arguments {:log_scale false
-                            :method "mean"
-                            :datatype "FPKM"}}]}})
+  [dataset]
+  (let [organ-map (gen-organ-map :dataset dataset)
+        datatype-map {:fpkm {:text (clj-str/upper-case "fpkm")}}]
+    {:readme "https://rapex.prophetdb.org/README/multiple_genes_comparison.md"
+     :schema
+     {:fields  [{:key "gene_symbol"
+                 :dataIndex "gene_symbol"
+                 :valueType "gene_searcher"
+                 :title "Gene Symbol"
+                 :tooltip "Which gene do you want to query?"
+                 :fieldProps {:mode "multiple"}
+                 :formItemProps {:rules [{:required true
+                                          :message "gene_symbol field is required."}]}}
+                {:key "organ"
+                 :dataIndex "organ"
+                 :valueType "select"
+                 :title "Organ"
+                 :tooltip "Which organ do you want to query?"
+                 :valueEnum organ-map
+                 :fieldProps {:mode "multiple"}
+                 :formItemProps {:rules [{:required true
+                                          :message "organ filed is required."}]}}
+                {:key "datatype"
+                 :dataIndex "datatype"
+                 :valueType "select"
+                 :title "Data Type"
+                 :tooltip "Which datatype do you want to query?"
+                 :valueEnum datatype-map
+                 :formItemProps {:rules [{:required true
+                                          :message "datatype filed is required."}]}}
+                {:key "method"
+                 :dataIndex "method"
+                 :valueType "select"
+                 :title "Method"
+                 :tooltip "Allowed values are mean (default), median"
+                 :valueEnum {:median {:text "Median"} :mean {:text "Mean"}}
+                 :formItemProps {:initialValue "mean"
+                                 :rules [{:required true
+                                          :message "mean filed is required."}]}}
+                {:key "log_scale"
+                 :dataIndex "log_scale"
+                 :valueType "switch"
+                 :title "Log Scale"
+                 :tooltip
+                 "Logical value. If TRUE input data will be transformation using log2 function."
+                 :formItemProps {:initialValue true}}]
+      :examples [{:title "Example 1"
+                  :key "example-1"
+                  :arguments {:log_scale false
+                              :method "mean"
+                              :datatype "FPKM"}}]}}))
