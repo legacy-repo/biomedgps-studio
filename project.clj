@@ -52,6 +52,8 @@
                  ;; R
                  [rojure "0.2.0"]
                  [opencpu-clj "0.3.1"]
+                 [clj-python/libpython-clj "2.024"]
+                 [techascent/tech.ml.dataset "7.000-beta-30"]
 
                  ;; JSON/YAML/CSV
                  [com.fasterxml.jackson.core/jackson-core "2.11.0"]
@@ -120,6 +122,7 @@
                   :source-paths ["env/dev"]
                   :resource-paths ["env/dev/resources"]
                   :repl-options {:init-ns user
+                                 :port 7000
                                  :timeout 120000}
                   :injections [(require 'pjstadig.humane-test-output)
                                (pjstadig.humane-test-output/activate!)]}

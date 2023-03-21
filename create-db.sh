@@ -23,12 +23,20 @@ CREATE DATABASE $database OWNER postgres;
 EOSQL
 }
 
+if [ -z $db_name ]; then
+  db_name=rapex_dev
+fi
+
+if [ -z $db_port ]; then
+  db_port=54321
+fi
+
 printf "Stop "
-docker stop $db_name
+docker stop ${db_name}
 printf "Clean "
-docker rm $db_name
+docker rm ${db_name}
 printf "\nLaunch postgres database...(default password: password)\n"
-docker run --name $db_name -e POSTGRES_PASSWORD=password -e POSTGRES_USER=postgres -p 54320:5432 -d postgres:10.0
+docker run --name ${db_name} -e POSTGRES_PASSWORD=password -e POSTGRES_USER=postgres -p ${db_port}:5432 -d postgres:10.0
 sleep 3
-echo "Create database: rapex_dev"
-create_db $db_name $db_port
+echo "Create database: ${db_name}"
+create_db ${db_name} $db_port

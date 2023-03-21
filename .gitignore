@@ -23,3 +23,7 @@ pom.xml.asc
 /log
 /dev-config.edn
 .DS_Store
+.VSCodeCounter
+dist
+pydl.egg-info
+__pycache__

@@ -19,8 +19,9 @@
             [rapex.middleware.exception :as exception]
             [rapex.middleware.formats :as formats]
             [rapex.routes.task :as task-route]
-            [rapex.tasks.core :as tasks-route]
+            [rapex.plugins.core :as plugins-route]
             [rapex.routes.graph :as gdb-route]
+            [rapex.routes.model :as model-route]
             [remote-fs.route :as fs-route]
             [rapex.version :as v]
             [rapex.db.core :as db]))
@@ -141,4 +142,5 @@
     task-route/routes
     fs-route/routes
     gdb-route/routes
-    tasks-route/routes]])
+    plugins-route/routes
+    model-route/routes]])

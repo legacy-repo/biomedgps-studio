@@ -62,6 +62,11 @@ FIXME: listing of options this app accepts.
 ### That You Think
 ### Might be Useful
 
+## TODO List
+
+- [] Add advanced search for knowledge graph.
+    - [] Two modes: add to current canvas & add to new canvas.
+
 ## License
 
 Copyright © 2022 FIXME

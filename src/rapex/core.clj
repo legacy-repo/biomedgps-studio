@@ -9,6 +9,7 @@
             [clojure.tools.logging :as log]
             [rapex.tasks :as tasks]
             [rapex.rwrapper.opencpu :as opencpu]
+            [rapex.models.gnn :as gnn]
             [mount.core :as mount]
             [rapex.db.query-data :as qd]
             [rapex.db.query-gdata :as qgd]))
@@ -73,6 +74,9 @@
   (qd/setup-default-dbtype (:dbtype env))
   (qgd/setup-gdb-connection (:graph-database-url env))
   (opencpu/setup-ocpu-api-service (or (:ocpu-api-service env) "http://localhost:5656"))
+
+  ;; Load deep learning models
+  (gnn/init-model!)
   (cond
     ;; Run a command like `java -jar rapex.jar init-*`
     ;; Initializes the database using the script specified by the :init-script key opts

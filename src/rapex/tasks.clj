@@ -1,7 +1,6 @@
 (ns rapex.tasks
   (:require [tservice-core.core :as tc]
             [rapex.db.handler :as db-handler]
-            [tservice-core.tasks.async :as async]
             [rapex.config :refer [make-minio-link get-workdir]]))
 
 (defn start-tasks!
@@ -12,7 +11,7 @@
   []
   (tc/setup-custom-fns db-handler/create-task! db-handler/update-task! make-minio-link)
   (tc/setup-custom-workdir-root (get-workdir))
-  (tc/setup-custom-namespace "rapex" :sub-ns "tasks")
+  (tc/setup-custom-namespace "rapex" :sub-ns "plugins")
   (tc/start-events!))
 
 (defn stop-tasks!

@@ -1,0 +1,20 @@
+[
+  {
+    "source_id": "MESH:D015673",
+    "relation_types": [
+      "Hetionet::CtD::Compound:Disease",
+      "GNBR::T::Compound:Disease",
+      "DRUGBANK::treats::Compound:Disease"
+    ],
+    "topk": 2
+  },
+  {
+    "source_id": "MESH:D008175",
+    "relation_types": [
+      "Hetionet::CtD::Compound:Disease",
+      "GNBR::T::Compound:Disease",
+      "DRUGBANK::treats::Compound:Disease"
+    ],
+    "topk": 2
+  }
+]
