@@ -5,13 +5,16 @@
 
 (defn init-model!
   []
-  (require '[libpython-clj2.require :refer [require-python]])
-  (if-let [require-python (find-var 'require-python)]
-    (require-python '[pydl.nm :as nm :bind-ns true])
-    (throw (Exception. "Cannot load the libpython-clj2 correctly.")))
-  (if-let [load_model (find-var 'pydl.nm/load_model)]
-    (reset! model-map (load_model))
-    (throw (Exception. "Cannot find the nm submodule in pydl package."))))
+  (try
+    (require '[libpython-clj2.require :refer [require-python]])
+    (if-let [require-python (find-var 'require-python)]
+      (require-python '[pydl.nm :as nm :bind-ns true])
+      (throw (Exception. "Cannot load the libpython-clj2 correctly.")))
+    (if-let [load_model (find-var 'pydl.nm/load_model)]
+      (reset! model-map (load_model))
+      (throw (Exception. "Cannot find the nm submodule in pydl package.")))
+    (catch Exception e
+      (println "Error while initializing the model:" (.getMessage e)))))
 
 (defn format-topkpd
   [topkpd]
