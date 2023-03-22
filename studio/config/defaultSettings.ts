@@ -27,6 +27,7 @@ export type CustomSettings = {
   websiteLogo?: string;
   websiteDescription?: string;
   defaultDataset?: string;
+  mode?: string;
 }
 
 export const defaultCustomSettings = {
@@ -35,7 +36,8 @@ export const defaultCustomSettings = {
   websiteTitle: 'RAPEX',
   websiteLogo: '/logo.png',
   websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
-  defaultDataset: '000000'
+  defaultDataset: '000000',
+  mode: 'Developer'
 }
 
 export type AppVersion = {

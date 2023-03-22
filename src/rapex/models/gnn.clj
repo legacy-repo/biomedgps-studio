@@ -1,12 +1,14 @@
 (ns rapex.models.gnn
-  (:require [libpython-clj2.require :refer [require-python]]
-            [libpython-clj2.python :as py :refer [call-attr]]))
+  (:require [libpython-clj2.python :as py :refer [call-attr]]))
 
 (def model-map (atom nil))
 
 (defn init-model!
   []
-  (require-python '[pydl.nm :as nm :bind-ns true])
+  (require '[libpython-clj2.require :refer [require-python]])
+  (if-let [require-python (find-var 'require-python)]
+    (require-python '[pydl.nm :as nm :bind-ns true])
+    (throw (Exception. "Cannot load the libpython-clj2 correctly.")))
   (if-let [load_model (find-var 'pydl.nm/load_model)]
     (reset! model-map (load_model))
     (throw (Exception. "Cannot find the nm submodule in pydl package."))))
@@ -33,7 +35,6 @@
   "You need to make sure that source-id matches the type of entity in relations."
   [source-id relations & {:keys [topk]
                           :or {topk 100}}]
-  (require-python '[pydl.nm :as nm :bind-ns true])
   (when (not @model-map)
     (throw (Exception. "You need to call init-model! function firstly.")))
   (if-let [[query relation_each relation_ave]

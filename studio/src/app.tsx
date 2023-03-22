@@ -99,6 +99,13 @@ const defaultRoutes = [
     component: 'about',
   },
   {
+    name: 'chatbox',
+    icon: 'InfoCircleOutlined',
+    path: '/chatai',
+    hideInMenu: false,
+    component: 'ChatAI',
+  },
+  {
     name: 'help',
     icon: 'QuestionCircleOutlined',
     path: '/help',
@@ -297,11 +304,25 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       // Re-execute request whenever initialState?.currentUser?.userid is modified
       params: {
         defaultDataset: initialState?.customSettings?.defaultDataset,
+        mode: initialState?.customSettings?.mode,
       },
       request: async (params: any, defaultMenuData: any) => {
-        const menuData = await getMenusDataset({ dataset: params.defaultDataset });
+        let menuData;
+        if (initialState?.customSettings?.mode === "Developer") {
+          menuData = await getMenusDataset({ dataset: params.defaultDataset });
+        } else {
+          menuData = {
+            routes: [{
+              path: '/rapex-plugin/welcome',
+              name: 'quick-start',
+              icon: 'HomeOutlined',
+              component: 'RapexPluginWelcome'
+            }]
+          }
+        }
+
         const routes = dynamicRoutesToUsableRoutes(menuData.routes.concat(defaultRoutes));
-        console.log("DynamicRoutes: ", routes);
+        console.log("DynamicRoutes: ", routes, menuData);
         return routes
       },
     },
@@ -311,7 +332,10 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       // content: initialState?.currentUser?.name,
     },
     onCollapse: (collapsed) => {
-      setInitialState({ ...initialState, collapsed: collapsed });
+      setInitialState({
+        ...initialState,
+        collapsed: !initialState?.collapsed
+      })
     },
     collapsed: initialState?.collapsed,
     footerRender: () => <Footer />,

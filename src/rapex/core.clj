@@ -76,7 +76,9 @@
   (opencpu/setup-ocpu-api-service (or (:ocpu-api-service env) "http://localhost:5656"))
 
   ;; Load deep learning models
-  (gnn/init-model!)
+  (when (:enable-gnn env)
+    (gnn/init-model!))
+
   (cond
     ;; Run a command like `java -jar rapex.jar init-*`
     ;; Initializes the database using the script specified by the :init-script key opts

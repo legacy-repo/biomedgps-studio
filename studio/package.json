@@ -82,6 +82,7 @@
     "react": "^17.0.0",
     "react-ansi": "^3.0.2",
     "react-chart-editor": "^0.45.0",
+    "react-chat-plugin": "^0.1.17",
     "react-cookie-consent": "^8.0.1",
     "react-csv": "^2.2.2",
     "react-dev-inspector": "^1.7.0",
