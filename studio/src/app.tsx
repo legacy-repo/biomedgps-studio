@@ -281,24 +281,24 @@ export async function getInitialState(): Promise<{
   const settings = {
     settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
     customSettings: customSettings,
+    collapsed: false,
     appVersion: appVersion,
   }
 
-  if (history.location.pathname.startsWith('/welcome')) {
-    return {
-      ...settings,
-      collapsed: false,
-    };
-  }
+  // if (history.location.pathname.startsWith('/welcome')) {
+  //   return {
+  //     ...settings,
+  //     collapsed: true,
+  //   };
+  // }
 
-  return {
-    ...settings,
-    collapsed: true,
-  };
+  return settings;
 }
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
+  console.log("initialState: ", initialState);
+
   return {
     menu: {
       // Re-execute request whenever initialState?.currentUser?.userid is modified
@@ -332,24 +332,27 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       // content: initialState?.currentUser?.name,
     },
     onCollapse: (collapsed) => {
+      console.log("onCollapse: ", initialState, collapsed);
       setInitialState({
         ...initialState,
         collapsed: !initialState?.collapsed
       })
     },
-    collapsed: initialState?.collapsed,
+    collapsed: initialState?.collapsed === undefined ? true : initialState?.collapsed,
     footerRender: () => <Footer />,
-    onPageChange: () => {
-      const { location } = history;
+    // onPageChange: () => {
+    //   const { location } = history;
 
-      // Change the collapsed status of menu
-      console.log("onPageChange: ", initialState);
-      if (location.pathname !== '/welcome') {
-        setInitialState({ ...initialState, collapsed: false });
-      } else {
-        setInitialState({ ...initialState, collapsed: true });
-      }
-    },
+    //   // Change the collapsed status of menu
+    //   console.log("onPageChange: ", initialState);
+    //   if (location.pathname !== '/welcome') {
+    //     setInitialState({ ...initialState, collapsed: false });
+    //   } else {
+    //     setInitialState({ ...initialState, collapsed: true });
+    //   }
+
+    //   setInitialState({ ...initialState, collapsed: true });
+    // },
     links: isDev
       ? [
         <DocLink></DocLink>,

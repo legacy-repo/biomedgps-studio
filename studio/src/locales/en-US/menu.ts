@@ -13,6 +13,7 @@ export default {
   'menu.datasets': 'Datasets',
   'menu.help': 'Help',
   'menu.about': 'About',
+  'menu.chatbox': 'ChatAI',
 
   'menu.more-blocks': 'More Blocks',
   'menu.home': 'Home',

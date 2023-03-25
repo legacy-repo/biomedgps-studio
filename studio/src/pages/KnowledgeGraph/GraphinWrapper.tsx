@@ -14,6 +14,7 @@ import type { TooltipValue } from '@antv/graphin';
 import { Config } from './MenuButton';
 import { message, Descriptions } from 'antd';
 import { makeDataSource } from './utils';
+import type { DataOnChangeFn } from "./typings";
 import voca from 'voca';
 import './graphin-wrapper.less';
 
@@ -31,7 +32,8 @@ export type GraphinProps = {
     data: any;
     layout: any;
     style: any;
-    handleChange?: (item: any, data: any, graph: any, graphin: any) => void
+    containerId?: string;
+    handleChange?: DataOnChangeFn
 }
 
 const snapLineOptions = {
@@ -42,7 +44,7 @@ const snapLineOptions = {
 };
 
 type MenuProps = {
-    onChange: ((item: any, data: any, graph: any, graphin: any) => void) | undefined
+    onChange?: DataOnChangeFn
 }
 
 const NodeMenu = (props: MenuProps) => {
@@ -86,15 +88,20 @@ const CanvasMenu = (props: any) => {
     };
     const handleClear = () => {
         message.info(`Clear canvas successfully`);
+        graph.clear();
         context.handleClose();
     };
+
     const handleStopLayout = () => {
         message.info(`Stop layout successfully`);
+        graph.stopAnimate();
         context.handleClose();
     };
+
     const handleOpenFishEye = () => {
         props.handleOpenFishEye();
     };
+
     return (
         <Menu bindType="canvas">
             <Menu.Item onClick={handleOpenFishEye}>
@@ -111,6 +118,68 @@ const CanvasMenu = (props: any) => {
             </Menu.Item>
         </Menu>
     );
+};
+
+const CustomHoverable = (props: {
+    bindType?: 'node' | 'edge';
+    disabled?: boolean;
+}) => {
+    const { bindType, disabled } = props;
+    const { graph } = React.useContext(GraphinContext);
+    const [enableHoverable, setEnableHoverable] = useState<boolean>(false);
+
+    // TODO: How to disable hoverable when there are multiple nodes selected?
+    // React.useEffect(() => {
+    //     const selectedNodes = graph.getNodes().filter(node => {
+    //         return node.getStates().includes('selected')
+    //     })
+    //     setEnableHoverable(selectedNodes.length > 1)
+    // }, [])
+
+    return <Hoverable bindType={bindType} disabled={enableHoverable || disabled} />
+}
+
+const NodeLabelVisible = (props: {
+    visible: boolean
+}) => {
+    const { visible } = props;
+
+    const graph = React.useContext(GraphinContext).graph;
+
+    React.useEffect(() => {
+        graph.getNodes().forEach(node => {
+            graph.updateItem(node, {
+                style: {
+                    // @ts-ignore
+                    label: {
+                        visible: visible,
+                    },
+                }
+            })
+        })
+    }, [visible]);
+    return null;
+};
+
+const EdgeLabelVisible = (props: {
+    visible: boolean;
+}) => {
+    const { visible } = props;
+    const graph = React.useContext(GraphinContext).graph;
+
+    React.useEffect(() => {
+        graph.getEdges().forEach(edge => {
+            graph.updateItem(edge, {
+                style: {
+                    // @ts-ignore
+                    label: {
+                        visible: visible,
+                    },
+                }
+            })
+        })
+    }, [visible]);
+    return null;
 };
 
 const HighlightNode = (props: { selectedNode?: string }) => {
@@ -146,6 +215,7 @@ const HighlightNode = (props: { selectedNode?: string }) => {
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const { data, layout, style, handleChange, config, selectedNode } = props
     const [visible, setVisible] = useState(false);
+    const ref = React.useRef(null);
 
     const handleOpenFishEye = () => {
         setVisible(true);
@@ -178,14 +248,24 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         )
     }
 
+    const options = { enabledStack: true, groupType: "nlabel", filterCenter: true }
+
     return (
-        data && <Graphin fitCenter={true} data={data} layout={layout} style={style}>
+        data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
             <DragNodeWithForce autoPin={true} />
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
             <ZoomCanvas />
             <FishEye options={{}} visible={visible} handleEscListener={handleClose} />
             <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
+            {config ?
+                <NodeLabelVisible visible={config.nodeLabelEnabled} />
+                : null
+            }
+            {config ?
+                <EdgeLabelVisible visible={config.edgeLabelEnabled} />
+                : null
+            }
             {(config ? config.nodeTooltipEnabled : null) ?
                 <Tooltip bindType="node" hasArrow>
                     {(value: TooltipValue) => {
@@ -213,14 +293,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 </Tooltip>
                 : null}
             {(config ? config.miniMapEnabled : null) ? <MiniMap /> : null}
-            <Hoverable bindType="node" />
-            {/* <Hoverable bindType="edge" /> */}
+            <CustomHoverable bindType="node" />
+            <CustomHoverable bindType="edge" />
             {(config ? config.snapLineEnabled : null) ? <SnapLine options={snapLineOptions} visible /> : null}
             <ActivateRelations />
-            <ContextMenu style={{ width: '150px' }}>
+            <ContextMenu style={{ width: '160px' }}>
                 <NodeMenu onChange={handleChange}></NodeMenu>
             </ContextMenu>
-            <ContextMenu style={{ width: '150px' }} bindType="canvas">
+            <ContextMenu style={{ width: '160px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
             </ContextMenu>
             {/* <ContextMenu style={{ width: '200px' }} bindType="edge">

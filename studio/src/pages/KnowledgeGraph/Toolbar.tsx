@@ -5,6 +5,10 @@ import './toolbar.less';
 
 type ToolbarProps = {
     position: "right" | "left" | "top" | "bottom" | undefined,
+    width?: string,
+    title?: string,
+    closable?: boolean,
+    height?: string,
     onClick?: (position: string) => void
 }
 
@@ -92,10 +96,12 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                     {(pos === 'top' || pos === 'bottom') ? '=' : '||'}
                 </span>
             </div>
-            <Drawer width={'300px'} height={'300px'} title={false} getContainer={false}
-                style={{ position: 'absolute' }} closable={false} mask={false}
+            <Drawer width={props.width ? props.width : '300px'} height={props.height ? props.height : '300px'}
+                title={props.title ? props.title : false} getContainer={false}
+                style={{ position: 'absolute' }} closable={props.closable ? props.closable : false}
+                mask={props.closable ? props.closable : false}
                 placement={position} onClose={switchDrawer} visible={drawerActive}>
-                {props.children}
+                {drawerActive ? props.children : null}
             </Drawer>
         </div>
     )

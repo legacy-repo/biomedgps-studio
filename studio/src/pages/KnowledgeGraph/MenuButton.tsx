@@ -14,8 +14,9 @@ import {
     CaretRightOutlined,
     CustomerServiceFilled,
 } from '@ant-design/icons';
-
+import { defaultLayout } from './utils';
 import './menu-button.less';
+
 
 const { Panel } = Collapse;
 const SelectOption = Select.Option;
@@ -23,9 +24,11 @@ const SelectOption = Select.Option;
 export type Config = {
     snapLineEnabled: boolean,
     miniMapEnabled: boolean,
+    nodeLabelEnabled: boolean,
+    edgeLabelEnabled: boolean,
     nodeTooltipEnabled: boolean,
     edgeTooltipEnabled: boolean,
-    infoPanelEnabled: boolean
+    infoPanelEnabled: boolean,
 }
 
 export type MenuButtonProps = {
@@ -43,8 +46,7 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
     const iconMap = {
         'graphin-force': <DeploymentUnitOutlined />,
         random: <NodeIndexOutlined />,
-        concentric: <ShareAltOutlined />,
-        circle: <GlobalOutlined />,
+        concentric: <GlobalOutlined />,
         force: <ForkOutlined />,
         dagre: <SubnodeOutlined />,
         grid: <BranchesOutlined />,
@@ -52,11 +54,70 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
     };
 
     const layouts = [
+        defaultLayout,
         {
-            type: 'graphin-force',
-            workerEnabled: true, // 可选，开启 web-worker
-            gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
+            type: 'grid',
+            // begin: [0, 0], // 可选，
+            // preventOverlap: true, // 可选，必须配合 nodeSize
+            // preventOverlapPdding: 20, // 可选
+            // nodeSize: 30, // 可选
+            // condense: false, // 可选
+            // rows: 5, // 可选
+            // cols: 5, // 可选
+            // sortBy: 'degree', // 可选
+            // workerEnabled: false, // 可选，开启 web-worker
         },
+        {
+            type: 'radial',
+            // center: [200, 200], // 可选，默认为图的中心
+            // linkDistance: 50, // 可选，边长
+            // maxIteration: 1000, // 可选
+            // focusNode: 'node11', // 可选
+            // unitRadius: 100, // 可选
+            // preventOverlap: true, // 可选，必须配合 nodeSize
+            // nodeSize: 30, // 可选
+            // strictRadial: false, // 可选
+            // workerEnabled: false, // 可选，开启 web-worker
+        },
+        {
+            type: 'force',
+            preventOverlap: true,
+            // center: [200, 200], // 可选，默认为图的中心
+            linkDistance: 50, // 可选，边长
+            nodeStrength: 30, // 可选
+            edgeStrength: 0.8, // 可选
+            collideStrength: 0.8, // 可选
+            nodeSize: 30, // 可选
+            alpha: 0.9, // 可选
+            alphaDecay: 0.3, // 可选
+            alphaMin: 0.01, // 可选
+            forceSimulation: null, // 可选
+            onTick: () => {
+                // 可选
+                console.log('ticking');
+            },
+            onLayoutEnd: () => {
+                // 可选
+                console.log('force layout done');
+            },
+        },
+        {
+            type: 'concentric',
+            maxLevelDiff: 0.5,
+            sortBy: 'degree',
+            // center: [200, 200], // 可选，
+
+            // linkDistance: 50, // 可选，边长
+            // preventOverlap: true, // 可选，必须配合 nodeSize
+            // nodeSize: 30, // 可选
+            // sweep: 10, // 可选
+            // equidistant: false, // 可选
+            // startAngle: 0, // 可选
+            // clockwise: false, // 可选
+            // maxLevelDiff: 10, // 可选
+            // sortBy: 'degree', // 可选
+            // workerEnabled: false, // 可选，开启 web-worker
+        }
     ];
 
     return (
@@ -72,7 +133,7 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                         <Collapse defaultActiveKey={['canvas']} expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}>
                             <Panel header="Canvas" key="canvas">
                                 <Form
-                                    labelCol={{ span: 9 }}
+                                    labelCol={{ span: 10 }}
                                     layout={'horizontal'}
                                     form={form}
                                     initialValues={config}
@@ -80,6 +141,8 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                         const config = {
                                             miniMapEnabled: values.miniMapEnabled,
                                             snapLineEnabled: values.snapLineEnabled,
+                                            nodeLabelEnabled: values.nodeLabelEnabled,
+                                            edgeLabelEnabled: values.edgeLabelEnabled,
                                             nodeTooltipEnabled: values.nodeTooltipEnabled,
                                             edgeTooltipEnabled: values.edgeTooltipEnabled,
                                             infoPanelEnabled: values.infoPanelEnabled,
@@ -108,6 +171,12 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                         <Switch />
                                     </Form.Item>
                                     <Form.Item label="SnapLine" name="snapLineEnabled" valuePropName="checked">
+                                        <Switch />
+                                    </Form.Item>
+                                    <Form.Item label="Node Label" name="nodeLabelEnabled" valuePropName="checked">
+                                        <Switch />
+                                    </Form.Item>
+                                    <Form.Item label="Edge Label" name="edgeLabelEnabled" valuePropName="checked">
                                         <Switch />
                                     </Form.Item>
                                     <Form.Item label="Node Tooltip" name="nodeTooltipEnabled" valuePropName="checked">

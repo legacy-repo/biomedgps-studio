@@ -315,26 +315,57 @@ def database():
               type=click.Choice(["sqlite", "duckdb"]),
               help="Which type of database.")
 def graph_labels(data_dir, output_dir, db):
-    labels = {
-        "gene": "HGNC_MGI/Gene.tsv",
-        "metabolite": "HMDB/Metabolite.tsv",
-        "pathway": "PathwayCommons/Pathway.tsv",
-        "transcript": "RefSeq/Transcript.tsv",
-        "protein": "UniProt/Protein.tsv",
-        "peptide": "UniProt/Peptide.tsv",
-        "disease": "Ontologies/Disease.tsv",
-        "phenotype": "Ontologies/Phenotype.tsv",
-        "publication": "JensenLab/Publications.tsv"
-    }
+    # labels = {
+    #     "gene": "HGNC_MGI/Gene.tsv",
+    #     "metabolite": "HMDB/Metabolite.tsv",
+    #     "pathway": "PathwayCommons/Pathway.tsv",
+    #     "transcript": "RefSeq/Transcript.tsv",
+    #     "protein": "UniProt/Protein.tsv",
+    #     "peptide": "UniProt/Peptide.tsv",
+    #     "disease": "Ontologies/Disease.tsv",
+    #     "phenotype": "Ontologies/Phenotype.tsv",
+    #     "publication": "JensenLab/Publications.tsv",
+    #     "graph_metadata": "graph_metadata.tsv"
+    # }
 
-    dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
+    metadata = os.path.join(data_dir, "metadata.json")
+    if not os.path.exists(metadata):
+        error_msg = """
+        Cannot find the metadata file (%s), you need to prepare the metadata file first. 
+        The metadata file should be a json file and contains the following keys:
+        {
+            "labels": {
+                "<db_name1>": "<data_file1>",
+                "<db_name2>": "<data_file2>",
+                ...
+                "<db_nameN>": "<data_fileN>",
+                "graph_metadata": "graph_metadata.tsv"
+            }
+        }
 
-    for key in labels.keys():
-        file = os.path.join(data_dir, labels[key])
-        if os.path.exists(file):
-            func_map.get(db)(file, dbfile, table_name=key, skip=True)
-        else:
-            print("Cannot find the datafile (%s)" % file)
+        <db_name>: the name of the database table, it's the lower case of label name. such as gene, metabolite, pathway, etc. Their corresponding label names are: Gene, Metabolite, Pathway, etc.
+        <db_file>: the data file which contains the data of the database table. The data file should be a tsv file. **Please just keep it same with the node file that you imported to the graph database.**
+
+        graph_metadata: [required] the data file which contains the metadata of the graph. The data file should be a tsv file. The metadata file should contains the following columns:
+            - start_node_type: the type of the start node, such as Gene, Metabolite, Pathway, etc.
+            - relation_type: the type of the relation, such as Gene-Pathway, Gene-Disease, etc. It's up to you to define the relation type.
+            - end_node_type: the type of the end node, such as Gene, Metabolite, Pathway, etc.
+            - relation_count: the number of the relations between the start node and the end node.
+        """ % metadata
+        print(error_msg)
+        return
+
+    with open(metadata, "r") as f:
+        labels = json.load(f).get("labels")
+
+        dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
+
+        for key in labels.keys():
+            file = os.path.join(data_dir, labels[key])
+            if os.path.exists(file):
+                func_map.get(db)(file, dbfile, table_name=key, skip=True)
+            else:
+                print("Cannot find the datafile (%s)" % file)
 
 
 @database.command(help="Parse data files and make a dataset database.")

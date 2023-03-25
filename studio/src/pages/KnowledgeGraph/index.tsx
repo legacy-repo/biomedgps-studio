@@ -9,65 +9,23 @@ import { uniqBy } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
 import MenuButton from './MenuButton';
 import QueryBuilder from './QueryBuilder';
-import { getNodes } from '@/services/swagger/Graph';
-import { makeColumns, makeDataSources } from './utils';
+import AdvancedSearch from './AdvancedSearch';
+import ComplexChart from './Chart/ComplexChart';
+import {
+  makeColumns, makeDataSources, makeGraphQueryStrWithSearchObject, defaultLayout
+} from './utils';
+import { SearchObject, GraphData, GraphEdge } from './typings';
 
 import './index.less';
-
-const oldLayout = {
-  type: 'graphin-force',
-  minNodeSpacing: 20,
-  getId: function getId(d: any) {
-    return d.id;
-  },
-  getHeight: function getHeight() {
-    return 16;
-  },
-  getWidth: function getWidth() {
-    return 16;
-  },
-  getVGap: function getVGap() {
-    return 80;
-  },
-  getHGap: function getHGap() {
-    return 50;
-  },
-}
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
 }
 
-export type GraphNode = {
-  comboId: string;
-  id: string;
-  label: string;
-  style: any;
-  category: 'nodes' | 'edges';
-  type: 'graphin-circle';
-  data: Record<string, any>
-}
-
-export type GraphEdge = {
-  relid: string;
-  source: string;
-  category: 'nodes' | 'edges';
-  target: string;
-  reltype: string;
-  style: any;
-  data: Record<string, any>
-}
-
-export function makeQueryStr(
-  match_clause: string,
-  where_clause: string
-): string {
-  return `{:match "${match_clause}" :where "${where_clause}" :limit 100 :return "n, r, m"}`;
-}
 
 const KnowledgeGraph: React.FC = () => {
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
-  const [data, setData] = useState<{ nodes: Array<GraphNode>, edges: Array<GraphEdge> }>({
+  const [data, setData] = useState<GraphData>({
     nodes: [],
     edges: []
   });
@@ -79,12 +37,21 @@ const KnowledgeGraph: React.FC = () => {
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
+  const [advancedSearchPanelActive, setAdvancedSearchPanelActive] = useState<boolean>(false);
+  const [searchObject, setSearchObject] = useState<SearchObject>({
+    node_type: "",
+    node_id: "",
+    merge_mode: "replace"
+  });
 
-  const [layout, setLayout] = React.useState<any>({});
+  // You must have a oldLayout to make the layout work before user select a layout from the menu
+  const [layout, setLayout] = React.useState<any>(defaultLayout);
   const [config, setConfig] = React.useState<Config & { layout?: any } | undefined>({
     layout: 'graphin-force',
     miniMapEnabled: true,
     snapLineEnabled: true,
+    nodeLabelEnabled: true,
+    edgeLabelEnabled: true,
     nodeTooltipEnabled: true,
     edgeTooltipEnabled: false,
     infoPanelEnabled: true,
@@ -112,40 +79,85 @@ const KnowledgeGraph: React.FC = () => {
     ])
   }, [data])
 
+  useEffect(() => {
+    if (searchObject.node_id && searchObject.node_type && advancedSearchPanelActive === false) {
+      message.info("Loading data, please wait...")
+      makeGraphQueryStrWithSearchObject(searchObject)
+        .then(response => {
+          if (searchObject.merge_mode == "replace") {
+            setData(response)
+          } else if (searchObject.merge_mode == "append") {
+            setData({
+              nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
+              edges: uniqBy([...data.edges, ...response.edges], "relid")
+            })
+          } else if (searchObject.merge_mode == "subtract") {
+            const { nodes, edges } = response;
+            let nodesToRemove: string[] = nodes.map(node => node.id);
+
+            nodesToRemove = nodesToRemove.filter(node => {
+              // Remove nodes that have only one relationship and is in the nodesToRemove list
+              const prediction = (rel: GraphEdge, node: string, reltypes: string[]) => {
+                return (rel.target == node || rel.source == node) && reltypes.indexOf(rel.reltype) > -1
+              }
+
+              // Get all relationships that meet the criteria, maybe it comes from user's input or query result
+              const relation_types = searchObject.relation_types || edges.map(edge => edge.reltype)
+              const found = data.edges.filter(rel => prediction(rel, node, relation_types))
+
+              console.log("Found: ", found, node, relation_types)
+              return found.length < 2
+            })
+
+            // Remove nodes and relationships that meet the removal criteria
+            const newNodes = data.nodes.filter(node => !nodesToRemove.includes(node.id));
+            const newRelationships = data.edges.filter(rel => !nodesToRemove.includes(rel.source) && !nodesToRemove.includes(rel.target));
+
+            const newData = {
+              nodes: newNodes,
+              edges: newRelationships
+            }
+
+            console.log("New Data: ", newData, data, response, nodesToRemove)
+            setData(newData)
+          } else {
+            message.warn("Unknown merge mode, please retry later.")
+          }
+          message.success(`Find ${response.nodes.length} entities and ${response.edges.length} relationships.`)
+        }).catch(error => {
+          message.warn("Unknown error, please retry later.")
+          console.log("getNodes Error: ", error)
+          message.warn("Cannot find any entities or relationships.")
+        })
+    }
+  }, [searchObject])
+
   const onChangeConfig = (config: Config, layout: any) => {
+    console.log("Config: ", config, layout);
     setLayout(layout)
     setConfig(config)
   }
 
-  const searchLabel = (label: string, value: string | undefined) => {
-    if (label && value) {
-      getNodes({
-        query_str: makeQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${value}'`)
-      }).then(response => {
-        setData(response)
-      }).catch(error => {
-        message.warn("Unknown error, please retry later.")
-        console.log("getNodes Error: ", error)
-      })
-
-    }
+  const enableAdvancedSearch = () => {
+    setAdvancedSearchPanelActive(true)
   }
 
-  const searchRelationshipsById = (label: string, id: string | undefined) => {
-    if (label && id) {
-      getNodes({
-        query_str: makeQueryStr(`(n:${label})-[r]-(m)`, `id(n) = ${id}`)
-      }).then(response => {
-        const merged_data = {
-          nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
-          edges: [...data.edges, ...response.edges],
-        };
-        setData(merged_data);
-      }).catch(error => {
-        message.warn("Unknown error, please retry later.")
-        console.log("getNodes Error: ", error)
-      })
-    }
+  const disableAdvancedSearch = () => {
+    setAdvancedSearchPanelActive(false)
+  }
+
+  const updateSearchObject = (searchObject: SearchObject) => {
+    console.log("Search Object: ", searchObject);
+    disableAdvancedSearch();
+    setSearchObject(searchObject);
+  }
+
+  const searchLabel = (label: string, value: string | undefined) => {
+    setSearchObject({
+      node_type: label,
+      node_id: value,
+      merge_mode: "replace"
+    })
   }
 
   const handleChange = (menuItem: any, menuData: any, graph: any, graphin: any) => {
@@ -158,12 +170,12 @@ const KnowledgeGraph: React.FC = () => {
         graph.removeItem(item);
       }
     } else if (menuItem.key == 'expand' && menuItem.name == 'Expand One Level') {
-      const node_label = menuData.nlabel;
-      const id = menuData.id;
-      console.log("Expand node: ", node_label, id)
-      searchRelationshipsById(node_label, id);
-    } else {
-      message.warn("Don't support this action, please contact administrator.");
+      enableAdvancedSearch();
+      setSearchObject({
+        node_type: menuData.nlabel,
+        node_id: menuData.data.id,
+        merge_mode: "append"
+      })
     }
   };
 
@@ -221,11 +233,15 @@ const KnowledgeGraph: React.FC = () => {
       <MenuButton config={config} onChangeConfig={onChangeConfig}
         style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}>
       </MenuButton>
-      <QueryBuilder onChange={searchLabel}></QueryBuilder>
+      <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
+      <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
+        onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
+      </AdvancedSearch>
       <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <Toolbar position='right'>
+        <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
+          <ComplexChart data={data}></ComplexChart>
         </Toolbar>
-        <Toolbar position='bottom'>
+        <Toolbar position='bottom' width='300px' height='300px'>
           <TableTabs>
             {nodeColumns.length > 0 ?
               <Table size={"small"} scroll={{ y: 200 }} rowKey={"identity"} dataSource={nodeDataSources} columns={nodeColumns} pagination={false}
@@ -249,7 +265,7 @@ const KnowledgeGraph: React.FC = () => {
           </TableTabs>
         </Toolbar>
         <GraphinWrapper selectedNode={currentNode} handleChange={handleChange}
-          config={config} data={data} layout={{ ...oldLayout, ...layout }} style={style}>
+          config={config} data={data} layout={layout} style={style}>
         </GraphinWrapper>
       </Col>
     </Row >

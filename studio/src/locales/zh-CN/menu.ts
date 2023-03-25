@@ -13,6 +13,7 @@ export default {
   'menu.datasets': '数据集',
   'menu.help': '帮助',
   'menu.about': '关于',
+  'menu.chatbox': '智能助手',
 
   'menu.more-blocks': '更多区块',
   'menu.home': '首页',

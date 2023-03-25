@@ -1,58 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Row, Empty, Select } from "antd";
+import { Row, Empty, Select, Button } from "antd";
 import { getNodeTypes, getLabels } from '@/services/swagger/Graph';
-import type { SortOrder } from 'antd/es/table/interface';
+import { makeQueryStr } from './utils';
+import { OptionType } from './typings';
 import './query-builder.less';
 
 let timeout: ReturnType<typeof setTimeout> | null;
 
-export type OptionType = {
-    label: string,
-    value: string
-}
-
-export function makeQueryStr(
-    params: any, // DataType & PageParams
-    sort: Record<string, SortOrder>,
-    filter: Record<string, React.ReactText[] | null>,
-): string {
-    console.log('makeQueryStr filter: ', filter);
-    const query_str = `:select [:*]`;
-    let sort_clause = '';
-    let query_clause = '';
-    if (sort) {
-        const key = Object.keys(sort)[0];
-        const value = Object.values(sort)[0];
-        if (key && value) {
-            if (value === 'ascend') {
-                sort_clause = `:order-by [:${key}]`;
-            } else {
-                sort_clause = `:order-by [[:${key} :desc]]`;
-            }
-        }
-    }
-
-    if (params) {
-        const subclauses = [];
-        for (const key of Object.keys(params)) {
-            if (['current', 'pageSize'].indexOf(key) < 0 && params[key].length > 0) {
-                subclauses.push(`[:like [:upper :${key}] [:upper "%${params[key]}%"]]`);
-            }
-        }
-
-        if (subclauses.length == 1) {
-            query_clause = `:where ${subclauses[0]}`;
-        } else if (subclauses.length > 1) {
-            query_clause = `:where [:or ${subclauses.join(' ')}]`;
-        }
-    }
-
-    return `{${query_str} ${sort_clause} ${query_clause}}`;
-}
-
 type QueryBuilderProps = {
-    // When multiple values was returned, the gene variable will be undefined.
     onChange?: (label: string, value: string | undefined) => void;
+    onAdvancedSearch?: () => void;
 }
 
 const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
@@ -62,6 +19,8 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
     const [options, setOptions] = useState<any[] | undefined>(undefined);
     const [label, setLabel] = useState<string>("Gene");
 
+    // This function is used to fetch the nodes of the selected label.
+    // All the nodes will be added to the options as a dropdown list.
     const fetch = async (label_type: string, value: string) => {
         if (timeout) {
             clearTimeout(timeout);
@@ -71,7 +30,6 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
         const fetchData = () => {
             setLoading(true)
             getLabels({
-                // rapex_degs.duckdb has a data table.
                 query_str: makeQueryStr({ id: value, name: value }, {}, {}),
                 label_type: label_type
             })
@@ -88,7 +46,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
                     setOptions(options);
                 })
                 .catch((error) => {
-                    console.log('requestDEGs Error: ', error);
+                    console.log('requestNodes Error: ', error);
                     setOptions([]);
                     setLoading(false)
                 });
@@ -163,6 +121,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
                 } />}
             >
             </Select>
+            <Button onClick={props.onAdvancedSearch}>Advanced</Button>
         </Row>
     )
 }

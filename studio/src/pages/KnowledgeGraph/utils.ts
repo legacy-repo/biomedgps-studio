@@ -1,6 +1,10 @@
 import type { TableColumnType } from 'antd';
+import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
+import { getNodes } from '@/services/swagger/Graph';
+import { SearchObject, GraphData, GraphNode, GraphEdge } from './typings';
 import voca from 'voca';
+import { Graph } from '@antv/g6';
 
 export const makeColumns = (dataSource: Array<Record<string, any>>, blackList: Array<string>) => {
   let keys: Array<string> = [];
@@ -57,4 +61,134 @@ export const makeDataSource = (dataItem: Record<string, any>, blackList?: Array<
   } else {
     return removeComplexData(dataItem)
   }
+}
+
+export function makeQueryStr(
+  params: any, // DataType & PageParams
+  sort: Record<string, SortOrder>,
+  filter: Record<string, React.ReactText[] | null>,
+): string {
+  console.log('makeQueryStr filter: ', filter);
+  const query_str = `:select [:*]`;
+  let sort_clause = '';
+  let query_clause = '';
+  if (sort) {
+    const key = Object.keys(sort)[0];
+    const value = Object.values(sort)[0];
+    if (key && value) {
+      if (value === 'ascend') {
+        sort_clause = `:order-by [:${key}]`;
+      } else {
+        sort_clause = `:order-by [[:${key} :desc]]`;
+      }
+    }
+  }
+
+  if (params) {
+    const subclauses = [];
+    for (const key of Object.keys(params)) {
+      if (['current', 'pageSize'].indexOf(key) < 0 && params[key].length > 0) {
+        subclauses.push(`[:like [:upper :${key}] [:upper "%${params[key]}%"]]`);
+      }
+    }
+
+    if (subclauses.length == 1) {
+      query_clause = `:where ${subclauses[0]}`;
+    } else if (subclauses.length > 1) {
+      query_clause = `:where [:or ${subclauses.join(' ')}]`;
+    }
+  }
+
+  return `{${query_str} ${sort_clause} ${query_clause}}`;
+}
+
+
+export function makeGraphQueryStr(
+  match_clause: string,
+  where_clause: string
+): string {
+  return `{:match "${match_clause}" :where "${where_clause}" :limit 100 :return "n, r, m"}`;
+}
+
+export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
+  const { node_type, node_id, relation_types, enable_prediction } = searchObject;
+  return new Promise((resolve, reject) => {
+    if (node_type && node_id) {
+      let query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`)
+      if (relation_types && relation_types.length > 0) {
+        const relation_types_str = relation_types.join("|")
+        query_str = makeGraphQueryStr(`(n:${node_type})-[r:${relation_types_str}]-(m)`, `n.id = '${node_id}'`)
+      }
+      getNodes({ query_str: query_str }).then((res) => {
+        if (res) {
+          resolve(res)
+        } else {
+          reject(res)
+        }
+      })
+    } else {
+      resolve({
+        nodes: [],
+        edges: []
+      })
+    }
+  })
+}
+
+export const searchRelationshipsById = (label: string, id: string | undefined): Promise<GraphData> => {
+  return new Promise((resolve, reject) => {
+    if (label && id) {
+      getNodes({ query_str: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }).then((res) => {
+        if (res) {
+          resolve(res)
+        } else {
+          reject(res)
+        }
+      })
+    } else {
+      resolve({
+        nodes: [],
+        edges: []
+      })
+    }
+  })
+}
+
+export const defaultLayout = {
+  type: 'graphin-force',
+  workerEnabled: true, // 可选，开启 web-worker
+  gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
+  animation: false,
+  preset: {
+    type: 'grid', // 力导的前置布局
+  },
+  clustering: true,
+  leafCluster: true,
+  preventOverlap: true,
+  nodeClusterBy: 'nlabel', // 节点聚类的映射字段
+  clusterNodeStrength: 40, // 节点聚类作用力
+  minNodeSpacing: 20,
+  nodeSize: 40,
+  defSpringLen: (_edge, source, target) => {
+    const nodeSize = 40;
+    const Sdegree = source.data.layout?.degree;
+    const Tdegree = target.data.layout?.degree;
+    const minDegree = Math.min(Sdegree, Tdegree);
+    return minDegree === 1 ? nodeSize * 4 : Math.min(minDegree * nodeSize * 1.5, 200);
+  },
+  getId: function getId(d: any) {
+    return d.id;
+  },
+  getHeight: function getHeight() {
+    return 16;
+  },
+  getWidth: function getWidth() {
+    return 16;
+  },
+  getVGap: function getVGap() {
+    return 80;
+  },
+  getHGap: function getHGap() {
+    return 50;
+  },
 }

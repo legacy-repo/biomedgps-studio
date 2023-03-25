@@ -1,5 +1,5 @@
 import * as plotly from 'plotly.js/dist/plotly';
-import React, { memo, useState } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import PlotlyEditor from 'react-chart-editor';
 import Plot from 'react-plotly.js';
 import { getLocale } from 'umi';
@@ -11,6 +11,8 @@ import 'react-chart-editor/lib/react-chart-editor.css';
 import './index.less';
 
 export type PlotlyViewerProps = {
+  divId?: string,
+  forceResize?: boolean,
   plotlyData: PlotlyChartType | null,
   handleUpdate?: (state: PlotlyEditorState) => void;
   mode?: string;
@@ -19,7 +21,7 @@ export type PlotlyViewerProps = {
 const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
   const { plotlyData, handleUpdate, mode } = props;
 
-  const [ref, setRef] = useState<PlotlyEditor>();
+  const chartRef = useRef(null);
 
   const onUpdate = (newData: Data, newLayout: Layout, newFrames: Frames) => {
     if (handleUpdate) {
@@ -32,6 +34,37 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       handleUpdate({ data: newData, layout: newLayout, frames: newFrames });
     }
   };
+
+  const handleResize = () => {
+    console.log("PlotlyViewer handleResize: ", props.forceResize, chartRef);
+    const element = document.querySelector(`#${props.divId}`);
+    if (props.divId && props.forceResize && element) {
+      plotly.relayout(props.divId, { autosize: true });
+    }
+  };
+
+  useEffect(() => {
+    if (props.divId && props.forceResize) {
+      const element = document.querySelector(`#${props.divId}`);
+      const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          console.log(`Element size changed to ${entry.contentRect.width}x${entry.contentRect.height}`);
+          if (entry.target == element) {
+            console.log('Parent size changed');
+            handleResize();
+          }
+        }
+      });
+
+      if (element) {
+        resizeObserver.observe(element);
+      }
+
+      return () => resizeObserver.disconnect();
+    } else {
+      return () => { };
+    }
+  }, [chartRef]);
 
   const config = {
     toImageButtonOptions: {
@@ -73,31 +106,29 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
   // mode: ["Plotly", "PlotlyEditor"]
   return mode === 'Plotly' ? (
     <Plot
-      ref={(plotlyRef: PlotlyEditor) => {
-        setRef(plotlyRef);
-      }}
+      ref={chartRef}
+      divId={props.divId}
       useResizeHandler
       className="plotly-viewer"
       data={data}
-      layout={layout}
+      layout={{ ...layout, autosize: true }}
       config={config}
       frames={frames}
     />
   ) : (
     <div className="plotly-editor">
       <PlotlyEditor
-        ref={(plotlyRef: PlotlyEditor) => {
-          setRef(plotlyRef);
-        }}
+        ref={chartRef}
+        divId={props.divId}
         data={data}
-        layout={layout}
+        layout={{ ...layout, autosize: true }}
         config={config}
         frames={frames}
         plotly={plotly}
         onUpdate={onUpdate}
         onRender={onRender}
         useResizeHandler
-        debug
+        // debug
         advancedTraceTypeSelector
       />
     </div>

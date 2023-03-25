@@ -1,22 +1,15 @@
 .query-builder {
-    width: auto;
-    min-width: 300px;
     position: absolute;
     top: 15px;
-    left: calc(50% - 200px);
+    left: 50%;
+    transform: translate(-50%, 0%);
+    width: auto;
     z-index: 1;
 
-    .ant-input {
-        width: 240px;
-    }
-
-    .ant-select:first-child {
-        .ant-select-selector {
-            border-right: unset;
-        }
-    }
-
     .ant-select:nth-child(2) {
-        width: 240px;
+        margin-left: 5px;
+        margin-right: 5px;
+        width: auto;
+        min-width: 240px;
     }
 }
