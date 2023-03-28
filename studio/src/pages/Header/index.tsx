@@ -31,7 +31,7 @@ const GlobalHeaderRight: React.FC = () => {
     }
 
     if (!currentMode) {
-      setCurrentMode(initialState?.customSettings?.mode || "User");
+      setCurrentMode(initialState?.customSettings?.mode || "Developer");
     }
   }, [initialState])
 
@@ -128,7 +128,7 @@ const GlobalHeaderRight: React.FC = () => {
           <DatasetList selectDataset={handleOk}></DatasetList>
         </Modal>
       </Row>
-      <Button onClick={() => switchMode(currentMode)}>{currentMode} Mode</Button>
+      {/* <Button onClick={() => switchMode(currentMode)}>{currentMode} Mode</Button> */}
       <SelectLang className={styles.action} />
     </Space>
   );

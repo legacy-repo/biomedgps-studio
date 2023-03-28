@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { useModel } from 'umi';
 import Graphin, { Components, Behaviors, GraphinContext } from '@antv/graphin';
 import { ContextMenu, FishEye } from '@antv/graphin-components';
 import {
@@ -48,7 +49,7 @@ type MenuProps = {
 }
 
 const NodeMenu = (props: MenuProps) => {
-    const { graph, apis } = React.useContext(GraphinContext);
+    const { graph, apis } = useContext(GraphinContext);
 
     const options = [
         {
@@ -80,7 +81,7 @@ const NodeMenu = (props: MenuProps) => {
 }
 
 const CanvasMenu = (props: any) => {
-    const { graph, contextmenu } = React.useContext(GraphinContext);
+    const { graph, contextmenu } = useContext(GraphinContext);
     const context = contextmenu.canvas;
     const handleDownload = () => {
         graph.downloadFullImage('canvas-contextmenu');
@@ -125,11 +126,11 @@ const CustomHoverable = (props: {
     disabled?: boolean;
 }) => {
     const { bindType, disabled } = props;
-    const { graph } = React.useContext(GraphinContext);
+    const { graph } = useContext(GraphinContext);
     const [enableHoverable, setEnableHoverable] = useState<boolean>(false);
 
     // TODO: How to disable hoverable when there are multiple nodes selected?
-    // React.useEffect(() => {
+    // useEffect(() => {
     //     const selectedNodes = graph.getNodes().filter(node => {
     //         return node.getStates().includes('selected')
     //     })
@@ -144,9 +145,9 @@ const NodeLabelVisible = (props: {
 }) => {
     const { visible } = props;
 
-    const graph = React.useContext(GraphinContext).graph;
+    const graph = useContext(GraphinContext).graph;
 
-    React.useEffect(() => {
+    useEffect(() => {
         graph.getNodes().forEach(node => {
             graph.updateItem(node, {
                 style: {
@@ -165,9 +166,9 @@ const EdgeLabelVisible = (props: {
     visible: boolean;
 }) => {
     const { visible } = props;
-    const graph = React.useContext(GraphinContext).graph;
+    const graph = useContext(GraphinContext).graph;
 
-    React.useEffect(() => {
+    useEffect(() => {
         graph.getEdges().forEach(edge => {
             graph.updateItem(edge, {
                 style: {
@@ -185,7 +186,7 @@ const EdgeLabelVisible = (props: {
 const HighlightNode = (props: { selectedNode?: string }) => {
     if (props.selectedNode) {
         // More details on https://graphin.antv.vision/graphin/quick-start/interface
-        const { graph } = React.useContext(GraphinContext);
+        const { graph } = useContext(GraphinContext);
         const nodes = graph.getNodes();
         const edges = graph.getEdges();
         // More details on https://graphin.antv.vision/graphin/render/status
@@ -248,7 +249,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         )
     }
 
-    const options = { enabledStack: true, groupType: "nlabel", filterCenter: true }
+    const options = { enabledStack: true, filterCenter: true }
 
     return (
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>

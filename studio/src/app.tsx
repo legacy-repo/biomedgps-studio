@@ -78,6 +78,11 @@ function dynamicRoutesToUsableRoutes(routes: MenuDataItem[]): MenuDataItem[] {
 
 const defaultRoutes = [
   {
+    path: '/',
+    redirect: '/welcome',
+    exact: true,
+  },
+  {
     name: 'knowledge-graph',
     icon: 'ShareAltOutlined',
     path: '/knowledgegraph',
@@ -102,7 +107,7 @@ const defaultRoutes = [
     name: 'chatbox',
     icon: 'InfoCircleOutlined',
     path: '/chatai',
-    hideInMenu: false,
+    hideInMenu: true,
     component: 'ChatAI',
   },
   {
@@ -111,10 +116,6 @@ const defaultRoutes = [
     path: '/help',
     hideInMenu: true,
     component: 'help',
-  },
-  {
-    path: '/',
-    redirect: '/welcome',
   },
   {
     component: 'NotFound',
@@ -308,18 +309,19 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
       request: async (params: any, defaultMenuData: any) => {
         let menuData;
-        if (initialState?.customSettings?.mode === "Developer") {
-          menuData = await getMenusDataset({ dataset: params.defaultDataset });
-        } else {
-          menuData = {
-            routes: [{
-              path: '/rapex-plugin/welcome',
-              name: 'quick-start',
-              icon: 'HomeOutlined',
-              component: 'RapexPluginWelcome'
-            }]
-          }
-        }
+        menuData = await getMenusDataset({ dataset: params.defaultDataset });
+        // if (initialState?.customSettings?.mode === "Developer") {
+        //   menuData = await getMenusDataset({ dataset: params.defaultDataset });
+        // } else {
+        //   menuData = {
+        //     routes: [{
+        //       path: '/rapex-plugin/welcome',
+        //       name: 'quick-start',
+        //       icon: 'HomeOutlined',
+        //       component: 'RapexPluginWelcome'
+        //     }]
+        //   }
+        // }
 
         const routes = dynamicRoutesToUsableRoutes(menuData.routes.concat(defaultRoutes));
         console.log("DynamicRoutes: ", routes, menuData);
@@ -340,19 +342,23 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     },
     collapsed: initialState?.collapsed === undefined ? true : initialState?.collapsed,
     footerRender: () => <Footer />,
-    // onPageChange: () => {
-    //   const { location } = history;
+    onPageChange: () => {
+      const { location } = history;
 
-    //   // Change the collapsed status of menu
-    //   console.log("onPageChange: ", initialState);
-    //   if (location.pathname !== '/welcome') {
-    //     setInitialState({ ...initialState, collapsed: false });
-    //   } else {
-    //     setInitialState({ ...initialState, collapsed: true });
-    //   }
+      if (location.pathname === "/") {
+        history.push("/rapex-plugin/welcome");
+      }
 
-    //   setInitialState({ ...initialState, collapsed: true });
-    // },
+      // // Change the collapsed status of menu
+      // console.log("onPageChange: ", initialState);
+      // if (location.pathname !== '/welcome') {
+      //   setInitialState({ ...initialState, collapsed: false });
+      // } else {
+      //   setInitialState({ ...initialState, collapsed: true });
+      // }
+
+      // setInitialState({ ...initialState, collapsed: true });
+    },
     links: isDev
       ? [
         <DocLink></DocLink>,

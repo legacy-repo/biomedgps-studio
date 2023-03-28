@@ -53,6 +53,7 @@ def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
                 ', '.join(['%s %s' % (key, value)
                           for (key, value) in db_fields.items()]) + ')'
     try:
+        print("SQL query string: %s" % query_str)
         cur.execute(query_str)
     except Exception as err:
         print(query_str)
@@ -304,17 +305,67 @@ def database():
     pass
 
 
+@database.command(help="Generate graph metadata file.")
+@click.option('--entity-dir', '-e', required=True,
+              type=click.Path(exists=True, dir_okay=True, file_okay=False),
+              help="The directory which saved the entity files.")
+@click.option('--relationship-dir', '-r', required=True,
+              type=click.Path(exists=True, dir_okay=True, file_okay=False),
+              help="The directory which saved the relationship files.")
+@click.option('--output-file', '-o', required=False, default="graph_metadata.json",
+              help="The output file name.")
+@click.option('--format', '-f', required=False, default="csv", type=click.Choice(["csv", "tsv"]))
+def graph_metadata(entity_dir, relationship_dir, output_file, format):
+    entity_files = [os.path.join(entity_dir, f)
+                    for f in os.listdir(entity_dir) if f.endswith(format)]
+    relationship_files = [os.path.join(relationship_dir, f)
+                          for f in os.listdir(relationship_dir) if f.endswith(format)]
+
+    def get_label(f):
+        return os.path.basename(f).replace(".%s" % format, "")
+
+    graph_labels = {}
+    print("Entity files:", entity_files)
+    for f in entity_files:
+        graph_labels[get_label(f).lower()] = f
+
+    relationship_labels = []
+    print("Relationship files:", relationship_files)
+    for f in relationship_files:
+        df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
+        nrows = df.shape[0]
+        if nrows > 0:
+            relation_type = df["TYPE"][0]
+            start_node_type = relation_type.split("::")[-1].split(":")[0]
+            end_node_type = relation_type.split("::")[-1].split(":")[1]
+            relationship_labels.append({
+                "relation_type": relation_type,
+                "start_node_type": start_node_type,
+                "end_node_type": end_node_type,
+                "relation_count": nrows,
+            })
+
+    output_dir = os.path.dirname(output_file)
+    graph_metadata_file = os.path.join(output_dir, "graph_metadata.tsv")
+    pd.DataFrame(relationship_labels).to_csv(
+        graph_metadata_file, sep="\t", index=False)
+
+    graph_labels["graph_metadata"] = graph_metadata_file
+    with open(output_file, "w") as f:
+        json.dump(graph_labels, f, indent=4)
+
+
 @database.command(help="Parse graph files and make a graph labels database.")
-@click.option('--data-dir', '-d', required=True,
-              type=click.Path(exists=True, dir_okay=True),
-              help="The directory which saved the data files.")
+@click.option('--graph-metadata-file', '-m', required=True,
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              help="The graph metadata file.")
 @click.option('--output-dir', '-o', required=True,
               type=click.Path(exists=True, dir_okay=True),
               help="The directory which saved the database file.")
-@click.option('--db', '-b', required=False, default="duckdb",
+@click.option('--db', '-b', required=False, default="sqlite",
               type=click.Choice(["sqlite", "duckdb"]),
               help="Which type of database.")
-def graph_labels(data_dir, output_dir, db):
+def graph_labels(graph_metadata_file, output_dir, db):
     # labels = {
     #     "gene": "HGNC_MGI/Gene.tsv",
     #     "metabolite": "HMDB/Metabolite.tsv",
@@ -328,19 +379,16 @@ def graph_labels(data_dir, output_dir, db):
     #     "graph_metadata": "graph_metadata.tsv"
     # }
 
-    metadata = os.path.join(data_dir, "metadata.json")
-    if not os.path.exists(metadata):
+    if not os.path.exists(graph_metadata_file):
         error_msg = """
         Cannot find the metadata file (%s), you need to prepare the metadata file first. 
         The metadata file should be a json file and contains the following keys:
         {
-            "labels": {
-                "<db_name1>": "<data_file1>",
-                "<db_name2>": "<data_file2>",
-                ...
-                "<db_nameN>": "<data_fileN>",
-                "graph_metadata": "graph_metadata.tsv"
-            }
+            "<db_name1>": "<data_file1>",
+            "<db_name2>": "<data_file2>",
+            ...
+            "<db_nameN>": "<data_fileN>",
+            "graph_metadata": "graph_metadata.tsv"
         }
 
         <db_name>: the name of the database table, it's the lower case of label name. such as gene, metabolite, pathway, etc. Their corresponding label names are: Gene, Metabolite, Pathway, etc.
@@ -351,17 +399,18 @@ def graph_labels(data_dir, output_dir, db):
             - relation_type: the type of the relation, such as Gene-Pathway, Gene-Disease, etc. It's up to you to define the relation type.
             - end_node_type: the type of the end node, such as Gene, Metabolite, Pathway, etc.
             - relation_count: the number of the relations between the start node and the end node.
-        """ % metadata
+        """ % graph_metadata_file
         print(error_msg)
         return
 
-    with open(metadata, "r") as f:
-        labels = json.load(f).get("labels")
+    with open(graph_metadata_file, "r") as f:
+        labels = json.load(f)
 
         dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
 
         for key in labels.keys():
-            file = os.path.join(data_dir, labels[key])
+            file = os.path.join(os.path.dirname(graph_metadata_file),
+                                labels[key])
             if os.path.exists(file):
                 func_map.get(db)(file, dbfile, table_name=key, skip=True)
             else:

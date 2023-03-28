@@ -1,4 +1,4 @@
-import ChatBox from '@/pages/ChatBox';
+import ChatBox from '@/components/ChatBox';
 import { Row, Col } from 'antd';
 import KnowledgeGraph from '@/pages/KnowledgeGraph';
 import { useState } from 'react';

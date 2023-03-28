@@ -6,7 +6,7 @@
   "scripts": {
     "publish-code": "npm run build && cp -R ./dist/* ../resources/public/",
     "analyze": "cross-env ANALYZE=1 umi build",
-    "build": "cross-env UMI_APP_API_PREFIX=http://10.157.72.34:3002 umi build",
+    "build": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi build",
     "deploy": "npm run build && npm run gh-pages",
     "dev": "npm run start:dev",
     "docker-hub:build": "docker build  -f Dockerfile.hub -t  ant-design-pro ./",
