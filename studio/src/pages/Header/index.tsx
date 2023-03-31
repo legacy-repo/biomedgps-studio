@@ -87,6 +87,7 @@ const GlobalHeaderRight: React.FC = () => {
         }
       })
     }
+    history.push('/');
   }
 
   const onClick = (item: any) => {
@@ -128,7 +129,7 @@ const GlobalHeaderRight: React.FC = () => {
           <DatasetList selectDataset={handleOk}></DatasetList>
         </Modal>
       </Row>
-      {/* <Button onClick={() => switchMode(currentMode)}>{currentMode} Mode</Button> */}
+      <Button onClick={() => switchMode(currentMode)}>{currentMode} Mode</Button>
       <SelectLang className={styles.action} />
     </Space>
   );

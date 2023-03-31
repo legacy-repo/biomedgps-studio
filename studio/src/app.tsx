@@ -83,12 +83,6 @@ const defaultRoutes = [
     exact: true,
   },
   {
-    name: 'knowledge-graph',
-    icon: 'ShareAltOutlined',
-    path: '/knowledgegraph',
-    component: 'KnowledgeGraph',
-  },
-  {
     name: 'datasets',
     icon: 'TableOutlined',
     path: '/datasets',
@@ -102,13 +96,6 @@ const defaultRoutes = [
     path: '/about',
     hideInMenu: true,
     component: 'about',
-  },
-  {
-    name: 'chatbox',
-    icon: 'InfoCircleOutlined',
-    path: '/chatai',
-    hideInMenu: true,
-    component: 'ChatAI',
   },
   {
     name: 'help',
@@ -281,7 +268,10 @@ export async function getInitialState(): Promise<{
 
   const settings = {
     settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
-    customSettings: customSettings,
+    customSettings: {
+      ...customSettings,
+      mode: 'Developer',
+    },
     collapsed: false,
     appVersion: appVersion,
   }
@@ -308,24 +298,38 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         mode: initialState?.customSettings?.mode,
       },
       request: async (params: any, defaultMenuData: any) => {
-        let menuData;
-        menuData = await getMenusDataset({ dataset: params.defaultDataset });
-        // if (initialState?.customSettings?.mode === "Developer") {
-        //   menuData = await getMenusDataset({ dataset: params.defaultDataset });
-        // } else {
-        //   menuData = {
-        //     routes: [{
-        //       path: '/rapex-plugin/welcome',
-        //       name: 'quick-start',
-        //       icon: 'HomeOutlined',
-        //       component: 'RapexPluginWelcome'
-        //     }]
-        //   }
-        // }
+        let menuRoutes = [];
+        let remoteMenuData = await getMenusDataset({ dataset: params.defaultDataset });
+        if (initialState?.customSettings?.mode === "Developer") {
+          // menuData = await getMenusDataset({ dataset: params.defaultDataset });
+          menuRoutes = [
+            {
+              name: 'knowledge-graph',
+              icon: 'ShareAltOutlined',
+              path: '/knowledgegraph',
+              component: 'KnowledgeGraph',
+            }
+          ]
 
-        const routes = dynamicRoutesToUsableRoutes(menuData.routes.concat(defaultRoutes));
-        console.log("DynamicRoutes: ", routes, menuData);
-        return routes
+          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
+          const routes = dynamicRoutesToUsableRoutes(menuRoutes);
+          console.log("Developer DynamicRoutes: ", routes, menuRoutes);
+          return routes
+        } else {
+          menuRoutes = [
+            {
+              name: 'chatbox',
+              icon: 'InfoCircleOutlined',
+              path: '/chatai',
+              component: 'ChatAI',
+            }
+          ]
+
+          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
+          const routes = dynamicRoutesToUsableRoutes(menuRoutes);
+          console.log("User DynamicRoutes: ", routes, menuRoutes);
+          return routes
+        }
       },
     },
     rightContentRender: () => <Header />,

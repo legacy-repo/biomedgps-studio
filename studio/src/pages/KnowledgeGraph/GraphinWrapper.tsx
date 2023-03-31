@@ -1,9 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useModel } from 'umi';
-import Graphin, { Components, Behaviors, GraphinContext } from '@antv/graphin';
+import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
+import { INode, NodeConfig } from '@antv/g6';
 import { ContextMenu, FishEye } from '@antv/graphin-components';
 import {
     TagFilled,
+    BoxPlotOutlined,
+    BarChartOutlined,
+    HeatMapOutlined,
+    DotChartOutlined,
     DeleteFilled,
     ExpandAltOutlined,
     CloseCircleOutlined,
@@ -34,7 +38,9 @@ export type GraphinProps = {
     layout: any;
     style: any;
     containerId?: string;
-    handleChange?: DataOnChangeFn
+    onNodeMenuClick?: DataOnChangeFn;
+    onEdgeMenuClick?: DataOnChangeFn;
+    queriedId?: string;
 }
 
 const snapLineOptions = {
@@ -46,6 +52,43 @@ const snapLineOptions = {
 
 type MenuProps = {
     onChange?: DataOnChangeFn
+}
+
+const EdgeMenu = (props: MenuProps) => {
+    const { graph, apis } = useContext(GraphinContext);
+
+    const options = [
+        {
+            key: 'barchart',
+            icon: <BarChartOutlined />,
+            name: 'Bar Chart',
+        },
+        {
+            key: 'boxchart',
+            icon: <BoxPlotOutlined />,
+            name: 'Box Plot',
+        },
+        {
+            key: 'heatmap',
+            icon: <HeatMapOutlined />,
+            name: 'Heatmap',
+        },
+        {
+            key: 'scatterchart',
+            icon: <DotChartOutlined />,
+            name: 'Scatter Chart',
+        },
+    ];
+
+    const onChange = function (item: any, data: any) {
+        if (props.onChange && graph && apis) {
+            props.onChange(item, data, graph, apis)
+        } else {
+            message.warn("Cannot catch the changes.")
+        }
+    }
+
+    return <Menu options={options} onChange={onChange} bindType="node" />
 }
 
 const NodeMenu = (props: MenuProps) => {
@@ -213,8 +256,31 @@ const HighlightNode = (props: { selectedNode?: string }) => {
     return null;
 }
 
+const FocusBehavior = (props: { queriedId?: string }) => {
+    const { graph, apis } = useContext(GraphinContext);
+
+    useEffect(() => {
+        // 初始化聚焦到查询节点
+        if (props.queriedId) {
+            apis.focusNodeById(props.queriedId);
+        }
+
+        const handleClick = (evt: IG6GraphEvent) => {
+            const node = evt.item as INode;
+            const model = node.getModel() as NodeConfig;
+            apis.focusNodeById(model.id);
+        };
+        // 每次点击聚焦到点击节点上
+        graph.on('node:click', handleClick);
+        return () => {
+            graph.off('node:click', handleClick);
+        };
+    }, []);
+    return null;
+};
+
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
-    const { data, layout, style, handleChange, config, selectedNode } = props
+    const { data, layout, style, onNodeMenuClick, config, selectedNode } = props
     const [visible, setVisible] = useState(false);
     const ref = React.useRef(null);
 
@@ -255,10 +321,33 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
             <DragNodeWithForce autoPin={true} />
-            <HighlightNode selectedNode={selectedNode}></HighlightNode>
             <ZoomCanvas />
             <FishEye options={{}} visible={visible} handleEscListener={handleClose} />
-            <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
+            <HighlightNode selectedNode={selectedNode}></HighlightNode>
+            <CustomHoverable bindType="node" disabled={config && config.selectNodeEnabled} />
+            <CustomHoverable bindType="edge" disabled={config && config.selectNodeEnabled} />
+            <ContextMenu style={{ width: '160px' }}>
+                <NodeMenu onChange={onNodeMenuClick}></NodeMenu>
+            </ContextMenu>
+            <ContextMenu style={{ width: '160px' }} bindType="canvas">
+                <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
+            </ContextMenu>
+            <ContextMenu style={{ width: '160px' }} bindType="edge">
+                <EdgeMenu />
+            </ContextMenu>
+
+            {(config && !config.selectNodeEnabled) ?
+                <ActivateRelations />
+                : null
+            }
+            {(config && config.focusNodeEnabled) ?
+                <FocusBehavior queriedId={props.queriedId} />
+                : null
+            }
+            {(config && config.selectNodeEnabled && !config.focusNodeEnabled) ?
+                <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
+                : null
+            }
             {config ?
                 <NodeLabelVisible visible={config.nodeLabelEnabled} />
                 : null
@@ -294,25 +383,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 </Tooltip>
                 : null}
             {(config ? config.miniMapEnabled : null) ? <MiniMap /> : null}
-            <CustomHoverable bindType="node" />
-            <CustomHoverable bindType="edge" />
             {(config ? config.snapLineEnabled : null) ? <SnapLine options={snapLineOptions} visible /> : null}
-            <ActivateRelations />
-            <ContextMenu style={{ width: '160px' }}>
-                <NodeMenu onChange={handleChange}></NodeMenu>
-            </ContextMenu>
-            <ContextMenu style={{ width: '160px' }} bindType="canvas">
-                <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
-            </ContextMenu>
-            {/* <ContextMenu style={{ width: '200px' }} bindType="edge">
-                <Menu
-                    options={options.map(item => {
-                        return { ...item, name: `${item.name}-EDGE` };
-                    })}
-                    onChange={onChange}
-                    bindType="edge"
-                />
-            </ContextMenu> */}
         </Graphin>
     );
 }

@@ -197,7 +197,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         <Form.Item
           name="limit"
           label="Max Num of Nodes"
-          initialValue={props.searchObject?.limit ? props.searchObject?.limit : 100}
+          initialValue={props.searchObject?.limit ? props.searchObject?.limit : 10}
           rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
         >
           <InputNumber min={1} max={1000} />

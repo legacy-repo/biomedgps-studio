@@ -44,7 +44,7 @@ const KnowledgeGraph: React.FC = () => {
     nsteps: 1,
     merge_mode: "replace",
     enable_prediction: false,
-    limit: 100,
+    limit: 50,
   });
 
   // You must have a oldLayout to make the layout work before user select a layout from the menu
@@ -58,6 +58,8 @@ const KnowledgeGraph: React.FC = () => {
     nodeTooltipEnabled: true,
     edgeTooltipEnabled: false,
     infoPanelEnabled: true,
+    focusNodeEnabled: false,
+    selectNodeEnabled: false,
   });
 
   useEffect(() => {
@@ -128,9 +130,8 @@ const KnowledgeGraph: React.FC = () => {
           }
           message.success(`Find ${response.nodes.length} entities and ${response.edges.length} relationships.`)
         }).catch(error => {
-          message.warn("Unknown error, please retry later.")
           console.log("getNodes Error: ", error)
-          message.warn("Cannot find any entities or relationships.")
+          message.warn("Unknown errors or Cannot find any entities & relationships.")
         })
     }
   }, [searchObject])
@@ -161,13 +162,13 @@ const KnowledgeGraph: React.FC = () => {
       node_id: value,
       merge_mode: "replace",
       nsteps: 1,
-      limit: 100,
+      limit: 50,
       enable_prediction: false
     })
   }
 
-  const handleChange = (menuItem: any, menuData: any, graph: any, graphin: any) => {
-    console.log(`handleChange [${menuItem.name}]: `, menuItem, menuData);
+  const onNodeMenuClick = (menuItem: any, menuData: any, graph: any, graphin: any) => {
+    console.log(`onNodeMenuClick [${menuItem.name}]: `, menuItem, menuData);
     if (menuItem.key == 'delete' && menuItem.name == 'Delete Node') {
       const id = menuData.id;
       const item = graph.findById(id);
@@ -247,7 +248,9 @@ const KnowledgeGraph: React.FC = () => {
         <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
           <ComplexChart data={data}></ComplexChart>
         </Toolbar>
-        <Toolbar position='bottom' width='300px' height='300px'>
+        <Toolbar position='bottom' width='300px' height='300px' onClick={() => {
+          setCurrentNode("") // Clear the selected node
+        }}>
           <TableTabs>
             {nodeColumns.length > 0 ?
               <Table size={"small"} scroll={{ y: 200 }} rowKey={"identity"} dataSource={nodeDataSources} columns={nodeColumns} pagination={false}
@@ -270,8 +273,8 @@ const KnowledgeGraph: React.FC = () => {
               : null}
           </TableTabs>
         </Toolbar>
-        <GraphinWrapper selectedNode={currentNode} handleChange={handleChange}
-          config={config} data={data} layout={layout} style={style}>
+        <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
+          config={config} data={data} layout={layout} style={style} queriedId={searchObject.node_id}>
         </GraphinWrapper>
       </Col>
     </Row >

@@ -29,6 +29,8 @@ export type Config = {
     nodeTooltipEnabled: boolean,
     edgeTooltipEnabled: boolean,
     infoPanelEnabled: boolean,
+    focusNodeEnabled: boolean,
+    selectNodeEnabled: boolean,
 }
 
 export type MenuButtonProps = {
@@ -133,7 +135,7 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                         <Collapse defaultActiveKey={['canvas']} expandIcon={({ isActive }) => <CaretRightOutlined rotate={isActive ? 90 : 0} />}>
                             <Panel header="Canvas" key="canvas">
                                 <Form
-                                    labelCol={{ span: 10 }}
+                                    labelCol={{ span: 12 }}
                                     layout={'horizontal'}
                                     form={form}
                                     initialValues={config}
@@ -146,6 +148,8 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                             nodeTooltipEnabled: values.nodeTooltipEnabled,
                                             edgeTooltipEnabled: values.edgeTooltipEnabled,
                                             infoPanelEnabled: values.infoPanelEnabled,
+                                            focusNodeEnabled: values.focusNodeEnabled && !values.selectNodeEnabled,
+                                            selectNodeEnabled: values.selectNodeEnabled && !values.focusNodeEnabled,
                                         }
 
                                         const layout = layouts.find(item => item.type === values.layout);
@@ -186,6 +190,14 @@ const MenuButton: React.FC<MenuButtonProps> = (props) => {
                                         <Switch />
                                     </Form.Item>
                                     <Form.Item label="Info Panel" name="infoPanelEnabled" valuePropName="checked">
+                                        <Switch />
+                                    </Form.Item>
+                                    <Form.Item label="Focus Mode" name="focusNodeEnabled"
+                                        valuePropName="checked">
+                                        <Switch />
+                                    </Form.Item>
+                                    <Form.Item label="Selection Mode" name="selectNodeEnabled"
+                                        valuePropName="checked">
                                         <Switch />
                                     </Form.Item>
                                 </Form>

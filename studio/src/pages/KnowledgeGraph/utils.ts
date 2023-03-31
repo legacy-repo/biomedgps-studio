@@ -110,7 +110,7 @@ export function makeGraphQueryStr(
   limit?: number
 ): string {
   let return_clause_str = return_clause ? return_clause : "n,m,r";
-  let _limit = limit ? limit : 100;
+  let _limit = limit ? limit : 10;
   return `{:match "${match_clause}" :where "${where_clause}" :limit ${_limit} :return "${return_clause_str}"}`;
 }
 
@@ -149,6 +149,8 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         } else {
           reject(res)
         }
+      }).catch((err) => {
+        reject(err)
       })
     } else {
       resolve({
@@ -182,7 +184,7 @@ export const defaultLayout = {
   type: 'graphin-force',
   workerEnabled: true, // 可选，开启 web-worker
   gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
-  animation: false,
+  animation: true,
   preset: {
     type: 'grid', // 力导的前置布局
   },
