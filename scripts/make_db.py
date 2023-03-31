@@ -19,6 +19,14 @@ from Bio import Entrez
 Entrez.email = "yjcyxky@163.com"
 
 
+def to_snake_case(string):
+    # Replace non-alphanumeric characters with spaces
+    string = re.sub(r'\W+', ' ', string)
+
+    # Convert to lowercase and replace spaces with underscores
+    return '_'.join(string.lower().split())
+
+
 def format_key(key):
     formated_key = re.sub(r'[\-:*.]', '_', key).lower()
     if formated_key in ["type", "unique", "select", "database", "table", "default"]:
@@ -66,6 +74,7 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
 
+    delimiter = ','
     if csvfile.endswith('csv'):
         delimiter = ','
     elif csvfile.endswith('tsv'):
@@ -321,16 +330,21 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
     relationship_files = [os.path.join(relationship_dir, f)
                           for f in os.listdir(relationship_dir) if f.endswith(format)]
 
-    def get_label(f):
-        return os.path.basename(f).replace(".%s" % format, "")
-
     graph_labels = {}
-    print("Entity files:", entity_files)
+    print("Entity files:", len(entity_files))
     for f in entity_files:
-        graph_labels[get_label(f).lower()] = f
+        df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
+        entity_type = to_snake_case(df[":LABEL"][0])
+        print("Entity type:", entity_type, "file:", f,
+              "rows:", df.shape[0], "columns:", df.shape[1])
+        r = graph_labels.get(entity_type)
+        if r is None:
+            graph_labels[entity_type] = [f]
+        else:
+            graph_labels[entity_type] = r + [f]
 
     relationship_labels = []
-    print("Relationship files:", relationship_files)
+    print("Relationship files:", len(relationship_files))
     for f in relationship_files:
         df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
         nrows = df.shape[0]
@@ -351,6 +365,7 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
         graph_metadata_file, sep="\t", index=False)
 
     graph_labels["graph_metadata"] = graph_metadata_file
+    print("Graph Labels:", graph_labels)
     with open(output_file, "w") as f:
         json.dump(graph_labels, f, indent=4)
 
@@ -360,7 +375,7 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help="The graph metadata file.")
 @click.option('--output-dir', '-o', required=True,
-              type=click.Path(exists=True, dir_okay=True),
+              type=click.Path(exists=True, dir_okay=True, file_okay=False),
               help="The directory which saved the database file.")
 @click.option('--db', '-b', required=False, default="sqlite",
               type=click.Choice(["sqlite", "duckdb"]),
@@ -384,10 +399,10 @@ def graph_labels(graph_metadata_file, output_dir, db):
         Cannot find the metadata file (%s), you need to prepare the metadata file first. 
         The metadata file should be a json file and contains the following keys:
         {
-            "<db_name1>": "<data_file1>",
-            "<db_name2>": "<data_file2>",
+            "<db_name1>": ["<data_file1>"],
+            "<db_name2>": ["<data_file2>"],
             ...
-            "<db_nameN>": "<data_fileN>",
+            "<db_nameN>": ["<data_fileN>"],
             "graph_metadata": "graph_metadata.tsv"
         }
 
@@ -407,14 +422,36 @@ def graph_labels(graph_metadata_file, output_dir, db):
         labels = json.load(f)
 
         dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
+        if os.path.exists(dbfile):
+            raise Exception("The database file (%s) already exists." % dbfile)
 
         for key in labels.keys():
-            file = os.path.join(os.path.dirname(graph_metadata_file),
-                                labels[key])
-            if os.path.exists(file):
-                func_map.get(db)(file, dbfile, table_name=key, skip=True)
-            else:
-                print("Cannot find the datafile (%s)" % file)
+            file_list = labels[key] \
+                if type(labels[key]) == list else [labels[key]]
+            df_list = []
+            # Loop over each CSV file and load it into a pandas DataFrame
+            for file in file_list:
+                file = os.path.join(os.path.dirname(graph_metadata_file), file)
+                df = pd.read_csv(file, sep="," if file.endswith(
+                    "csv") else "\t", header=0)
+                df_list.append(df)
+
+            # Concatenate the DataFrames into a single DataFrame
+            merged_df = pd.concat(df_list)
+
+            # Create a temporary file for writing
+            with tempfile.NamedTemporaryFile(mode='w', suffix=".csv", delete=False) as temp_file:
+
+                # Write the merged DataFrame to the temporary file as a CSV
+                print("Merged DataFrame:", temp_file.name)
+                merged_df.to_csv(temp_file.name, index=False)
+                temp_file_path = temp_file.name
+
+                if os.path.exists(temp_file_path):
+                    func_map.get(db)(temp_file_path, dbfile,
+                                     table_name=key, skip=True)
+                else:
+                    print("Cannot find the datafile (%s)" % temp_file_path)
 
 
 @database.command(help="Parse data files and make a dataset database.")

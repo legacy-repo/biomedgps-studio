@@ -7,7 +7,17 @@
             [clojure.string :as clj-str]
             [rapex.db.query-gdata :as gdb]
             [rapex.config :refer [get-datadir]]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [rapex.models.gnn :as gnn]))
+
+(defn to-snake-case
+  [s]
+  (-> s
+      (clj-str/replace #"[^a-zA-Z0-9]+" " ")
+      (clj-str/split #" ")
+      ((fn [s] (map clj-str/lower-case s)))
+      ((fn [s] (interpose "_" s)))
+      ((fn [s] (apply str s)))))
 
 (defn get-error-response
   [e]
@@ -48,7 +58,7 @@
                                  query-map (qd/read-string-as-map query_str)
                                  query-map (merge query-map {:limit page_size
                                                              :offset (* (- page 1) page_size)
-                                                             :from (keyword (clj-str/lower-case label_type))})
+                                                             :from (keyword (to-snake-case label_type))})
                                  dbpath (qd/get-db-path "graph_labels" :datadir (get-datadir))]
                              (log/info "database:" dbpath "query-map:" query-map)
                              (ok {:total (qd/get-total dbpath query-map)
@@ -80,7 +90,10 @@
 
    ["/nodes"
     {:get  {:summary    "Get the nodes which matched the query conditions."
-            :parameters {:query {:query_str string?}}
+            :parameters {:query {:query_str string? :enable_prediction boolean?}
+                         :payload (s/nilable {:source_id string?
+                                              :relation_types (s/coll-of string?)
+                                              :topk integer?})}
             :responses  {200 {:body {:nodes (s/coll-of any?)
                                      :edges (s/coll-of any?)}}
                          404 {:body specs/database-error-body}
@@ -92,17 +105,31 @@
                                    :return \"n, r, m\"
                                    :where (format \"id(n) = %s\" id)
                                    :limit 10}"}
-                          [{{{:keys [query_str]} :query} :parameters}]
+                          [{{{:keys [query_str enable_prediction]} :query
+                             {:keys [source_id relation_types topk]} :body} :parameters}]
                           (try
                             (log/info (format "Get the nodes which matched the query conditions: %s" query_str))
-                            (let [query-map (qd/read-string-as-map query_str)]
+                            (let [query-map (qd/read-string-as-map query_str)
+                                  enable_prediction (and enable_prediction
+                                                         (some? source_id)
+                                                         (seq relation_types)
+                                                         (some? topk))
+                                  predicted-rels (if enable_prediction
+                                                   (gnn/predict source_id relation_types :topk topk)
+                                                   {})]
                               (log/info "Graph Query Map: " query-map)
                               (with-open [session (db/get-session @gdb/gdb-conn)]
-                                (let [r (gdb/query-gdb session query-map)]
+                                (let [r (gdb/query-gdb session query-map)
+                                      predicted-nr (if (empty? predicted-rels)
+                                                     {:nodes []
+                                                      :edges []}
+                                                     (gdb/format-predicted-relationships session predicted-rels))]
                                   (ok (if (empty? r)
                                         {:nodes []
                                          :edges []}
-                                        r)))))
+                                        (if enable_prediction
+                                          (merge-with concat r predicted-nr)
+                                          r))))))
                             (catch Exception e
                               (log/error "Error: " e)
                               (get-error-response e))))}}]])

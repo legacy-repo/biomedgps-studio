@@ -1,18 +1,18 @@
 (ns rapex.models.gnn
-  (:require [libpython-clj2.python :as py :refer [call-attr]]))
+  (:require [libpython-clj2.python :as py]
+            [clojure.tools.logging :as log]))
 
 (def model-map (atom nil))
+(def nm-module (atom nil))
 
 (defn init-model!
   []
   (try
-    (require '[libpython-clj2.require :refer [require-python]])
-    (if-let [require-python (find-var 'require-python)]
-      (require-python '[pydl.nm :as nm :bind-ns true])
-      (throw (Exception. "Cannot load the libpython-clj2 correctly.")))
-    (if-let [load_model (find-var 'pydl.nm/load_model)]
-      (reset! model-map (load_model))
-      (throw (Exception. "Cannot find the nm submodule in pydl package.")))
+    (py/initialize!)
+    (log/info "Initializing the model...")
+    (let [nm (py/import-module "pydl.nm")]
+      (reset! nm-module nm)
+      (reset! model-map (py/call-attr nm "load_model")))
     (catch Exception e
       (println "Error while initializing the model:" (.getMessage e)))))
 
@@ -40,14 +40,14 @@
                           :or {topk 100}}]
   (when (not @model-map)
     (throw (Exception. "You need to call init-model! function firstly.")))
-  (if-let [[query relation_each relation_ave]
-           [(find-var 'pydl.nm/query) (find-var 'pydl.nm/relation_each) (find-var 'pydl.nm/relation_ave)]]
-    (let [results (query @model-map relations source-id)
-          topkpd (relation_each @model-map results :topk topk)
-          topkpd-ave (relation_ave @model-map results :topk topk)]
-      {:topkpd (format-topkpd (call-attr topkpd "to_numpy"))
-       :topkpd_ave (format-topkpd-ave (call-attr topkpd-ave "to_numpy"))})
-    (throw (Exception. "Cannot find the nm submodule in pydl package."))))
+  (try
+    (let [results (py/call-attr @nm-module "query" @model-map relations source-id)
+          topkpd (py/call-attr @nm-module "relation_each" @model-map results :topk topk)
+          topkpd-ave (py/call-attr @nm-module "relation_ave" @model-map results :topk topk)]
+      {:topkpd (format-topkpd (py/call-attr topkpd "to_numpy"))
+       :topkpd_ave (format-topkpd-ave (py/call-attr topkpd-ave "to_numpy"))})
+    (catch Exception e
+      (println "Error while predicting:" (.getMessage e)))))
 
 (comment
   (def source-id "MESH:D015673")

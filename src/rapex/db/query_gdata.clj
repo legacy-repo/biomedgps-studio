@@ -1,9 +1,8 @@
 (ns rapex.db.query-gdata
   (:require [rapex.db.neo4j.core :as db]
             [clojure.string :as clj-str]
-            [rapex.config :refer [env get-label-blacklist]]
-            [clojure.tools.logging :as log]
-            [reitit.ring.middleware.parameters :as parameters])
+            [rapex.config :refer [env get-label-blacklist get-color-map]]
+            [clojure.tools.logging :as log])
   (:import (java.net URI)))
 
 (def gdb-conn (atom nil))
@@ -107,13 +106,16 @@
       {node-name (get properties node-name)}
       properties)))
 
-(def color-map
-  {:Gene "black"
-   :Transcript "red"
-   :Protein "magenta"
-   :Disease "blue"
-   :Drug "cyan"
-   :Phenotype "gray"})
+(def colors ["red" "green" "blue" "orange" "purple" "yellow" "pink" "brown" "grey" "black" "white" "cyan" "magenta"])
+
+(defn gen-color-map
+  []
+  (with-open [session (db/get-session @gdb-conn)]
+    (let [labels (sort (list-labels session))
+          colors (shuffle colors)]
+      (merge (zipmap labels colors) (get-color-map)))))
+
+(def memorized-gen-color-map (memoize gen-color-map))
 
 (defn set-style
   [node-label nlabel]
@@ -122,7 +124,7 @@
              :type "text"
              :value (clojure.string/upper-case (first nlabel))
              :size [15, 15]
-             :fill ((keyword nlabel) color-map)
+             :fill ((keyword nlabel) (memorized-gen-color-map))
              :color "#fff"}]})
 
 (defn format-node
@@ -140,6 +142,36 @@
        :type     "graphin-circle"
        :data     (merge (:properties node)
                         {:identity (str (:identity node))})})))
+
+(defn- format-relid
+  [rel]
+  (format "%s-%s-%s" (:relation rel) (:source_id rel) (:target_id rel)))
+
+(defn- format-predicted-relationship
+  "
+   relation, source_id, target_id, score, source, target
+  "
+  [rel]
+  {:relid (format-relid rel)
+   :source (str (:source_id rel))
+   :category :edges
+   :target (str (:target_id rel))
+   :reltype (:relation rel)
+   :style {:label {:value (:relation rel)}
+           :keyshape {:lineDash [5, 5]
+                      :lineWidth 2
+                      :stroke "#ccc"}}
+   :data {:identity (format-relid rel)}})
+
+(defn- get-predicted-nodes
+  "Get all nodes from predicted relationships"
+  [rel]
+  (let [source (clj-str/split (:source rel) #"::")
+        target (clj-str/split (:target rel) #"::")]
+    (list {:node_id (second source)
+           :node_type (first source)}
+          {:node_id (second target)
+           :node_type (first target)})))
 
 (defn format-relationship
   [relationship]
@@ -214,6 +246,39 @@
        (merge-node-relationships)
        (distinct)
        (group-by :category)))
+
+(defn- make-query-with-id-types
+  "
+   MATCH (node)
+   WHERE (node: Disease OR node: Compound) AND (node.id = 'MESH:D015673' OR node.id = 'DB00741')
+   RETURN node 
+  "
+  [node-id-types]
+  (let [fconditions (map #(format "node: %s" %)
+                         (set (map :node_type node-id-types)))
+        sconditions (map #(format "node.id = '%s'" %)
+                         (map :node_id node-id-types))
+        query (str "MATCH (node)"
+                   (format " WHERE (%s) AND (%s)"
+                           (clj-str/join " OR " (seq fconditions))
+                           (clj-str/join " OR " (seq sconditions)))
+                   " RETURN node")]
+    query))
+
+(defn- get-nodes-from-db
+  [tx node-id-types]
+  (let [query (make-query-with-id-types node-id-types)]
+    (->> ((db/create-query query) tx)
+         (map :node)
+         (map format-node))))
+
+(defn format-predicted-relationships
+  [tx predicted-relationships]
+  (let [rels (map format-predicted-relationship predicted-relationships)
+        nodes (->> (map get-predicted-nodes predicted-relationships)
+                   (apply concat))
+        nodes (get-nodes-from-db tx nodes)]
+    {:nodes nodes :edges rels}))
 
 (db/defquery q-node-relationships
   "Match (n:Gene)-[r]-(m) RETURN n, r, m LIMIT $limit")

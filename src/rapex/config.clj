@@ -41,6 +41,13 @@
 
 (s/def ::graph-database-url (s/and string? #(some? (re-matches #"neo4j:.*" %))))
 
+;; Knowledge Graph
+(s/def ::label-blacklist (s/coll-of string?))
+
+(s/def ::color-map (s/map-of keyword? string?))
+
+(s/def ::graph-config (s/keys :opt-un [::label-blacklist ::color-map]))
+
 ;; Service
 (s/def ::fs-service #{"minio" "oss" "s3"})
 
@@ -82,17 +89,20 @@
                                         ::website_logo ::website_description]
                                :opt-un [::default_dataset]))
 
+(s/def ::enable-gnn boolean?)
+
 (s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
                                  ::graph-database-url ::database-url]
-                        :opt-un [::nrepl-port ::cors-origins ::enable-cors
-                                 ::fs-services ::default-fs-service ::studio-config]))
+                        :opt-un [::nrepl-port ::cors-origins ::enable-cors ::enable-gnn
+                                 ::fs-services ::default-fs-service ::studio-config
+                                 ::graph-config]))
 
 (defn check-config
   [env]
-  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset
+  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset :enable-gnn
                                  :cors-origins :enable-cors :database-url :dbtype :graph-database-url
                                  :fs-services :default-fs-service :dataset-metadata
-                                 :studio-config])]
+                                 :studio-config :graph-config])]
     (when (not (s/valid? ::config config))
       (log/error "Configuration errors:\n" (expound-str ::config config))
       (System/exit 1))))
@@ -134,6 +144,10 @@
 (defn get-label-blacklist
   []
   (or (:label-blacklist (:graph-config env)) []))
+
+(defn get-color-map
+  []
+  (or (:color-map (:graph-config env)) {}))
 
 (def memorized-get-dataset-metadata (memoize get-dataset-metadata))
 
