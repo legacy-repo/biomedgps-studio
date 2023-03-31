@@ -47,7 +47,9 @@
       {:topkpd (format-topkpd (py/call-attr topkpd "to_numpy"))
        :topkpd_ave (format-topkpd-ave (py/call-attr topkpd-ave "to_numpy"))})
     (catch Exception e
-      (println "Error while predicting:" (.getMessage e)))))
+      (println "Error while predicting:" (.getMessage e))
+      {:topkpd []
+       :topkpd_ave []})))
 
 (comment
   (def source-id "MESH:D015673")

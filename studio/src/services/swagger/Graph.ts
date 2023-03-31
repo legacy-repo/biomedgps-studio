@@ -43,17 +43,27 @@ export async function getNodeTypes(options?: { [key: string]: any }) {
   });
 }
 
-/** Get the nodes which matched the query conditions. Get the nodes which matched the query conditions. GET /api/v1/nodes */
-export async function getNodes(
+/** Get the nodes which matched the query conditions. Get the nodes which matched the query conditions. POST /api/v1/nodes */
+export async function postNodes(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getNodesParams,
+  params: API.postNodesParams,
+  body: {
+    source_id?: string;
+    relation_types?: string[];
+    topk?: number;
+    enable_prediction?: boolean;
+  },
   options?: { [key: string]: any },
 ) {
   return request<{ nodes: any; edges: any }>('/api/v1/nodes', {
-    method: 'GET',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
     params: {
       ...params,
     },
+    data: body,
     ...(options || {}),
   });
 }

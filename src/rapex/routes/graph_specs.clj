@@ -186,3 +186,41 @@
   "A spec for the body."
   (s/keys :req-un [::context ::msg]
           :opt-un []))
+
+(s/def ::source_id
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Soure id"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The source_id parameter can't be none."}))
+
+(s/def ::relation_types
+  (st/spec
+   {:spec                (s/coll-of string?)
+    :type                :array
+    :description         "Relation types"
+    :swagger/type        "array"
+    :swagger/default     []
+    :reason              "The relation_types parameter can't be none."}))
+
+(s/def ::topk
+  (st/spec
+   {:spec                nat-int?
+    :type                :long
+    :description         "Topk"
+    :swagger/default     10
+    :reason              "The topk parameter can't be none."}))
+
+(s/def ::enable_prediction
+  (st/spec
+   {:spec                boolean?
+    :type                :boolean
+    :description         "Enable prediction"
+    :swagger/default     true
+    :reason              "The enable_prediction parameter can't be none."}))
+
+(def nodes-query-spec
+  (s/keys :req-un []
+          :opt-un [::source_id ::relation_types ::topk ::enable_prediction]))

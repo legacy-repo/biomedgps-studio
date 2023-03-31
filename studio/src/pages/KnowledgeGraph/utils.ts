@@ -1,10 +1,10 @@
 import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
-import { getNodes } from '@/services/swagger/Graph';
+import { postNodes } from '@/services/swagger/Graph';
 import { SearchObject, GraphData, GraphNode, GraphEdge } from './typings';
 import voca from 'voca';
-import { Graph } from '@antv/g6';
+// import { Graph } from '@antv/g6';
 
 export const makeColumns = (dataSource: Array<Record<string, any>>, blackList: Array<string>) => {
   let keys: Array<string> = [];
@@ -105,21 +105,45 @@ export function makeQueryStr(
 
 export function makeGraphQueryStr(
   match_clause: string,
-  where_clause: string
+  where_clause: string,
+  return_clause?: string,
+  limit?: number
 ): string {
-  return `{:match "${match_clause}" :where "${where_clause}" :limit 100 :return "n, r, m"}`;
+  let return_clause_str = return_clause ? return_clause : "n,m,r";
+  let _limit = limit ? limit : 100;
+  return `{:match "${match_clause}" :where "${where_clause}" :limit ${_limit} :return "${return_clause_str}"}`;
 }
 
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
-  const { node_type, node_id, relation_types, enable_prediction } = searchObject;
+  const { node_type, node_id, relation_types, enable_prediction, limit } = searchObject;
   return new Promise((resolve, reject) => {
     if (node_type && node_id) {
-      let query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`)
+      let query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+      let payload = {}
+
       if (relation_types && relation_types.length > 0) {
-        const relation_types_str = relation_types.join("|")
-        query_str = makeGraphQueryStr(`(n:${node_type})-[r:${relation_types_str}]-(m)`, `n.id = '${node_id}'`)
+        const relation_types_str = relation_types.join("`|`")
+        if (searchObject.nsteps && searchObject.nsteps <= 1) {
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+        } else {
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+        }
+
+        payload = {
+          source_id: node_id,
+          relation_types: relation_types,
+          topk: 10,
+          enable_prediction: enable_prediction
+        }
+      } else {
+        if (searchObject.nsteps && searchObject.nsteps <= 1) {
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+        } else {
+          query_str = makeGraphQueryStr(`(n:${node_type})-[*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,m", limit)
+        }
       }
-      getNodes({ query_str: query_str }).then((res) => {
+
+      postNodes({ query_str: query_str }, payload).then((res) => {
         if (res) {
           resolve(res)
         } else {
@@ -138,7 +162,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 export const searchRelationshipsById = (label: string, id: string | undefined): Promise<GraphData> => {
   return new Promise((resolve, reject) => {
     if (label && id) {
-      getNodes({ query_str: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }).then((res) => {
+      postNodes({ query_str: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }, {}).then((res) => {
         if (res) {
           resolve(res)
         } else {

@@ -203,7 +203,7 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
 }
 
 export const request: RequestConfig = {
-  timeout: 30000,
+  timeout: 120000,
   // More details on ./config/proxy.ts or ./config/config.cloud.ts
   prefix: apiPrefix,
   errorConfig: {

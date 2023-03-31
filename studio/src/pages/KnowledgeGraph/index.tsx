@@ -41,7 +41,10 @@ const KnowledgeGraph: React.FC = () => {
   const [searchObject, setSearchObject] = useState<SearchObject>({
     node_type: "",
     node_id: "",
-    merge_mode: "replace"
+    nsteps: 1,
+    merge_mode: "replace",
+    enable_prediction: false,
+    limit: 100,
   });
 
   // You must have a oldLayout to make the layout work before user select a layout from the menu
@@ -156,7 +159,10 @@ const KnowledgeGraph: React.FC = () => {
     setSearchObject({
       node_type: label,
       node_id: value,
-      merge_mode: "replace"
+      merge_mode: "replace",
+      nsteps: 1,
+      limit: 100,
+      enable_prediction: false
     })
   }
 

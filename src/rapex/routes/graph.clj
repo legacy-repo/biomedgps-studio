@@ -7,8 +7,7 @@
             [clojure.string :as clj-str]
             [rapex.db.query-gdata :as gdb]
             [rapex.config :refer [get-datadir]]
-            [clojure.tools.logging :as log]
-            [rapex.models.gnn :as gnn]))
+            [clojure.tools.logging :as log]))
 
 (defn to-snake-case
   [s]
@@ -89,47 +88,31 @@
                             (ok {:properties (gdb/list-properties session :node-name node_name)})))}}]
 
    ["/nodes"
-    {:get  {:summary    "Get the nodes which matched the query conditions."
-            :parameters {:query {:query_str string? :enable_prediction boolean?}
-                         :payload (s/nilable {:source_id string?
-                                              :relation_types (s/coll-of string?)
-                                              :topk integer?})}
-            :responses  {200 {:body {:nodes (s/coll-of any?)
-                                     :edges (s/coll-of any?)}}
-                         404 {:body specs/database-error-body}
-                         400 {:body specs/database-error-body}
-                         500 {:body specs/database-error-body}}
-            :handler    (fn
-                          ^{:doc "An example of query string
+    {:post  {:summary    "Get the nodes which matched the query conditions."
+             :parameters {:query {:query_str string?}
+                          :body specs/nodes-query-spec}
+             :responses  {200 {:body {:nodes (s/coll-of any?)
+                                      :edges (s/coll-of any?)}}
+                          404 {:body specs/database-error-body}
+                          400 {:body specs/database-error-body}
+                          500 {:body specs/database-error-body}}
+             :handler    (fn
+                           ^{:doc "An example of query string
                                   {:match \"(n)-[r]-(m)\"
                                    :return \"n, r, m\"
                                    :where (format \"id(n) = %s\" id)
                                    :limit 10}"}
-                          [{{{:keys [query_str enable_prediction]} :query
-                             {:keys [source_id relation_types topk]} :body} :parameters}]
-                          (try
-                            (log/info (format "Get the nodes which matched the query conditions: %s" query_str))
-                            (let [query-map (qd/read-string-as-map query_str)
-                                  enable_prediction (and enable_prediction
-                                                         (some? source_id)
-                                                         (seq relation_types)
-                                                         (some? topk))
-                                  predicted-rels (if enable_prediction
-                                                   (gnn/predict source_id relation_types :topk topk)
-                                                   {})]
-                              (log/info "Graph Query Map: " query-map)
-                              (with-open [session (db/get-session @gdb/gdb-conn)]
-                                (let [r (gdb/query-gdb session query-map)
-                                      predicted-nr (if (empty? predicted-rels)
-                                                     {:nodes []
-                                                      :edges []}
-                                                     (gdb/format-predicted-relationships session predicted-rels))]
-                                  (ok (if (empty? r)
-                                        {:nodes []
-                                         :edges []}
-                                        (if enable_prediction
-                                          (merge-with concat r predicted-nr)
-                                          r))))))
-                            (catch Exception e
-                              (log/error "Error: " e)
-                              (get-error-response e))))}}]])
+                           [{{{:keys [query_str]} :query
+                              {:keys [source_id relation_types topk enable_prediction]} :body} :parameters}]
+                           (try
+                             (log/info (format "Get the nodes which matched the query conditions: %s" query_str))
+                             (let [query-map (qd/read-string-as-map query_str)]
+                               (log/info "Graph Query Map: " query-map)
+                               (log/info "Prediction Payload" source_id relation_types topk enable_prediction)
+                               (ok (gdb/query&predict query-map {:source_id source_id
+                                                                 :relation_types relation_types
+                                                                 :topk topk
+                                                                 :enable_prediction enable_prediction})))
+                             (catch Exception e
+                               (log/error "Error: " e)
+                               (get-error-response e))))}}]])

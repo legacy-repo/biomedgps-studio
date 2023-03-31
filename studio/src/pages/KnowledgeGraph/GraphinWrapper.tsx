@@ -232,7 +232,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         const items = Object.keys(dataSource).map(key => {
             if (dataSource[key]) {
                 return (
-                    <Descriptions.Item key={key} label={voca.titleCase(key)}>
+                    <Descriptions.Item key={key} label={voca.titleCase(key)} style={{ height: '50px', overflowY: 'scroll' }}>
                         {dataSource[key]}
                     </Descriptions.Item>
                 )
@@ -273,7 +273,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         if (value.model) {
                             const { model } = value;
                             return (
-                                <HoverText data={model} style={{ padding: '10px', minWidth: '300px', maxWidth: '500px' }}></HoverText>
+                                <HoverText data={model} style={{ padding: '10px', width: 'fit-content', maxWidth: '450px' }}></HoverText>
                             );
                         }
                         return null;

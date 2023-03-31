@@ -1,4 +1,4 @@
-import { Form, Select, Empty, Switch, Button, Modal } from "antd";
+import { Form, Select, Empty, Switch, Button, Modal, InputNumber } from "antd";
 import React, { useState, useEffect } from "react";
 import { getNodeTypes, getLabels, getRelationshipTypes } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
@@ -27,6 +27,12 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
     { label: "Replace", value: "replace" },
     { label: "Append", value: "append" },
     { label: "Subtract", value: "subtract" },
+  ]
+
+  const nStepsOptions = [
+    { label: "1 Step", value: 1 },
+    { label: "2 Steps", value: 2 },
+    { label: "3 Steps", value: 3 },
   ]
 
   // This function is used to fetch the nodes of the selected label.
@@ -178,6 +184,23 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         >
           <Select mode="multiple" placeholder="Please select relation types" options={relationTypeOptions}>
           </Select>
+        </Form.Item>
+        <Form.Item
+          name="nsteps"
+          label="Num of Steps"
+          initialValue={props.searchObject?.nsteps ? props.searchObject?.nsteps : 1}
+          rules={[{ required: false, message: 'Please select your expected nsteps', type: 'number' }]}
+        >
+          <Select placeholder="Please select nsteps" options={nStepsOptions}>
+          </Select>
+        </Form.Item>
+        <Form.Item
+          name="limit"
+          label="Max Num of Nodes"
+          initialValue={props.searchObject?.limit ? props.searchObject?.limit : 100}
+          rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
+        >
+          <InputNumber min={1} max={1000} />
         </Form.Item>
         <Form.Item label="Enable Prediction" name="enable_prediction"
           initialValue={props.searchObject?.enable_prediction ? props.searchObject?.enable_prediction : false}

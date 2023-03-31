@@ -168,10 +168,6 @@ declare namespace API {
     node_name?: string;
   };
 
-  type getNodesParams = {
-    query_str?: string;
-  };
-
   type getRapexGeneExprDataParams = {
     /** Query string with honeysql specification. */
     query_str: string;
@@ -205,6 +201,10 @@ declare namespace API {
 
   type postChartsChartNameParams = {
     chart_name: string;
+  };
+
+  type postNodesParams = {
+    query_str?: string;
   };
 
   type RapexDEGData = {
