@@ -27,7 +27,7 @@ const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
 const {
     ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
-    FitView, DragNodeWithForce, ResizeCanvas
+    FitView, DragNodeWithForce, DragNode
 } = Behaviors;
 const { Menu } = ContextMenu;
 
@@ -118,17 +118,18 @@ const CanvasMenu = (props: any) => {
         graph.downloadFullImage('canvas-contextmenu');
         context.handleClose();
     };
-    const handleClear = () => {
-        message.info(`Clear canvas successfully`);
-        graph.clear();
-        context.handleClose();
-    };
 
-    const handleStopLayout = () => {
-        message.info(`Stop layout successfully`);
-        graph.stopAnimate();
-        context.handleClose();
-    };
+    // const handleClear = () => {
+    //     message.info(`Clear canvas successfully`);
+    //     graph.clear();
+    //     context.handleClose();
+    // };
+
+    // const handleStopLayout = () => {
+    //     message.info(`Stop layout successfully`);
+    //     graph.stopAnimate();
+    //     context.handleClose();
+    // };
 
     const handleOpenFishEye = () => {
         props.handleOpenFishEye();
@@ -139,12 +140,12 @@ const CanvasMenu = (props: any) => {
             <Menu.Item onClick={handleOpenFishEye}>
                 <EyeOutlined /> Enable FishEye
             </Menu.Item>
-            <Menu.Item onClick={handleClear}>
+            {/* <Menu.Item onClick={handleClear}>
                 <DeleteOutlined /> Clear Canvas
             </Menu.Item>
             <Menu.Item onClick={handleStopLayout}>
                 <CloseCircleOutlined /> Stop Layout
-            </Menu.Item>
+            </Menu.Item> */}
             <Menu.Item onClick={handleDownload}>
                 <CloudDownloadOutlined /> Download Layout
             </Menu.Item>
@@ -339,6 +340,8 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <FitView></FitView>
             {/* BUG?: This seems like it doesn't work. Maybe we need a new layout algorithm. */}
             <DragNodeWithForce autoPin={autoPin} />
+            {/* TODO: Cannot work. To expect all linked nodes follow the draged node. */}
+            <DragNode />
             <ZoomCanvas />
             <NodeLabelVisible visible={nodeLabelVisible} />
             {/* BUG: Cannot restore the label of edges */}
@@ -365,9 +368,9 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             </Legend>
             {props.toolbarVisible ?
                 <Toolbar style={{
-                    top: 'unset', right: '0px',
-                    bottom: '0px', left: 'unset',
-                    marginBottom: '0px', opacity: 0.8
+                    top: 'unset', right: '5px',
+                    bottom: '5px', left: 'unset',
+                    marginBottom: '0px', opacity: 0.8,
                 }}>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {

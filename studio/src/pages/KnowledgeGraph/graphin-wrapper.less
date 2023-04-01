@@ -41,16 +41,31 @@
         }
     }
 
-    .graphin-components-toolbar-content {
-        box-shadow: unset;
-        margin-bottom: 0;
-        flex-direction: column;
-        border: 1px solid #d6d6d6;
+    .graphin-components-toolbar {
+        .graphin-components-toolbar-content {
+            box-shadow: unset;
+            margin-bottom: 0;
+            border-radius: 5px;
+            flex-direction: column;
+            border: 1px solid #d6d6d6;
 
-        li {
-            display: flex;
-            justify-content: space-between;
-            width: 150px;
+            li {
+                display: flex;
+                justify-content: space-between;
+                width: 180px;
+            }
         }
+    }
+
+    .graphin-components-contextmenu {
+        width: fit-content !important;
+    }
+
+    div:has(> div.graphin-minimap) {
+        border: 1px solid #d6d6d6;
+        border-bottom: unset;
+        border-left: unset;
+        border-bottom-left-radius: 5px;
+        box-shadow: unset !important;
     }
 }

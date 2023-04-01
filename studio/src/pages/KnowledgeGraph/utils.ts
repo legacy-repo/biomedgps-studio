@@ -133,7 +133,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         // It will cause performance issue if we enable prediction for all relation types
         // So we need to filter out the relation types that are not related to the node type or warn the user that he/she should pick up at least one relation type
         payload = {
-          source_id: node_id,
+          source_id: `${node_id}`,
           relation_types: all_relation_types ? all_relation_types.filter(item => item.match(node_type)) : [],
           topk: 10,
           enable_prediction: enable_prediction

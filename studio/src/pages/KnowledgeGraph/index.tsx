@@ -229,12 +229,17 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const clearGraphData = () => {
     localStorage.removeItem(internalStoreId)
     message.success("Graph data cleared.")
+    setData({ nodes: [], edges: [] })
   }
 
   const onWidthChange = (width?: number, height?: number) => {
     // message.info(`Graph width changed to ${width}`)
     // TODO: Fix this hacky way to refresh graph
-    setGraphRefreshKey((width || 1.1) * (height || 1.1))
+    if (width) {
+      setGraphRefreshKey(width)
+    } else if (height) {
+      setGraphRefreshKey(height)
+    }
   }
 
   return (
