@@ -10,7 +10,7 @@ const ChatAI: React.FC = () => {
       <ChatBox></ChatBox>
     </Col>
     <Col xxl={16} xl={16} lg={16} md={24} sm={24} xs={24}>
-      <KnowledgeGraph></KnowledgeGraph>
+      <KnowledgeGraph storeId='chatAiGraphData'></KnowledgeGraph>
     </Col>
   </Row>;
 }

@@ -299,7 +299,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
       request: async (params: any, defaultMenuData: any) => {
         let menuRoutes = [];
-        let remoteMenuData = await getMenusDataset({ dataset: params.defaultDataset });
+        // let remoteMenuData = await getMenusDataset({ dataset: params.defaultDataset });
         if (initialState?.customSettings?.mode === "Developer") {
           // menuData = await getMenusDataset({ dataset: params.defaultDataset });
           menuRoutes = [
@@ -308,10 +308,16 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
               icon: 'ShareAltOutlined',
               path: '/knowledgegraph',
               component: 'KnowledgeGraph',
+            },
+            {
+              name: 'chatbox',
+              icon: 'InfoCircleOutlined',
+              path: '/chatai',
+              component: 'ChatAI',
             }
           ]
 
-          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
+          // menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
           const routes = dynamicRoutesToUsableRoutes(menuRoutes);
           console.log("Developer DynamicRoutes: ", routes, menuRoutes);
           return routes
@@ -325,7 +331,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
             }
           ]
 
-          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
+          // menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
           const routes = dynamicRoutesToUsableRoutes(menuRoutes);
           console.log("User DynamicRoutes: ", routes, menuRoutes);
           return routes
@@ -350,7 +356,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       const { location } = history;
 
       if (location.pathname === "/") {
-        history.push("/rapex-plugin/welcome");
+        history.push("/knowledgegraph");
       }
 
       // // Change the collapsed status of menu

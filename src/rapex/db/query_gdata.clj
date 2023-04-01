@@ -120,16 +120,15 @@
   []
   (with-open [session (db/get-session @gdb-conn)]
     (let [labels (->> (list-labels session)
-                      sort
-                      (map (fn [item] (keyword (format-nlabel item)))))
-          colors (shuffle colors)]
+                      (map (fn [item] (keyword (format-nlabel item))))
+                      sort)]
       (merge (zipmap labels colors) (get-color-map)))))
 
 (def memorized-gen-color-map (memoize gen-color-map))
 
 (defn set-style
   [node-label nlabel & {:keys [is-badge]
-                        :or {is-badge true}}]
+                        :or {is-badge false}}]
   (if is-badge
     {:label {:value node-label}
      :keyshape {:fill ((keyword nlabel) (memorized-gen-color-map))}
@@ -150,6 +149,7 @@
 (defn format-node
   [node]
   (let [node-label (:id (:properties node))
+        name (:name (:properties node))
         label (format "%s-%s" (:identity node) node-label)
         nlabel (first (:lables node))]
     (when node
@@ -157,7 +157,7 @@
        :id       (str (:identity node))
        :label    label
        :nlabel   nlabel
-       :style    (set-style node-label (format-nlabel nlabel))
+       :style    (set-style (or name node-label) (format-nlabel nlabel))
        :category :nodes
        :type     "graphin-circle"
        :data     (merge (:properties node)

@@ -1,7 +1,8 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Row, Col, Tag, Tabs, Table, message, Descriptions } from 'antd';
+import { Row, Col, Tag, Tabs, Table, message, Descriptions, Button } from 'antd';
 import type { TableColumnType } from 'antd';
+import { DeleteFilled, DownloadOutlined } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
 import { Config } from './MenuButton';
 import Toolbar from './Toolbar';
@@ -22,13 +23,18 @@ const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
 }
 
+type KnowledgeGraphProps = {
+  storeId?: string
+}
 
-const KnowledgeGraph: React.FC = () => {
+const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
   const [data, setData] = useState<GraphData>({
     nodes: [],
     edges: []
   });
+
+  const [internalStoreId, setInternalStoreId] = useState<string>(props.storeId || "graphData")
   const [statistics, setStatistics] = useState<[ReactNode, string | number][]>([]);
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
@@ -83,6 +89,16 @@ const KnowledgeGraph: React.FC = () => {
       [<span>Relationships <Tag color="#108ee9">graph</Tag></span>, "188,266,233"],
     ])
   }, [data])
+
+  useEffect(() => {
+    let graphData = localStorage.getItem(internalStoreId)
+    graphData = graphData ? JSON.parse(graphData) : null
+    if (graphData) {
+      setData(graphData.data)
+      setLayout(graphData.layout)
+      setConfig(graphData.config)
+    }
+  }, [])
 
   useEffect(() => {
     if (searchObject.node_id && searchObject.node_type && advancedSearchPanelActive === false) {
@@ -229,17 +245,35 @@ const KnowledgeGraph: React.FC = () => {
     )
   }
 
+  const saveGraphData = () => {
+    localStorage.setItem(internalStoreId, JSON.stringify({
+      data: data,
+      layout: layout,
+      config: config
+    }))
+    message.success("Graph data saved.")
+  }
+
+  const clearGraphData = () => {
+    localStorage.removeItem(internalStoreId)
+    message.success("Graph data cleared.")
+  }
+
   return (
     <Row className='knowledge-graph-container'>
       {
         config?.infoPanelEnabled ?
           <DataArea data={statistics}
-            style={{ position: 'absolute', top: '15px', right: '15px', zIndex: 1 }}></DataArea>
+            style={{ position: 'absolute', bottom: '0px', right: '0px', zIndex: 1 }}></DataArea>
           : null
       }
       <MenuButton config={config} onChangeConfig={onChangeConfig}
         style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}>
       </MenuButton>
+      <Button className='save-button' onClick={saveGraphData}
+        shape="circle" icon={<DownloadOutlined />} />
+      <Button className='clear-button' onClick={clearGraphData}
+        shape="circle" icon={<DeleteFilled />} />
       <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
       <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
         onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>

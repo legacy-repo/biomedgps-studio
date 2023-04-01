@@ -15,7 +15,7 @@ import {
     EyeOutlined,
     DeleteOutlined
 } from '@ant-design/icons';
-import type { TooltipValue } from '@antv/graphin';
+import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import { Config } from './MenuButton';
 import { message, Descriptions } from 'antd';
 import { makeDataSource } from './utils';
@@ -23,7 +23,7 @@ import type { DataOnChangeFn } from "./typings";
 import voca from 'voca';
 import './graphin-wrapper.less';
 
-const { MiniMap, SnapLine, Tooltip } = Components;
+const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
 const {
     ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
@@ -317,6 +317,10 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
     const options = { enabledStack: true, filterCenter: true }
 
+    const onChangeLegend = (checkedValue: LegendOptionType, options: LegendOptionType[]) => {
+        console.log(checkedValue, options);
+    };
+
     return (
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
@@ -335,6 +339,12 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <ContextMenu style={{ width: '160px' }} bindType="edge">
                 <EdgeMenu />
             </ContextMenu>
+            <Legend bindType="node" sortKey="nlabel">
+                {(renderProps: LegendChildrenProps) => {
+                    console.log('renderProps', renderProps);
+                    return <Legend.Node {...renderProps} onChange={onChangeLegend} />;
+                }}
+            </Legend>
 
             {(config && !config.selectNodeEnabled) ?
                 <ActivateRelations />
