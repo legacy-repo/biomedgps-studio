@@ -93,6 +93,7 @@
     "react-json-viewer": "^3.0.1",
     "react-markdown": "^8.0.3",
     "react-plotly.js": "^2.6.0",
+    "react-resize-detector": "^8.0.4",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^6.4.4",
     "react-svg": "^15.1.13",

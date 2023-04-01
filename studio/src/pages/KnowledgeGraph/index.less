@@ -4,26 +4,33 @@
   display: flex;
   flex-direction: column;
 
+  .ant-spin-nested-loading,
+  .ant-spin-container {
+    width: 100%;
+    height: 100%;
+  }
+
   #graphin-container,
   .graphin-core {
     border-radius: 5px;
   }
 
-  .save-button {
-    width: 30px;
-    height: 30px;
-    position: absolute;
-    top: 50px;
-    left: 15px;
-    z-index: 1;
-  }
-
+  .toolbar-button,
+  .save-button,
   .clear-button {
     width: 30px;
     height: 30px;
     position: absolute;
-    top: 85px;
+    top: 40%;
     left: 15px;
     z-index: 1;
+  }
+
+  .save-button {
+    top: calc(40% + 40px);
+  }
+
+  .clear-button {
+    top: calc(40% + 80px);
   }
 }

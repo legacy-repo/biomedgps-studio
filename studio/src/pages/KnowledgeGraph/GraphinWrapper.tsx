@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
 import { INode, NodeConfig } from '@antv/g6';
-import { ContextMenu, FishEye } from '@antv/graphin-components';
+import { ContextMenu, FishEye, Toolbar } from '@antv/graphin-components';
 import {
     TagFilled,
     BoxPlotOutlined,
@@ -16,8 +16,8 @@ import {
     DeleteOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
-import { Config } from './MenuButton';
-import { message, Descriptions } from 'antd';
+import DataArea from './DataArea';
+import { message, Descriptions, Switch, Button } from 'antd';
 import { makeDataSource } from './utils';
 import type { DataOnChangeFn } from "./typings";
 import voca from 'voca';
@@ -27,21 +27,9 @@ const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
 const {
     ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
-    FitView, DragNodeWithForce
+    FitView, DragNodeWithForce, ResizeCanvas
 } = Behaviors;
 const { Menu } = ContextMenu;
-
-export type GraphinProps = {
-    config?: Config;
-    selectedNode?: string;
-    data: any;
-    layout: any;
-    style: any;
-    containerId?: string;
-    onNodeMenuClick?: DataOnChangeFn;
-    onEdgeMenuClick?: DataOnChangeFn;
-    queriedId?: string;
-}
 
 const snapLineOptions = {
     line: {
@@ -279,17 +267,42 @@ const FocusBehavior = (props: { queriedId?: string }) => {
     return null;
 };
 
+export type GraphinProps = {
+    selectedNode?: string;
+    data: any;
+    layout: any;
+    style: any;
+    containerId?: string;
+    onNodeMenuClick?: DataOnChangeFn;
+    onEdgeMenuClick?: DataOnChangeFn;
+    queriedId?: string;
+    statistics: any;
+    toolbarVisible?: boolean;
+}
+
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
-    const { data, layout, style, onNodeMenuClick, config, selectedNode } = props
-    const [visible, setVisible] = useState(false);
+    const { data, layout, style, onNodeMenuClick, selectedNode } = props
+    const [fishEyeVisible, setFishEyeVisible] = useState(false);
+
+    const [autoPin, setAutoPin] = useState(false);
+    const [nodeLabelVisible, setNodeLabelVisible] = useState(true);
+    const [edgeLabelVisible, setEdgeLabelVisible] = useState(true);
+    const [nodeTooltipEnabled, setNodeTooltipEnabled] = useState(true);
+    const [edgeTooltipEnabled, setEdgeTooltipEnabled] = useState(false);
+    const [selectedNodeEnabled, setSelectedNodeEnabled] = useState(true);
+    const [focusNodeEnabled, setFocusNodeEnabled] = useState(false);
+    const [miniMapEnabled, setMiniMapEnabled] = useState(true);
+    const [snapLineEnabled, setSnapLineEnabled] = useState(true);
+    const [infoPanelEnabled, setInfoPanelEnabled] = useState(true);
+
     const ref = React.useRef(null);
 
     const handleOpenFishEye = () => {
         setVisible(true);
     };
 
-    const handleClose = () => {
-        setVisible(false);
+    const onCloseFishEye = () => {
+        setFishEyeVisible(false);
     };
 
     const HoverText: React.FC<{ data: Record<string, any>, style: any }> = ({ data, style }) => {
@@ -324,12 +337,17 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     return (
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
-            <DragNodeWithForce autoPin={true} />
+            {/* BUG?: This seems like it doesn't work. Maybe we need a new layout algorithm. */}
+            <DragNodeWithForce autoPin={autoPin} />
             <ZoomCanvas />
-            <FishEye options={{}} visible={visible} handleEscListener={handleClose} />
+            <NodeLabelVisible visible={nodeLabelVisible} />
+            {/* BUG: Cannot restore the label of edges */}
+            <EdgeLabelVisible visible={edgeLabelVisible} />
+            <FishEye options={{}} visible={fishEyeVisible} handleEscListener={onCloseFishEye} />
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
-            <CustomHoverable bindType="node" disabled={config && config.selectNodeEnabled} />
-            <CustomHoverable bindType="edge" disabled={config && config.selectNodeEnabled} />
+            <CustomHoverable bindType="node" disabled={selectedNodeEnabled} />
+            <CustomHoverable bindType="edge" disabled={selectedNodeEnabled} />
+            <ActivateRelations disabled={!selectedNodeEnabled} />
             <ContextMenu style={{ width: '160px' }}>
                 <NodeMenu onChange={onNodeMenuClick}></NodeMenu>
             </ContextMenu>
@@ -345,42 +363,126 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     return <Legend.Node {...renderProps} onChange={onChangeLegend} />;
                 }}
             </Legend>
-
-            {(config && !config.selectNodeEnabled) ?
-                <ActivateRelations />
+            {props.toolbarVisible ?
+                <Toolbar style={{
+                    top: 'unset', right: '0px',
+                    bottom: '0px', left: 'unset',
+                    marginBottom: '0px', opacity: 0.8
+                }}>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setAutoPin(checked)
+                        }} checked={autoPin} />
+                        Auto Pin
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setNodeLabelVisible(checked)
+                        }} checked={nodeLabelVisible} />
+                        Node Label
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setEdgeLabelVisible(checked)
+                        }} checked={edgeLabelVisible} />
+                        Edge Label
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setNodeTooltipEnabled(checked)
+                        }} checked={nodeTooltipEnabled} />
+                        Node Tooltip
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setEdgeTooltipEnabled(checked)
+                        }} checked={edgeTooltipEnabled} />
+                        Edge Tooltip
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setSelectedNodeEnabled(checked)
+                        }} checked={selectedNodeEnabled} />
+                        Select Mode
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setFocusNodeEnabled(checked)
+                        }} checked={focusNodeEnabled} />
+                        Focus Mode
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setMiniMapEnabled(checked)
+                        }} checked={miniMapEnabled} />
+                        MiniMap
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setSnapLineEnabled(checked)
+                        }} checked={snapLineEnabled} />
+                        SnapLine
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setInfoPanelEnabled(checked)
+                        }} checked={infoPanelEnabled} />
+                        Info Panel
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Button type="primary" size="small" style={{ width: '100%' }} onClick={() => {
+                            localStorage.setItem('graphin-settings', JSON.stringify({
+                                autoPin, nodeLabelVisible, edgeLabelVisible,
+                                nodeTooltipEnabled, edgeTooltipEnabled,
+                                selectedNodeEnabled, focusNodeEnabled,
+                                miniMapEnabled, snapLineEnabled, infoPanelEnabled
+                            }))
+                            message.success('Settings saved')
+                        }}>Save Settings</Button>
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Button danger size="small" style={{ width: '100%' }} onClick={() => {
+                            const settings = JSON.parse(localStorage.getItem('graphin-settings') || '{}')
+                            setAutoPin(settings.autoPin)
+                            setNodeLabelVisible(settings.nodeLabelVisible)
+                            setEdgeLabelVisible(settings.edgeLabelVisible)
+                            setNodeTooltipEnabled(settings.nodeTooltipEnabled)
+                            setEdgeTooltipEnabled(settings.edgeTooltipEnabled)
+                            setSelectedNodeEnabled(settings.selectedNodeEnabled)
+                            setFocusNodeEnabled(settings.focusNodeEnabled)
+                            setMiniMapEnabled(settings.miniMapEnabled)
+                            setSnapLineEnabled(settings.snapLineEnabled)
+                            setInfoPanelEnabled(settings.infoPanelEnabled)
+                            message.success('Settings loaded')
+                        }}>Load Settings</Button>
+                    </Toolbar.Item>
+                </Toolbar>
                 : null
             }
-            {(config && config.focusNodeEnabled) ?
+
+            {focusNodeEnabled ?
                 <FocusBehavior queriedId={props.queriedId} />
                 : null
             }
-            {(config && config.selectNodeEnabled && !config.focusNodeEnabled) ?
+            {(selectedNodeEnabled && !focusNodeEnabled) ?
                 <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
                 : null
             }
-            {config ?
-                <NodeLabelVisible visible={config.nodeLabelEnabled} />
-                : null
-            }
-            {config ?
-                <EdgeLabelVisible visible={config.edgeLabelEnabled} />
-                : null
-            }
-            {(config ? config.nodeTooltipEnabled : null) ?
-                <Tooltip bindType="node" hasArrow>
+            {nodeTooltipEnabled ?
+                <Tooltip bindType="node" hasArrow placement="bottom" style={{ opacity: 0.9 }}>
                     {(value: TooltipValue) => {
                         if (value.model) {
                             const { model } = value;
                             return (
-                                <HoverText data={model} style={{ padding: '10px', width: 'fit-content', maxWidth: '450px' }}></HoverText>
+                                <HoverText data={model} style={{ padding: '10px', width: 'fit-content', maxWidth: '400px' }}></HoverText>
                             );
                         }
                         return null;
                     }}
                 </Tooltip>
                 : null}
-            {(config ? config.edgeTooltipEnabled : null) ?
-                <Tooltip bindType="edge" hasArrow>
+            {edgeTooltipEnabled ?
+                <Tooltip bindType="edge" hasArrow placement="bottom" style={{ opacity: 0.9 }}>
                     {(value: TooltipValue) => {
                         if (value.model) {
                             const { model } = value;
@@ -392,8 +494,12 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     }}
                 </Tooltip>
                 : null}
-            {(config ? config.miniMapEnabled : null) ? <MiniMap /> : null}
-            {(config ? config.snapLineEnabled : null) ? <SnapLine options={snapLineOptions} visible /> : null}
+            {miniMapEnabled ? <MiniMap /> : null}
+            {snapLineEnabled ? <SnapLine options={snapLineOptions} visible /> : null}
+            {infoPanelEnabled ? <DataArea data={props.statistics}
+                style={{ position: 'absolute', top: '0px', left: '0px', zIndex: 1 }}></DataArea>
+                : null
+            }
         </Graphin>
     );
 }

@@ -1,4 +1,4 @@
-import { Form, Select, Empty, Switch, Button, Modal, InputNumber } from "antd";
+import { Form, Select, Empty, Switch, Modal, InputNumber } from "antd";
 import React, { useState, useEffect } from "react";
 import { getNodeTypes, getLabels, getRelationshipTypes } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
@@ -22,6 +22,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
   const [nodeOptions, setNodeOptions] = useState<any[] | undefined>(undefined);
   const [relationTypeOptions, setRelationTypeOptions] = useState<any[] | undefined>(undefined);
   const [label, setLabel] = useState<string>("");
+  const [helpWarning, setHelpWarning] = useState<string>("");
 
   const mergeModeOptions = [
     { label: "Replace", value: "replace" },
@@ -88,10 +89,16 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
   const validateForm = function () {
     form.validateFields()
       .then(values => {
+        if ((values.enable_prediction || values.nsteps > 1) && values.relation_types.length === 0) {
+          setHelpWarning("Please select at least one relation type for performance if you enable prediction or set nsteps > 1.");
+          return;
+        }
+
         console.log("values: ", values);
         if (props.onOk) {
           props.onOk({
             ...values,
+            all_relation_types: relationTypeOptions ? relationTypeOptions.map((item: any) => item.value) : [],
             relation_types: values.relation_types ? values.relation_types : [],
             enable_prediction: values.enable_prediction ? values.enable_prediction : false
           });
@@ -122,6 +129,10 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         }
       })
   }, [])
+
+  const updateFormStatus = function () {
+    setHelpWarning("");
+  }
 
   useEffect(() => {
     getRelationshipTypes({ node_type: label }).then(response => {
@@ -179,10 +190,12 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         <Form.Item
           name="relation_types"
           label="Relation Types"
+          validateStatus={helpWarning ? "warning" : ""} help={helpWarning}
           initialValue={props.searchObject?.relation_types ? props.searchObject?.relation_types : []}
           rules={[{ required: false, message: 'Please select your expected relation types!', type: 'array' }]}
         >
-          <Select mode="multiple" placeholder="Please select relation types" options={relationTypeOptions}>
+          <Select mode="multiple" onChange={updateFormStatus}
+            placeholder="Please select relation types" options={relationTypeOptions}>
           </Select>
         </Form.Item>
         <Form.Item

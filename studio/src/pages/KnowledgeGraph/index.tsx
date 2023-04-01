@@ -1,17 +1,16 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Row, Col, Tag, Tabs, Table, message, Descriptions, Button } from 'antd';
+import { Row, Col, Tag, Tabs, Table, message, Descriptions, Button, Spin } from 'antd';
 import type { TableColumnType } from 'antd';
-import { DeleteFilled, DownloadOutlined } from '@ant-design/icons';
+import { DeleteFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
-import { Config } from './MenuButton';
 import Toolbar from './Toolbar';
 import { uniqBy } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
-import MenuButton from './MenuButton';
 import QueryBuilder from './QueryBuilder';
 import AdvancedSearch from './AdvancedSearch';
 import ComplexChart from './Chart/ComplexChart';
+import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources, makeGraphQueryStrWithSearchObject, defaultLayout
 } from './utils';
@@ -40,6 +39,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
   const [edgeColumns, setEdgeColumns] = useState<TableColumnType<any>[]>([]);
   const [edgeDataSources, setEdgeDataSources] = useState<Array<Record<string, any>>>([]);
+  const [toolbarVisible, setToolbarVisible] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [graphRefreshKey, setGraphRefreshKey] = useState<number>(0);
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
@@ -55,18 +57,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   // You must have a oldLayout to make the layout work before user select a layout from the menu
   const [layout, setLayout] = React.useState<any>(defaultLayout);
-  const [config, setConfig] = React.useState<Config & { layout?: any } | undefined>({
-    layout: 'graphin-force',
-    miniMapEnabled: true,
-    snapLineEnabled: true,
-    nodeLabelEnabled: true,
-    edgeLabelEnabled: true,
-    nodeTooltipEnabled: true,
-    edgeTooltipEnabled: false,
-    infoPanelEnabled: true,
-    focusNodeEnabled: false,
-    selectNodeEnabled: false,
-  });
 
   useEffect(() => {
     const nodes = makeDataSources(data.nodes)
@@ -96,12 +86,13 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     if (graphData) {
       setData(graphData.data)
       setLayout(graphData.layout)
-      setConfig(graphData.config)
+      setToolbarVisible(graphData.toolbarVisible)
     }
   }, [])
 
   useEffect(() => {
     if (searchObject.node_id && searchObject.node_type && advancedSearchPanelActive === false) {
+      setLoading(true)
       message.info("Loading data, please wait...")
       makeGraphQueryStrWithSearchObject(searchObject)
         .then(response => {
@@ -145,18 +136,14 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             message.warn("Unknown merge mode, please retry later.")
           }
           message.success(`Find ${response.nodes.length} entities and ${response.edges.length} relationships.`)
+          setLoading(false)
         }).catch(error => {
           console.log("getNodes Error: ", error)
           message.warn("Unknown errors or Cannot find any entities & relationships.")
+          setLoading(false)
         })
     }
   }, [searchObject])
-
-  const onChangeConfig = (config: Config, layout: any) => {
-    console.log("Config: ", config, layout);
-    setLayout(layout)
-    setConfig(config)
-  }
 
   const enableAdvancedSearch = () => {
     setAdvancedSearchPanelActive(true)
@@ -226,32 +213,17 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     )
   }
 
-  const DataArea: React.FC<{ data: [ReactNode, string | number][], style?: any }> = ({ data, style }) => {
-    const items = data.map((item, index) => {
-      return (
-        <Descriptions.Item key={index} label={item[0]}>
-          {item[1]}
-        </Descriptions.Item>
-      )
-    })
-    return (
-      items.length > 0 ?
-        (<Descriptions size={"small"} column={1} title={null}
-          labelStyle={{ backgroundColor: 'transparent' }}
-          bordered style={{ ...style }}>
-          {items}
-        </Descriptions>)
-        : (<span style={style}>No Properties</span>)
-    )
-  }
-
   const saveGraphData = () => {
     localStorage.setItem(internalStoreId, JSON.stringify({
       data: data,
       layout: layout,
-      config: config
+      toolbarVisible: toolbarVisible
     }))
     message.success("Graph data saved.")
+  }
+
+  const onChangeToolbarVisible = () => {
+    setToolbarVisible(!toolbarVisible)
   }
 
   const clearGraphData = () => {
@@ -259,59 +231,62 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     message.success("Graph data cleared.")
   }
 
+  const onWidthChange = (width?: number, height?: number) => {
+    // message.info(`Graph width changed to ${width}`)
+    // TODO: Fix this hacky way to refresh graph
+    setGraphRefreshKey((width || 1.1) * (height || 1.1))
+  }
+
   return (
-    <Row className='knowledge-graph-container'>
-      {
-        config?.infoPanelEnabled ?
-          <DataArea data={statistics}
-            style={{ position: 'absolute', bottom: '0px', right: '0px', zIndex: 1 }}></DataArea>
-          : null
-      }
-      <MenuButton config={config} onChangeConfig={onChangeConfig}
-        style={{ zIndex: 10, position: 'relative', maxWidth: 'unset', maxHeight: 'unset' }}>
-      </MenuButton>
-      <Button className='save-button' onClick={saveGraphData}
-        shape="circle" icon={<DownloadOutlined />} />
-      <Button className='clear-button' onClick={clearGraphData}
-        shape="circle" icon={<DeleteFilled />} />
-      <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
-      <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
-        onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
-      </AdvancedSearch>
-      <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
-          <ComplexChart data={data}></ComplexChart>
-        </Toolbar>
-        <Toolbar position='bottom' width='300px' height='300px' onClick={() => {
-          setCurrentNode("") // Clear the selected node
-        }}>
-          <TableTabs>
-            {nodeColumns.length > 0 ?
-              <Table size={"small"} scroll={{ y: 200 }} rowKey={"identity"} dataSource={nodeDataSources} columns={nodeColumns} pagination={false}
-                onRow={(record, rowIndex) => {
-                  return {
-                    onClick: event => {
-                      console.log("Click the node item: ", event, record)
-                      setCurrentNode(record.identity)
-                      setSelectedRowKeys([record.identity])
-                    }
-                  };
-                }}
-                rowSelection={{
-                  type: "radio",
-                  ...rowSelection,
-                }} />
-              : null}
-            {nodeColumns.length > 0 ?
-              <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={edgeDataSources} columns={edgeColumns} pagination={false} />
-              : null}
-          </TableTabs>
-        </Toolbar>
-        <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
-          config={config} data={data} layout={layout} style={style} queriedId={searchObject.node_id}>
-        </GraphinWrapper>
-      </Col>
-    </Row >
+    <ReactResizeDetector onResize={onWidthChange}>
+      <Row className='knowledge-graph-container'>
+        <Spin spinning={loading}>
+          <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle" icon={<SettingOutlined />} />
+          <Button className='save-button' onClick={saveGraphData}
+            shape="circle" icon={<DownloadOutlined />} />
+          <Button className='clear-button' onClick={clearGraphData}
+            shape="circle" icon={<DeleteFilled />} />
+          <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
+          <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
+            onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
+          </AdvancedSearch>
+          <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
+              <ComplexChart data={data}></ComplexChart>
+            </Toolbar>
+            <Toolbar position='bottom' width='300px' height='300px' onClick={() => {
+              setCurrentNode("") // Clear the selected node
+            }}>
+              <TableTabs>
+                {nodeColumns.length > 0 ?
+                  <Table size={"small"} scroll={{ y: 200 }} rowKey={"identity"} dataSource={nodeDataSources} columns={nodeColumns} pagination={false}
+                    onRow={(record, rowIndex) => {
+                      return {
+                        onClick: event => {
+                          console.log("Click the node item: ", event, record)
+                          setCurrentNode(record.identity)
+                          setSelectedRowKeys([record.identity])
+                        }
+                      };
+                    }}
+                    rowSelection={{
+                      type: "radio",
+                      ...rowSelection,
+                    }} />
+                  : null}
+                {nodeColumns.length > 0 ?
+                  <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={edgeDataSources} columns={edgeColumns} pagination={false} />
+                  : null}
+              </TableTabs>
+            </Toolbar>
+            <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
+              data={data} layout={layout} style={style} queriedId={searchObject.node_id}
+              statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}>
+            </GraphinWrapper>
+          </Col>
+        </Spin>
+      </Row >
+    </ReactResizeDetector>
   );
 
 };

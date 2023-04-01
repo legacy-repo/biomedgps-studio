@@ -10,6 +10,7 @@ export type SearchObject = {
   node_id: string | undefined;
   merge_mode: "append" | "replace" | "subtract";
   relation_types?: string[];
+  all_relation_types?: string[];
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;

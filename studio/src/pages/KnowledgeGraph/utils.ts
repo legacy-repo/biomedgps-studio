@@ -115,13 +115,30 @@ export function makeGraphQueryStr(
 }
 
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
-  const { node_type, node_id, relation_types, enable_prediction, limit } = searchObject;
+  const { node_type, node_id, relation_types, all_relation_types, enable_prediction, limit } = searchObject;
   return new Promise((resolve, reject) => {
     if (node_type && node_id) {
       let query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
       let payload = {}
 
-      if (relation_types && relation_types.length > 0) {
+      if (!relation_types || relation_types?.length == 0) {
+        if (searchObject.nsteps && searchObject.nsteps <= 1) {
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+        } else {
+          // This is a bug in the backend, if we use *1..${searchObject.nsteps} it will not return the correct result
+          // But it will not be ran into this case, since we will not have nsteps > 1 in the frontend
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r: *1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,r,m", limit)
+        }
+
+        // It will cause performance issue if we enable prediction for all relation types
+        // So we need to filter out the relation types that are not related to the node type or warn the user that he/she should pick up at least one relation type
+        payload = {
+          source_id: node_id,
+          relation_types: all_relation_types ? all_relation_types.filter(item => item.match(node_type)) : [],
+          topk: 10,
+          enable_prediction: enable_prediction
+        }
+      } else {
         const relation_types_str = relation_types.join("`|`")
         if (searchObject.nsteps && searchObject.nsteps <= 1) {
           query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`]-(m)`, `n.id = '${node_id}'`, undefined, limit)
@@ -134,12 +151,6 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
           relation_types: relation_types,
           topk: 10,
           enable_prediction: enable_prediction
-        }
-      } else {
-        if (searchObject.nsteps && searchObject.nsteps <= 1) {
-          query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
-        } else {
-          query_str = makeGraphQueryStr(`(n:${node_type})-[*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,m", limit)
         }
       }
 

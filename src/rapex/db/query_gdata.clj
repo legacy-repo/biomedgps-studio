@@ -129,22 +129,28 @@
 (defn set-style
   [node-label nlabel & {:keys [is-badge]
                         :or {is-badge false}}]
-  (if is-badge
-    {:label {:value node-label}
-     :keyshape {:fill ((keyword nlabel) (memorized-gen-color-map))}
-     :badges [{:position "RT"
-               :type "text"
-               :value (clojure.string/upper-case (first nlabel))
-               :size [15, 15]
-               :fill ((keyword nlabel) (memorized-gen-color-map))
-               :color "#fff"}]}
-    {:label {:value node-label}
-     :keyshape {:fill ((keyword nlabel) (memorized-gen-color-map))}
-     :icon {:type "text"
-            :value (clojure.string/upper-case (first nlabel))
-            :fill "#000"
-            :size 15
-            :color "#000"}}))
+  (let [label {:value node-label}
+        color ((keyword nlabel) (memorized-gen-color-map))
+        keyshape {:fill color
+                  :stroke color
+                  :opacity 0.95
+                  :fillOpacity 0.95}]
+    (if is-badge
+      {:label label
+       :keyshape keyshape
+       :badges [{:position "RT"
+                 :type "text"
+                 :value (clojure.string/upper-case (first nlabel))
+                 :size [15, 15]
+                 :fill color
+                 :color "#fff"}]}
+      {:label label
+       :keyshape keyshape
+       :icon {:type "text"
+              :value (clojure.string/upper-case (first nlabel))
+              :fill "#000"
+              :size 15
+              :color "#000"}})))
 
 (defn format-node
   [node]
