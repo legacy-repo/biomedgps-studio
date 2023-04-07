@@ -14,7 +14,7 @@ import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources, makeGraphQueryStrWithSearchObject, defaultLayout
 } from './utils';
-import { SearchObject, GraphData, GraphEdge } from './typings';
+import { SearchObject, GraphData, GraphEdge, GraphNode } from './typings';
 
 import './index.less';
 
@@ -24,6 +24,7 @@ const style = {
 
 type KnowledgeGraphProps = {
   storeId?: string
+  postMessage?: (message: any) => void
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
@@ -170,16 +171,24 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     })
   }
 
+  const onEdgeMenuClick = (menuItem: any, source: GraphNode, target: GraphNode, graph: any, graphin: any) => {
+    if (menuItem.key == 'what-is') {
+      if (props.postMessage) {
+        props.postMessage(`what is the relationship between ${source.data.name} and ${target.data.name}`)
+      }
+    }
+  }
+
   const onNodeMenuClick = (menuItem: any, menuData: any, graph: any, graphin: any) => {
-    console.log(`onNodeMenuClick [${menuItem.name}]: `, menuItem, menuData);
-    if (menuItem.key == 'delete' && menuItem.name == 'Delete Node') {
+    console.log(`onNodeMenuClick [${menuItem.key}]: `, menuItem, menuData);
+    if (menuItem.key == 'delete-node') {
       const id = menuData.id;
       const item = graph.findById(id);
 
       if (item) {
         graph.removeItem(item);
       }
-    } else if (menuItem.key == 'expand' && menuItem.name == 'Expand One Level') {
+    } else if (menuItem.key == 'expand-one-level') {
       enableAdvancedSearch();
       setSearchObject({
         node_type: menuData.nlabel,
@@ -286,7 +295,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             </Toolbar>
             <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
-              statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}>
+              statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}
+              onEdgeMenuClick={onEdgeMenuClick}>
             </GraphinWrapper>
           </Col>
         </Spin>

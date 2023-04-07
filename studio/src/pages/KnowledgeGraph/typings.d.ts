@@ -25,7 +25,7 @@ export type GraphNode = {
   style: any;
   category: 'nodes' | 'edges';
   type: 'graphin-circle';
-  data: Record<string, any>;
+  data: Record<string, any>; // at least id, name
   x?: number;
   y?: number;
 }
@@ -45,4 +45,11 @@ export type GraphData = {
   edges: GraphEdge[];
 }
 
-export type DataOnChangeFn = ((item: { key: string, name: string }, data: AntvGraphData, graph: Graph, graphin: any) => void)
+export type NodeOnClickFn = (
+  (item: { key: string, name: string },
+    data: GraphNode, graph: Graph, graphin: any) => void)
+
+export type EdgeOnClickFn = (
+  (item: { key: string, name: string },
+    source: GraphNode, target: GraphNode,
+    graph: Graph, graphin: any) => void)

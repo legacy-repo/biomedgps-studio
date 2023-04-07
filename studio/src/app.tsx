@@ -303,12 +303,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         if (initialState?.customSettings?.mode === "Developer") {
           // menuData = await getMenusDataset({ dataset: params.defaultDataset });
           menuRoutes = [
-            {
-              name: 'knowledge-graph',
-              icon: 'ShareAltOutlined',
-              path: '/knowledgegraph',
-              component: 'KnowledgeGraph',
-            },
+            // {
+            //   name: 'knowledge-graph',
+            //   icon: 'ShareAltOutlined',
+            //   path: '/knowledgegraph',
+            //   component: 'KnowledgeGraph',
+            // },
             {
               name: 'chatbox',
               icon: 'InfoCircleOutlined',

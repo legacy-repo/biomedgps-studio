@@ -10,16 +10,17 @@ import {
     DotChartOutlined,
     DeleteFilled,
     ExpandAltOutlined,
-    CloseCircleOutlined,
+    QuestionCircleOutlined,
     CloudDownloadOutlined,
     EyeOutlined,
-    DeleteOutlined
+    BranchesOutlined,
+    AimOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
-import { message, Descriptions, Switch, Button } from 'antd';
+import { message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu } from 'antd';
 import { makeDataSource } from './utils';
-import type { DataOnChangeFn } from "./typings";
+import type { NodeOnClickFn, EdgeOnClickFn, GraphNode } from "./typings";
 import voca from 'voca';
 import './graphin-wrapper.less';
 
@@ -38,55 +39,134 @@ const snapLineOptions = {
     },
 };
 
-type MenuProps = {
-    onChange?: DataOnChangeFn
+type EdgeMenuProps = {
+    onChange?: EdgeOnClickFn,
+    item?: IG6GraphEvent['item'];
 }
 
-const EdgeMenu = (props: MenuProps) => {
+const EdgeMenu = (props: EdgeMenuProps) => {
     const { graph, apis } = useContext(GraphinContext);
+    const { item } = props;
+
+    const [visible, setVisible] = useState<boolean>(false);
+    const [sourceNode, setSourceNode] = useState<GraphNode | undefined>(undefined);
+    const [targetNode, setTargetNode] = useState<GraphNode | undefined>(undefined);
+
+    useEffect(() => {
+        if (item && item._cfg) {
+            const source = item._cfg.source;
+            const target = item._cfg.target;
+
+            // Don't worry about the type of source and target.
+            if (source && source._cfg && target && target._cfg) {
+                setSourceNode(source._cfg.model)
+                setTargetNode(target._cfg.model)
+                setVisible(true)
+            }
+        }
+    }, [item])
 
     const options = [
         {
-            key: 'barchart',
+            key: 'analyze-with-clinical-data',
             icon: <BarChartOutlined />,
-            name: 'Bar Chart',
+            label: 'Analyze with Clinical Data',
+            children: [
+                {
+                    key: 'barchart',
+                    icon: <BarChartOutlined />,
+                    label: 'Bar Chart',
+                },
+                {
+                    key: 'boxchart',
+                    icon: <BoxPlotOutlined />,
+                    label: 'Box Plot',
+                },
+                {
+                    key: 'heatmap',
+                    icon: <HeatMapOutlined />,
+                    label: 'Heatmap',
+                },
+                {
+                    key: 'scatterchart',
+                    icon: <DotChartOutlined />,
+                    label: 'Scatter Chart',
+                },
+            ]
         },
         {
-            key: 'boxchart',
-            icon: <BoxPlotOutlined />,
-            name: 'Box Plot',
+            key: 'analyze-with-omics-data',
+            icon: <AimOutlined />,
+            label: 'Analyze with Omics Data',
+            children: [
+                {
+                    key: 'heatmap-omics',
+                    icon: <HeatMapOutlined />,
+                    label: 'Heatmap',
+                },
+                {
+                    key: 'scatterchart-omics',
+                    icon: <DotChartOutlined />,
+                    label: 'Scatter Chart',
+                },
+            ]
         },
         {
-            key: 'heatmap',
-            icon: <HeatMapOutlined />,
-            name: 'Heatmap',
-        },
-        {
-            key: 'scatterchart',
-            icon: <DotChartOutlined />,
-            name: 'Scatter Chart',
-        },
+            key: 'ask-question',
+            icon: <QuestionCircleOutlined />,
+            label: 'Ask Chatbot',
+            children: [
+                {
+                    key: 'what-is',
+                    icon: <BranchesOutlined />,
+                    label: `What is the relationship between the two nodes?`,
+                }
+            ]
+        }
     ];
 
-    const onChange = function (item: any, data: any) {
+    const onChange = function (item: any) {
         if (props.onChange && graph && apis) {
-            props.onChange(item, data, graph, apis)
+            props.onChange(item, sourceNode, targetNode, graph, apis)
+            setVisible(false);
         } else {
             message.warn("Cannot catch the changes.")
         }
     }
 
-    return <Menu options={options} onChange={onChange} bindType="node" />
+    return visible ? <AntdMenu items={options} onClick={onChange} /> : null;
 }
 
-const NodeMenu = (props: MenuProps) => {
+type NodeMenuProps = {
+    onChange?: NodeOnClickFn,
+    item?: IG6GraphEvent['item'];
+}
+
+const NodeMenu = (props: NodeMenuProps) => {
     const { graph, apis } = useContext(GraphinContext);
+    const { item } = props;
+
+    const [visible, setVisible] = useState<boolean>(false);
+
+    console.log("NodeMenu", props.item)
+
+    const [node, setNode] = useState<GraphNode | undefined>(undefined);
+
+    useEffect(() => {
+        if (item && item._cfg) {
+            const nodeModel = item._cfg.model;
+
+            // Don't worry about the type of nodeModel.
+            setNode(nodeModel)
+            setVisible(true)
+        }
+    }, [item])
 
     const options = [
         {
-            key: 'expand',
+            key: 'expand-one-level',
             icon: <ExpandAltOutlined />,
-            name: 'Expand One Level',
+            label: 'Expand One Level',
         },
         // {
         //     key: 'tag',
@@ -94,21 +174,22 @@ const NodeMenu = (props: MenuProps) => {
         //     name: 'Tag Node',
         // },
         {
-            key: 'delete',
+            key: 'delete-node',
             icon: <DeleteFilled />,
-            name: 'Delete Node',
+            label: 'Delete Node',
         },
     ];
 
-    const onChange = function (item: any, data: any) {
+    const onChange = function (item: any) {
         if (props.onChange && graph && apis) {
-            props.onChange(item, data, graph, apis)
+            props.onChange(item, node, graph, apis)
+            setVisible(false);
         } else {
             message.warn("Cannot catch the changes.")
         }
     }
 
-    return <Menu options={options} onChange={onChange} bindType="node" />
+    return visible ? <AntdMenu items={options} onClick={onChange} /> : null;
 }
 
 const CanvasMenu = (props: any) => {
@@ -268,21 +349,81 @@ const FocusBehavior = (props: { queriedId?: string }) => {
     return null;
 };
 
+const NodeSearcher = () => {
+    const { graph, apis } = useContext(GraphinContext);
+
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [nodeOptions, setNodeOptions] = useState<any[]>([]);
+
+    const handleNodeSelectorChange = (value: string) => {
+        console.log("handleNodeSelectorChange: ", value)
+        if (value) {
+            apis.focusNodeById(value);
+        }
+    }
+
+    const handleNodeSearch = (value: string) => {
+        console.log("handleNodeSearch: ", value)
+        setSearchLoading(true);
+        if (value) {
+            const nodeOptions: any[] = [];
+            graph.getNodes().forEach(node => {
+                const model = node.getModel() as NodeConfig & GraphNode;
+                console.log("handleNodeSearch: ", model)
+                if ((model.label && model.label.toLowerCase().includes(value.toLowerCase()))
+                    || (model.data.name && model.data.name.toLowerCase().includes(value.toLowerCase()))) {
+                    nodeOptions.push({
+                        label: `${model.id} | ${model.data.name}`,
+                        value: model.id,
+                    })
+                }
+            });
+            setNodeOptions(nodeOptions);
+            setSearchLoading(false);
+        } else {
+            setNodeOptions([]);
+            setSearchLoading(false);
+        }
+    }
+
+    return (
+        <Select
+            className="node-searcher"
+            showSearch
+            allowClear
+            loading={searchLoading}
+            defaultActiveFirstOption={false}
+            showArrow={true}
+            placement={"topRight"}
+            placeholder={"Search nodes"}
+            onSearch={handleNodeSearch}
+            onChange={handleNodeSelectorChange}
+            options={nodeOptions}
+            filterOption={false}
+            notFoundContent={<Empty description={
+                searchLoading ? "Searching..." :
+                    (nodeOptions !== undefined ? "Not Found" : `Enter your interested node ...`)
+            } />}
+        >
+        </Select>
+    )
+}
+
 export type GraphinProps = {
     selectedNode?: string;
     data: any;
     layout: any;
     style: any;
     containerId?: string;
-    onNodeMenuClick?: DataOnChangeFn;
-    onEdgeMenuClick?: DataOnChangeFn;
+    onNodeMenuClick?: NodeOnClickFn;
+    onEdgeMenuClick?: EdgeOnClickFn;
     queriedId?: string;
     statistics: any;
     toolbarVisible?: boolean;
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
-    const { data, layout, style, onNodeMenuClick, selectedNode } = props
+    const { data, layout, style, onNodeMenuClick, onEdgeMenuClick, selectedNode } = props
     const [fishEyeVisible, setFishEyeVisible] = useState(false);
 
     const [autoPin, setAutoPin] = useState(false);
@@ -296,10 +437,25 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const [snapLineEnabled, setSnapLineEnabled] = useState(true);
     const [infoPanelEnabled, setInfoPanelEnabled] = useState(true);
 
+    const [currentEdge, setCurrentEdge] = useState<any>(null);
+    const [currentNode, setCurrentNode] = useState<any>(null);
+
     const ref = React.useRef(null);
 
+    // Save the node or edge when the context menu is clicked.
+    useEffect(() => {
+        if (ref && ref.current && ref.current.graph) {
+            ref.current.graph.on("edge:contextmenu", e => {
+                setCurrentEdge(e.item)
+            })
+            ref.current.graph.on("node:contextmenu", e => {
+                setCurrentNode(e.item)
+            })
+        }
+    }, [])
+
     const handleOpenFishEye = () => {
-        setVisible(true);
+        setFishEyeVisible(true);
     };
 
     const onCloseFishEye = () => {
@@ -352,13 +508,13 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <CustomHoverable bindType="edge" disabled={selectedNodeEnabled} />
             <ActivateRelations disabled={!selectedNodeEnabled} />
             <ContextMenu style={{ width: '160px' }}>
-                <NodeMenu onChange={onNodeMenuClick}></NodeMenu>
+                <NodeMenu item={currentNode} onChange={onNodeMenuClick}></NodeMenu>
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
-                <EdgeMenu />
+                <EdgeMenu item={currentEdge} onChange={onEdgeMenuClick} />
             </ContextMenu>
             <Legend bindType="node" sortKey="nlabel">
                 {(renderProps: LegendChildrenProps) => {
@@ -462,6 +618,8 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 </Toolbar>
                 : null
             }
+
+            <NodeSearcher></NodeSearcher>
 
             {focusNodeEnabled ?
                 <FocusBehavior queriedId={props.queriedId} />

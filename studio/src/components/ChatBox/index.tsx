@@ -24,8 +24,11 @@ export interface Message {
   hasError?: boolean;
 }
 
+interface ChatBoxProps {
+  message?: string;
+}
 
-const ChatBoxWrapper: React.FC = () => {
+const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   const notificationType = 'indicator'
   const textType = 'text'
   const maxTokens = 300;
@@ -107,7 +110,6 @@ const ChatBoxWrapper: React.FC = () => {
       return 9606
     }
   }
-
 
   const predict = async (message: string, messages: Message[]) => {
     let newMessages = publishNotification('Predicting, wait a moment (it\'s slow, be patient)...', messages);
@@ -211,6 +213,12 @@ const ChatBoxWrapper: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('chatai-messages', JSON.stringify(messages));
   }, [messages]);
+
+  useEffect(() => {
+    if (props.message) {
+      handleOnSendMessage(props.message);
+    }
+  }, [props.message]);
 
   return <ChatBox
     messages={messages}
