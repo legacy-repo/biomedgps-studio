@@ -172,7 +172,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }
 
   const onEdgeMenuClick = (menuItem: any, source: GraphNode, target: GraphNode, graph: any, graphin: any) => {
-    if (menuItem.key == 'what-is') {
+    if (menuItem.key == 'what-is-the-relationship') {
       if (props.postMessage) {
         props.postMessage(`what is the relationship between ${source.data.name} and ${target.data.name}`)
       }
@@ -195,6 +195,10 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         node_id: menuData.data.id,
         merge_mode: "append"
       })
+    } else if (menuItem.key == 'what-is-the-node') {
+      if (props.postMessage) {
+        props.postMessage(`what is ${menuData.data.name}`)
+      }
     }
   };
 
@@ -296,7 +300,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
               statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}
-              onEdgeMenuClick={onEdgeMenuClick}>
+              onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}>
             </GraphinWrapper>
           </Col>
         </Spin>

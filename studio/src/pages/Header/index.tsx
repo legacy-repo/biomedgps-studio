@@ -125,7 +125,7 @@ const GlobalHeaderRight: React.FC = () => {
           {defaultDataset}
         </Dropdown.Button>
         <Modal className="dataset-selector" width={'80%'} onCancel={handleCancel}
-          title="Select Dataset" visible={isModalOpen} footer={null}>
+          title="Select Dataset" visible={isModalOpen} footer={null} style={{ display: 'none' }}>
           <DatasetList selectDataset={handleOk}></DatasetList>
         </Modal>
       </Row>

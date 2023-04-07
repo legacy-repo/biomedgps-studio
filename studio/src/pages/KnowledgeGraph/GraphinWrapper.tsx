@@ -41,12 +41,13 @@ const snapLineOptions = {
 
 type EdgeMenuProps = {
     onChange?: EdgeOnClickFn,
+    chatbotVisible?: boolean,
     item?: IG6GraphEvent['item'];
 }
 
 const EdgeMenu = (props: EdgeMenuProps) => {
     const { graph, apis } = useContext(GraphinContext);
-    const { item } = props;
+    const { item, chatbotVisible } = props;
 
     const [visible, setVisible] = useState<boolean>(false);
     const [sourceNode, setSourceNode] = useState<GraphNode | undefined>(undefined);
@@ -110,20 +111,23 @@ const EdgeMenu = (props: EdgeMenuProps) => {
                     label: 'Scatter Chart',
                 },
             ]
-        },
-        {
+        }
+    ];
+
+    if (chatbotVisible) {
+        options.push({
             key: 'ask-question',
             icon: <QuestionCircleOutlined />,
             label: 'Ask Chatbot',
             children: [
                 {
-                    key: 'what-is',
+                    key: 'what-is-the-relationship',
                     icon: <BranchesOutlined />,
                     label: `What is the relationship between the two nodes?`,
                 }
             ]
-        }
-    ];
+        })
+    }
 
     const onChange = function (item: any) {
         if (props.onChange && graph && apis) {
@@ -139,12 +143,13 @@ const EdgeMenu = (props: EdgeMenuProps) => {
 
 type NodeMenuProps = {
     onChange?: NodeOnClickFn,
+    chatbotVisible?: boolean,
     item?: IG6GraphEvent['item'];
 }
 
 const NodeMenu = (props: NodeMenuProps) => {
     const { graph, apis } = useContext(GraphinContext);
-    const { item } = props;
+    const { item, chatbotVisible } = props;
 
     const [visible, setVisible] = useState<boolean>(false);
 
@@ -162,7 +167,7 @@ const NodeMenu = (props: NodeMenuProps) => {
         }
     }, [item])
 
-    const options = [
+    const options: any[] = [
         {
             key: 'expand-one-level',
             icon: <ExpandAltOutlined />,
@@ -179,6 +184,21 @@ const NodeMenu = (props: NodeMenuProps) => {
             label: 'Delete Node',
         },
     ];
+
+    if (chatbotVisible) {
+        options.push({
+            key: 'ask-question',
+            icon: <QuestionCircleOutlined />,
+            label: 'Ask Chatbot',
+            children: [
+                {
+                    key: 'what-is-the-node',
+                    icon: <EyeOutlined />,
+                    label: `What is the node?`,
+                }
+            ]
+        })
+    }
 
     const onChange = function (item: any) {
         if (props.onChange && graph && apis) {
@@ -419,6 +439,7 @@ export type GraphinProps = {
     onEdgeMenuClick?: EdgeOnClickFn;
     queriedId?: string;
     statistics: any;
+    chatbotVisible?: boolean;
     toolbarVisible?: boolean;
 }
 
@@ -508,13 +529,15 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <CustomHoverable bindType="edge" disabled={selectedNodeEnabled} />
             <ActivateRelations disabled={!selectedNodeEnabled} />
             <ContextMenu style={{ width: '160px' }}>
-                <NodeMenu item={currentNode} onChange={onNodeMenuClick}></NodeMenu>
+                <NodeMenu chatbotVisible={props.chatbotVisible}
+                    item={currentNode} onChange={onNodeMenuClick} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
-                <EdgeMenu item={currentEdge} onChange={onEdgeMenuClick} />
+                <EdgeMenu item={currentEdge} chatbotVisible={props.chatbotVisible}
+                    onChange={onEdgeMenuClick} />
             </ContextMenu>
             <Legend bindType="node" sortKey="nlabel">
                 {(renderProps: LegendChildrenProps) => {

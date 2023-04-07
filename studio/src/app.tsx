@@ -303,12 +303,12 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         if (initialState?.customSettings?.mode === "Developer") {
           // menuData = await getMenusDataset({ dataset: params.defaultDataset });
           menuRoutes = [
-            // {
-            //   name: 'knowledge-graph',
-            //   icon: 'ShareAltOutlined',
-            //   path: '/knowledgegraph',
-            //   component: 'KnowledgeGraph',
-            // },
+            {
+              name: 'knowledge-graph',
+              icon: 'ShareAltOutlined',
+              path: '/knowledgegraph',
+              component: 'KnowledgeGraph',
+            },
             {
               name: 'chatbox',
               icon: 'InfoCircleOutlined',
@@ -356,6 +356,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       const { location } = history;
 
       if (location.pathname === "/") {
+        history.push("/knowledgegraph");
+      }
+
+      // It's just a trick to redirect to `/index.html` when you visit `/` .
+      if (location.pathname === "/index.html") {
         history.push("/knowledgegraph");
       }
 

@@ -131,11 +131,12 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     // let messagesStr = allMessages.join('\n');
     let messagesStr = message;
     let prompt = '\n\nDo you know the above question? please output it as the following format?  {     "entity_type": "xxx",  // One of Gene, Drug or Protein  "entity_name": "xxx", "which_relationships": "xxx", // One of All, Gene-Drug, Gene-Gene, Gene-Protein, Drug-Protein "gene_name": "xxx", "entrez_id": "xxx", "taxid": "xxx",  "which_task": "xxx", // One of KnowledgeGraph, sgRNAs  "which_species": "xxx" // one of rat, mouse and human }'
-    fetch('https://alpaca.3steps.cn:8443/run/predict', {
+    fetch('https://ai.3steps.cn/run/predict', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        data: [messagesStr + `\n${prompt}`, '', 0.1, 0.75, 40, 4, maxTokens],
+        // data: [messagesStr + `\n${prompt}`, '', 0.1, 0.75, 40, 4, maxTokens],
+        data: [messagesStr],
       }),
     })
       .then(async response => {

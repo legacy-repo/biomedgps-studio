@@ -5,8 +5,10 @@
   "description": "A studio for discovering Response to Air Pollution EXposure",
   "scripts": {
     "publish-code": "npm run build && cp -R ./dist/* ../resources/public/",
+    "publish-code-nm": "npm run build-nm && cp -R ./dist/* ../resources/public/",
     "analyze": "cross-env ANALYZE=1 umi build",
     "build": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi build",
+    "build-nm": "cross-env UMI_APP_API_PREFIX=https://drugs.3steps.cn umi build",
     "deploy": "npm run build && npm run gh-pages",
     "dev": "npm run start:dev",
     "docker-hub:build": "docker build  -f Dockerfile.hub -t  ant-design-pro ./",
@@ -32,6 +34,7 @@
     "serve": "umi-serve",
     "start": "cross-env UMI_ENV=dev umi dev",
     "start:remote-dev": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi dev",
+    "start:remote-dev-nm": "cross-env UMI_APP_API_PREFIX=https://drugs.3steps.cn umi dev",
     "start:local-dev": "cross-env UMI_APP_API_PREFIX=http://localhost:3002 umi dev",
     "start:dev": "cross-env REACT_APP_ENV=dev MOCK=none UMI_ENV=dev umi dev",
     "start:no-mock": "cross-env MOCK=none UMI_ENV=dev umi dev",

@@ -3,6 +3,7 @@
    [rapex.middleware.wrapper :as wrapper]
    [rapex.routes.core :as app-routes]
    [reitit.ring :as ring]
+   [ring.middleware.file :refer [wrap-file]]
    [ring.middleware.content-type :refer [wrap-content-type]]
    [ring.middleware.webjars :refer [wrap-webjars]]
    [rapex.env :refer [defaults]]
@@ -10,7 +11,7 @@
    [clojure.tools.logging :as log]
    [reitit.spec :as rs]
    [reitit.dev.pretty :as pretty]
-   [rapex.config :refer [env]]))
+   [rapex.config :refer [env get-workdir]]))
 
 (mount/defstate init-app
   :start ((or (:init defaults) (fn [])))
@@ -38,9 +39,10 @@
   :start
   (ring/ring-handler
    (ring/router
-    [["/" {:get
-           {:handler (constantly {:status 301 :headers {"Location" "/index.html"}})}}]
-     (app-routes/routes)]
+    [(app-routes/routes)
+     ; <ROOT>/custom/* will be served from the workdir
+     ["/custom/*" (-> (ring/create-resource-handler {:path "/"})
+                      (wrap-file (get-workdir)))]]
 
     {:validate  rs/validate
      :exception pretty/exception})
