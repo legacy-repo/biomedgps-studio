@@ -199,7 +199,7 @@ declare namespace API {
     plugin_name?: string;
   };
 
-  type postChartsChartNameParams = {
+  type postChartChartNameParams = {
     chart_name: string;
   };
 

@@ -350,21 +350,32 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
         nrows = df.shape[0]
         if nrows > 0:
             relation_type = df["TYPE"][0]
+            source = relation_type.split("::")[0].upper()
             start_node_type = relation_type.split("::")[-1].split(":")[0]
             end_node_type = relation_type.split("::")[-1].split(":")[1]
             relationship_labels.append({
+                "source": source,
                 "relation_type": relation_type,
                 "start_node_type": start_node_type,
                 "end_node_type": end_node_type,
                 "relation_count": nrows,
             })
 
+            # Currently, we don't have attributes for relationships. so we can merge all relationship files into one.
+            # TODO: If we add attributes for relationships, we need to change this.
+            r = graph_labels.get("relationships")
+            if r is None:
+                graph_labels["relationships"] = [f]
+            else:
+                graph_labels["relationships"] = r + [f]
+
     output_dir = os.path.dirname(output_file)
-    graph_metadata_file = os.path.join(output_dir, "graph_metadata.tsv")
-    pd.DataFrame(relationship_labels).to_csv(
+    graph_metadata_file = os.path.join(
+        output_dir, "graph_relationship_metadata.tsv")
+    pd.DataFrame(relationship_labels).sort_values(by='source').to_csv(
         graph_metadata_file, sep="\t", index=False)
 
-    graph_labels["graph_metadata"] = graph_metadata_file
+    graph_labels["graph_relationship_metadata"] = graph_metadata_file
     print("Graph Labels:", graph_labels)
     with open(output_file, "w") as f:
         json.dump(graph_labels, f, indent=4)
@@ -381,19 +392,6 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
               type=click.Choice(["sqlite", "duckdb"]),
               help="Which type of database.")
 def graph_labels(graph_metadata_file, output_dir, db):
-    # labels = {
-    #     "gene": "HGNC_MGI/Gene.tsv",
-    #     "metabolite": "HMDB/Metabolite.tsv",
-    #     "pathway": "PathwayCommons/Pathway.tsv",
-    #     "transcript": "RefSeq/Transcript.tsv",
-    #     "protein": "UniProt/Protein.tsv",
-    #     "peptide": "UniProt/Peptide.tsv",
-    #     "disease": "Ontologies/Disease.tsv",
-    #     "phenotype": "Ontologies/Phenotype.tsv",
-    #     "publication": "JensenLab/Publications.tsv",
-    #     "graph_metadata": "graph_metadata.tsv"
-    # }
-
     if not os.path.exists(graph_metadata_file):
         error_msg = """
         Cannot find the metadata file (%s), you need to prepare the metadata file first. 
@@ -407,9 +405,10 @@ def graph_labels(graph_metadata_file, output_dir, db):
         }
 
         <db_name>: the name of the database table, it's the lower case of label name. such as gene, metabolite, pathway, etc. Their corresponding label names are: Gene, Metabolite, Pathway, etc.
-        <db_file>: the data file which contains the data of the database table. The data file should be a tsv file. **Please just keep it same with the node file that you imported to the graph database.**
+        <data_file>: the data file which contains the data of the database table. The data file should be a tsv file. **Please just keep it same with the node file that you imported to the graph database.** The name of the data file should contains the source of the data and the node type, such as: hgnc_gene.tsv, kegg_pathway.tsv, etc.
 
         graph_metadata: [required] the data file which contains the metadata of the graph. The data file should be a tsv file. The metadata file should contains the following columns:
+            - source: the source of the data, such as HGNC, KEGG, etc.
             - start_node_type: the type of the start node, such as Gene, Metabolite, Pathway, etc.
             - relation_type: the type of the relation, such as Gene-Pathway, Gene-Disease, etc. It's up to you to define the relation type.
             - end_node_type: the type of the end node, such as Gene, Metabolite, Pathway, etc.
@@ -418,10 +417,12 @@ def graph_labels(graph_metadata_file, output_dir, db):
         print(error_msg)
         return
 
+    graph_node_metadata = []
+
     with open(graph_metadata_file, "r") as f:
         labels = json.load(f)
 
-        dbfile = os.path.join(output_dir, "%s.%s" % ("graph_labels", db))
+        dbfile = os.path.join(output_dir, "%s.%s" % ("graph_metadata", db))
         if os.path.exists(dbfile):
             raise Exception("The database file (%s) already exists." % dbfile)
 
@@ -434,7 +435,21 @@ def graph_labels(graph_metadata_file, output_dir, db):
                 file = os.path.join(os.path.dirname(graph_metadata_file), file)
                 df = pd.read_csv(file, sep="," if file.endswith(
                     "csv") else "\t", header=0)
+                # Use the first part of the filename as the source field which means the data source
+                filename = os.path.basename(file).strip(".csv").strip(".tsv")
+                source = filename.split("_")[0].upper()
+                df["source"] = source
                 df_list.append(df)
+
+                if key != "graph_relationship_metadata" and key != "relationships":
+                    print("Node DataFrame:", df.columns)
+
+                    graph_node_metadata.append({
+                        "source": source,
+                        # Each table should only have one node type
+                        "node_type": df[":LABEL"][0],
+                        "node_count": df.shape[0],
+                    })
 
             # Concatenate the DataFrames into a single DataFrame
             merged_df = pd.concat(df_list)
@@ -452,6 +467,13 @@ def graph_labels(graph_metadata_file, output_dir, db):
                                      table_name=key, skip=True)
                 else:
                     print("Cannot find the datafile (%s)" % temp_file_path)
+
+    graph_node_metadata_file = os.path.join(
+        output_dir, "graph_node_metadata.tsv")
+    pd.DataFrame(graph_node_metadata).sort_values(by='source').to_csv(
+        graph_node_metadata_file, sep="\t", index=False)
+    func_map.get(db)(graph_node_metadata_file, dbfile,
+                     table_name="graph_node_metadata", skip=True)
 
 
 @database.command(help="Parse data files and make a dataset database.")

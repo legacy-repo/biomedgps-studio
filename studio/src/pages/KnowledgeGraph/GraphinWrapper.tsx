@@ -548,7 +548,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             {props.toolbarVisible ?
                 <Toolbar style={{
                     top: 'unset', right: '5px',
-                    bottom: '5px', left: 'unset',
+                    bottom: '45px', left: 'unset',
                     marginBottom: '0px', opacity: 0.8,
                 }}>
                     <Toolbar.Item>

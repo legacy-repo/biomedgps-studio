@@ -26,7 +26,7 @@ type UIContext = Record<string, any>;
 import {
   getTasksId as getChartTask,
   getChartsUiSchemaChartName as getChartUiSchema,
-  postChartsChartName as postChart
+  postChartChartName as postChart
 } from '@/services/swagger/StatEngine';
 import { GenesQueryParams, GeneDataResponse } from '@/components/GeneSearcher';
 import { getDownload as getFile } from '@/services/swagger/Instance';

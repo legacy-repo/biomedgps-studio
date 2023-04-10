@@ -39,7 +39,9 @@
   :start
   (ring/ring-handler
    (ring/router
-    [(app-routes/routes)
+    [["/" {:get
+           {:handler (constantly {:status 301 :headers {"Location" "/index.html"}})}}]
+     (app-routes/routes)
      ; <ROOT>/custom/* will be served from the workdir
      ["/custom/*" (-> (ring/create-resource-handler {:path "/"})
                       (wrap-file (get-workdir)))]]

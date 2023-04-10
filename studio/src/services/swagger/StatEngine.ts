@@ -2,6 +2,25 @@
 /* eslint-disable */
 import { request } from 'umi';
 
+/** Create chart Create a chart task. POST /api/v1/chart/${param0} */
+export async function postChartChartName(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.postChartChartNameParams,
+  body: {},
+  options?: { [key: string]: any },
+) {
+  const { chart_name: param0, ...queryParams } = params;
+  return request<any>(`/api/v1/chart/${param0}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** Get charts Get all the available charts. GET /api/v1/charts */
 export async function getCharts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -13,25 +32,6 @@ export async function getCharts(
     params: {
       ...params,
     },
-    ...(options || {}),
-  });
-}
-
-/** Create chart Create a chart task. POST /api/v1/charts/${param0} */
-export async function postChartsChartName(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.postChartsChartNameParams,
-  body: {},
-  options?: { [key: string]: any },
-) {
-  const { chart_name: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/charts/${param0}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    params: { ...queryParams },
-    data: body,
     ...(options || {}),
   });
 }
