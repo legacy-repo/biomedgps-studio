@@ -49,7 +49,7 @@ const BarPlot: React.FC<ComplexChartProps> = (props) => {
             color: '#0083ff',
           }
         }],
-        layout: genLayout('Node Type Count', 'Node Type', 'Count')
+        layout: genLayout('Node Type Count', 'Node Type', 'Count', false)
       });
 
       localCharts.push({
@@ -62,7 +62,7 @@ const BarPlot: React.FC<ComplexChartProps> = (props) => {
             color: '#0083ff',
           }
         }],
-        layout: genLayout('Edge Type Count', 'Edge Type', 'Count')
+        layout: genLayout('Edge Type Count', 'Edge Type', 'Count', false)
       });
 
       setCharts(localCharts);

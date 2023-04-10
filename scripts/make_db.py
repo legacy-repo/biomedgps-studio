@@ -427,46 +427,52 @@ def graph_labels(graph_metadata_file, output_dir, db):
             raise Exception("The database file (%s) already exists." % dbfile)
 
         for key in labels.keys():
-            file_list = labels[key] \
-                if type(labels[key]) == list else [labels[key]]
-            df_list = []
-            # Loop over each CSV file and load it into a pandas DataFrame
-            for file in file_list:
-                file = os.path.join(os.path.dirname(graph_metadata_file), file)
-                df = pd.read_csv(file, sep="," if file.endswith(
-                    "csv") else "\t", header=0)
-                # Use the first part of the filename as the source field which means the data source
-                filename = os.path.basename(file).strip(".csv").strip(".tsv")
-                source = filename.split("_")[0].upper()
-                df["source"] = source
-                df_list.append(df)
+            if key == "graph_relationship_metadata":
+                func_map.get(db)(labels[key], dbfile,
+                                 table_name=key, skip=True)
+            else:
+                file_list = labels[key] \
+                    if type(labels[key]) == list else [labels[key]]
+                df_list = []
+                # Loop over each CSV file and load it into a pandas DataFrame
+                for file in file_list:
+                    file = os.path.join(os.path.dirname(
+                        graph_metadata_file), file)
+                    df = pd.read_csv(file, sep="," if file.endswith(
+                        "csv") else "\t", header=0)
+                    # Use the first part of the filename as the source field which means the data source
+                    filename = os.path.basename(
+                        file).strip(".csv").strip(".tsv")
+                    source = filename.split("_")[0].upper()
+                    df["source"] = source
+                    df_list.append(df)
 
-                if key != "graph_relationship_metadata" and key != "relationships":
-                    print("Node DataFrame:", df.columns)
+                    if key != "relationships":
+                        print("Node DataFrame:", df.columns)
 
-                    graph_node_metadata.append({
-                        "source": source,
-                        # Each table should only have one node type
-                        "node_type": df[":LABEL"][0],
-                        "node_count": df.shape[0],
-                    })
+                        graph_node_metadata.append({
+                            "source": source,
+                            # Each table should only have one node type
+                            "node_type": df[":LABEL"][0],
+                            "node_count": df.shape[0],
+                        })
 
-            # Concatenate the DataFrames into a single DataFrame
-            merged_df = pd.concat(df_list)
+                # Concatenate the DataFrames into a single DataFrame
+                merged_df = pd.concat(df_list)
 
-            # Create a temporary file for writing
-            with tempfile.NamedTemporaryFile(mode='w', suffix=".csv", delete=False) as temp_file:
+                # Create a temporary file for writing
+                with tempfile.NamedTemporaryFile(mode='w', suffix=".csv", delete=False) as temp_file:
 
-                # Write the merged DataFrame to the temporary file as a CSV
-                print("Merged DataFrame:", temp_file.name)
-                merged_df.to_csv(temp_file.name, index=False)
-                temp_file_path = temp_file.name
+                    # Write the merged DataFrame to the temporary file as a CSV
+                    print("Merged DataFrame:", temp_file.name)
+                    merged_df.to_csv(temp_file.name, index=False)
+                    temp_file_path = temp_file.name
 
-                if os.path.exists(temp_file_path):
-                    func_map.get(db)(temp_file_path, dbfile,
-                                     table_name=key, skip=True)
-                else:
-                    print("Cannot find the datafile (%s)" % temp_file_path)
+                    if os.path.exists(temp_file_path):
+                        func_map.get(db)(temp_file_path, dbfile,
+                                         table_name=key, skip=True)
+                    else:
+                        print("Cannot find the datafile (%s)" % temp_file_path)
 
     graph_node_metadata_file = os.path.join(
         output_dir, "graph_node_metadata.tsv")

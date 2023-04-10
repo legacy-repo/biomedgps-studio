@@ -53,3 +53,17 @@ export type EdgeOnClickFn = (
   (item: { key: string, name: string },
     source: GraphNode, target: GraphNode,
     graph: Graph, graphin: any) => void)
+
+export type NodeStat = {
+  node_type: string;
+  node_count: number;
+  source: string;
+}
+
+export type EdgeStat = {
+  source: string;
+  relation_type: string;
+  start_node_type: string;
+  end_node_type: string;
+  relation_count: number;
+}

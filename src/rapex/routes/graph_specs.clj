@@ -182,6 +182,29 @@
    (s/keys :req-un [::data]
            :opt-un [])))
 
+(s/def ::node_stat
+  (st/spec
+   {:spec                (s/coll-of map? :into #{})
+    :type                :array
+    :description         "Records."
+    :swagger/type        "array"
+    :swagger/default     []
+    :reason              "The node_stat parameter can't be none."}))
+
+(s/def ::relationship_stat
+  (st/spec
+   {:spec                (s/coll-of map? :into #{})
+    :type                :array
+    :description         "Records."
+    :swagger/type        "array"
+    :swagger/default     []
+    :reason              "The relation_stat parameter can't be none."}))
+
+(s/def ::DBStatDataItems
+  (st/spec
+   (s/keys :req-un [::node_stat ::relationship_stat]
+           :opt-un [])))
+
 (def database-error-body
   "A spec for the body."
   (s/keys :req-un [::context ::msg]

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
-import { Row, Col, Tag, Tabs, Table, message, Descriptions, Button, Spin } from 'antd';
+import { Row, Col, Tag, Tabs, Table, message, Button, Spin } from 'antd';
 import type { TableColumnType } from 'antd';
 import { DeleteFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
@@ -10,11 +10,14 @@ import GraphinWrapper from './GraphinWrapper';
 import QueryBuilder from './QueryBuilder';
 import AdvancedSearch from './AdvancedSearch';
 import ComplexChart from './Chart/ComplexChart';
+import StatisticsChart from './Chart/StatisticsChart';
 import ReactResizeDetector from 'react-resize-detector';
 import {
-  makeColumns, makeDataSources, makeGraphQueryStrWithSearchObject, defaultLayout
+  makeColumns, makeDataSources,
+  makeGraphQueryStrWithSearchObject, defaultLayout
 } from './utils';
-import { SearchObject, GraphData, GraphEdge, GraphNode } from './typings';
+import { getStatistics } from '@/services/swagger/Graph';
+import { SearchObject, GraphData, GraphEdge, GraphNode, NodeStat, EdgeStat } from './typings';
 
 import './index.less';
 
@@ -43,6 +46,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [toolbarVisible, setToolbarVisible] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState<number>(0);
+
+  const [nodeStat, setNodeStat] = useState<NodeStat[]>([]);
+  const [edgeStat, setEdgeStat] = useState<EdgeStat[]>([]);
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
@@ -76,10 +82,10 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     setStatistics([
       [<span>Entities <Tag color="#2db7f5">canvas</Tag></span>, data.nodes.length],
       [<span>Relationships <Tag color="#2db7f5">canvas</Tag></span>, data.edges.length],
-      [<span>Entities <Tag color="#108ee9">graph</Tag></span>, "14,543,042"],
-      [<span>Relationships <Tag color="#108ee9">graph</Tag></span>, "188,266,233"],
+      [<span>Entities <Tag color="#108ee9">graph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
+      [<span>Relationships <Tag color="#108ee9">graph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
     ])
-  }, [data])
+  }, [data, edgeStat, nodeStat])
 
   useEffect(() => {
     let graphData = localStorage.getItem(internalStoreId)
@@ -89,6 +95,16 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       setLayout(graphData.layout)
       setToolbarVisible(graphData.toolbarVisible)
     }
+
+    getStatistics()
+      .then(response => {
+        setNodeStat(response.node_stat as NodeStat[])
+        setEdgeStat(response.relationship_stat as EdgeStat[])
+      })
+      .catch(error => {
+        console.log(error)
+        message.error("Failed to get statistics, please check the network connection.")
+      })
   }, [])
 
   useEffect(() => {
@@ -269,6 +285,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
           </AdvancedSearch>
           <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <Toolbar position='top' width='300px' height='100%' closable={true} title="Statistics">
+              <StatisticsChart nodeStat={nodeStat} edgeStat={edgeStat}></StatisticsChart>
+            </Toolbar>
             <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
               <ComplexChart data={data}></ComplexChart>
             </Toolbar>

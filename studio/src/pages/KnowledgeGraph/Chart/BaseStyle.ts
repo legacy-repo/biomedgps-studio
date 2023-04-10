@@ -1,4 +1,4 @@
-export const genLayout = (title: string, xTitle: string, yTitle: string) => {
+export const genLayout = (title: string, xTitle: string, yTitle: string, autoMargin: boolean) => {
   return {
     title: {
       text: title,
@@ -8,7 +8,7 @@ export const genLayout = (title: string, xTitle: string, yTitle: string) => {
         color: '#333333'
       },
       xref: 'paper',
-      x: 0.05,
+      x: 0,
     },
     xaxis: {
       zeroline: true,
@@ -35,7 +35,8 @@ export const genLayout = (title: string, xTitle: string, yTitle: string) => {
         b: 50,
         t: 50,
         pad: 4
-      }
+      },
+      automargin: autoMargin
     },
     yaxis: {
       title: {
@@ -61,7 +62,8 @@ export const genLayout = (title: string, xTitle: string, yTitle: string) => {
         b: 50,
         t: 50,
         pad: 4
-      }
+      },
+      automargin: autoMargin
     },
     plot_bgcolor: '#ffffff',
     paper_bgcolor: '#ffffff',

@@ -75,3 +75,38 @@ export async function getRelationshipTypes(options?: { [key: string]: any }) {
     ...(options || {}),
   });
 }
+
+/** Get relationships. Query relationships by some conditions. GET /api/v1/relationships */
+export async function getRelationships(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getRelationshipsParams,
+  options?: { [key: string]: any },
+) {
+  return request<{ total: number; page: number; page_size: number; data: Record<string, any>[] }>(
+    '/api/v1/relationships',
+    {
+      method: 'GET',
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    },
+  );
+}
+
+/** Get node & relationship statistics data. Get node & relationship statistics data. GET /api/v1/statistics */
+export async function getStatistics(options?: { [key: string]: any }) {
+  return request<{
+    node_stat: { source?: string; node_type?: string; node_count?: number }[];
+    relationship_stat: {
+      source?: string;
+      relation_type?: string;
+      start_node_type?: string;
+      end_node_type?: string;
+      relation_count?: number;
+    }[];
+  }>('/api/v1/statistics', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}

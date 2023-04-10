@@ -179,6 +179,15 @@ declare namespace API {
     dataset: string;
   };
 
+  type getRelationshipsParams = {
+    /** Query string with honeysql specification. */
+    query_str: string;
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+  };
+
   type getTasksIdParams = {
     /** Task ID */
     id: string;
