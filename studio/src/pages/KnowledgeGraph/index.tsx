@@ -16,10 +16,12 @@ import {
   makeColumns, makeDataSources,
   makeGraphQueryStrWithSearchObject, defaultLayout
 } from './utils';
+import InfoPanel from './InfoPanel';
 import { getStatistics } from '@/services/swagger/Graph';
 import { SearchObject, GraphData, GraphEdge, GraphNode, NodeStat, EdgeStat } from './typings';
 
 import './index.less';
+import menu from '@/locales/en-US/menu';
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
@@ -49,6 +51,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   const [nodeStat, setNodeStat] = useState<NodeStat[]>([]);
   const [edgeStat, setEdgeStat] = useState<EdgeStat[]>([]);
+  const [infoPanelVisible, setInfoPanelVisible] = useState<boolean>(false);
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
@@ -192,6 +195,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       if (props.postMessage) {
         props.postMessage(`what is the relationship between ${source.data.name} and ${target.data.name}`)
       }
+    } else if (menuItem.key == 'show-edge-details') {
+      setInfoPanelVisible(true)
+      // TODO: Get edge details and show in the info panel
     }
   }
 
@@ -215,6 +221,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       if (props.postMessage) {
         props.postMessage(`what is ${menuData.data.name}`)
       }
+    } else if (menuItem.key == 'show-node-details') {
+      setInfoPanelVisible(true)
+      // TODO: Get node details and show in the info panel
     }
   };
 
@@ -271,6 +280,26 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     }
   }
 
+  const onClickNode = (nodeId: string) => {
+    console.log("Node Clicked: ", nodeId)
+    if (nodeId) {
+      setInfoPanelVisible(true)
+      // TODO: Get node details and pass to InfoPanel
+    }
+  }
+
+  const onClickEdge = (edgeId: string) => {
+    console.log("Edge Clicked: ", edgeId)
+    if (edgeId) {
+      setInfoPanelVisible(true)
+      // TODO: Get edge details and pass to InfoPanel
+    }
+  }
+
+  const onCloseInfoPanel = () => {
+    setInfoPanelVisible(false)
+  }
+
   return (
     <ReactResizeDetector onResize={onWidthChange}>
       <Row className='knowledge-graph-container'>
@@ -288,8 +317,12 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             <Toolbar position='top' width='300px' height='100%' closable={true} title="Statistics">
               <StatisticsChart nodeStat={nodeStat} edgeStat={edgeStat}></StatisticsChart>
             </Toolbar>
-            <Toolbar position='right' width={'60%'} title="Charts" closable={true}>
+            <Toolbar position='left' width={'60%'} title="Charts" closable={true}>
               <ComplexChart data={data}></ComplexChart>
+            </Toolbar>
+            <Toolbar position='right' width={'60%'} closable={false}
+              maskVisible visible={infoPanelVisible} onClose={onCloseInfoPanel}>
+              <InfoPanel></InfoPanel>
             </Toolbar>
             <Toolbar position='bottom' width='300px' height='300px' onClick={() => {
               setCurrentNode("") // Clear the selected node
@@ -319,7 +352,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
               statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}
-              onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}>
+              onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
+              onClickNode={onClickNode} onClickEdge={onClickEdge}>
             </GraphinWrapper>
           </Col>
         </Spin>

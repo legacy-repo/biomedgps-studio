@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Drawer } from 'antd';
 
 import './toolbar.less';
@@ -8,7 +8,10 @@ type ToolbarProps = {
     width?: string,
     title?: string,
     closable?: boolean,
+    maskVisible?: boolean,
     height?: string,
+    visible?: boolean,
+    onClose?: () => void,
     onClick?: (position: string) => void
 }
 
@@ -16,7 +19,16 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     const { position, onClick } = props;
     const [drawerActive, setDrawerActive] = useState<boolean>(false)
 
+    useEffect(() => {
+        if (props.visible) {
+            setDrawerActive(props.visible)
+        }
+    }, [props.visible])
+
     const switchDrawer = () => {
+        if (props.onClose) {
+            props.onClose()
+        }
         setDrawerActive(!drawerActive)
     }
 
@@ -99,7 +111,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             <Drawer width={props.width ? props.width : '300px'} height={props.height ? props.height : '300px'}
                 title={props.title ? props.title : false} getContainer={false}
                 style={{ position: 'absolute' }} closable={props.closable ? props.closable : false}
-                mask={props.closable ? props.closable : false}
+                mask={props.maskVisible ? props.maskVisible : false}
                 placement={position} onClose={switchDrawer} visible={drawerActive}>
                 {drawerActive ? props.children : null}
             </Drawer>

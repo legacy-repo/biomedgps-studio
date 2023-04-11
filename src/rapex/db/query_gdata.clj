@@ -423,7 +423,10 @@
           {:nodes []
            :edges []}
           (if enable_prediction
-            (merge-with concat r predicted-nr)
+            ;; Remove duplicated nodes and edges
+            (let [{:keys [nodes edges]} (merge-with concat r predicted-nr)]
+              {:nodes (distinct nodes)
+               :edges (distinct edges)})
             r))))))
 
 (comment)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
-import { INode, NodeConfig } from '@antv/g6';
+import { INode, NodeConfig, IEdge, EdgeConfig } from '@antv/g6';
 import { ContextMenu, FishEye, Toolbar } from '@antv/graphin-components';
 import {
     TagFilled,
@@ -14,7 +14,8 @@ import {
     CloudDownloadOutlined,
     EyeOutlined,
     BranchesOutlined,
-    AimOutlined
+    AimOutlined,
+    InfoCircleFilled
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -30,6 +31,7 @@ const {
     ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
     FitView, DragNodeWithForce, DragNode
 } = Behaviors;
+
 const { Menu } = ContextMenu;
 
 const snapLineOptions = {
@@ -68,6 +70,11 @@ const EdgeMenu = (props: EdgeMenuProps) => {
     }, [item])
 
     const options = [
+        {
+            key: 'show-edge-details',
+            icon: <InfoCircleFilled />,
+            label: 'Show Edge Details',
+        },
         {
             key: 'analyze-with-clinical-data',
             icon: <BarChartOutlined />,
@@ -168,6 +175,11 @@ const NodeMenu = (props: NodeMenuProps) => {
     }, [item])
 
     const options: any[] = [
+        {
+            key: 'show-node-details',
+            icon: <InfoCircleFilled />,
+            label: 'Show Node Details',
+        },
         {
             key: 'expand-one-level',
             icon: <ExpandAltOutlined />,
@@ -369,6 +381,46 @@ const FocusBehavior = (props: { queriedId?: string }) => {
     return null;
 };
 
+const NodeClickBehavior = (props: { onClick?: (nodeId: string) => void }) => {
+    const { graph, apis } = useContext(GraphinContext);
+
+    useEffect(() => {
+        const handleClick = (evt: IG6GraphEvent) => {
+            if (props.onClick) {
+                const node = evt.item as INode;
+                const model = node.getModel() as NodeConfig;
+                props.onClick(model.id);
+            }
+        };
+
+        graph.on('node:click', handleClick);
+        return () => {
+            graph.off('node:click', handleClick);
+        };
+    }, []);
+    return null;
+};
+
+const EdgeClickBehavior = (props: { onClick?: (edgeId: string) => void }) => {
+    const { graph, apis } = useContext(GraphinContext);
+
+    useEffect(() => {
+        const handleClick = (evt: IG6GraphEvent) => {
+            if (props.onClick) {
+                const edge = evt.item as IEdge;
+                const model = edge.getModel() as EdgeConfig;
+                props.onClick(model.id || "");
+            }
+        };
+
+        graph.on('edge:click', handleClick);
+        return () => {
+            graph.off('edge:click', handleClick);
+        };
+    }, []);
+    return null;
+};
+
 const NodeSearcher = () => {
     const { graph, apis } = useContext(GraphinContext);
 
@@ -441,6 +493,8 @@ export type GraphinProps = {
     statistics: any;
     chatbotVisible?: boolean;
     toolbarVisible?: boolean;
+    onClickNode?: (nodeId: string) => void;
+    onClickEdge?: (edgeId: string) => void;
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
@@ -650,6 +704,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             }
             {(selectedNodeEnabled && !focusNodeEnabled) ?
                 <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
+                : null
+            }
+            {(selectedNodeEnabled && !focusNodeEnabled) ?
+                <NodeClickBehavior onClick={props.onClickNode}></NodeClickBehavior>
+                : null
+            }
+            {(selectedNodeEnabled && !focusNodeEnabled) ?
+                <EdgeClickBehavior onClick={props.onClickEdge}></EdgeClickBehavior>
                 : null
             }
             {nodeTooltipEnabled ?
