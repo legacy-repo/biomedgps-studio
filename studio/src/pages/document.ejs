@@ -5,12 +5,15 @@
   <meta charset="UTF-8" />
   <meta name="theme-color" content="#1890ff" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="keywords" content="knowledge graph,trascriptomics data,pm2.5 exposure,air pollutant response" />
+  <meta name="keywords"
+    content="<%= context.config.define.isStatic ? context.config.layout.keywords : '{{ website_keywords }}' %>" />
   <meta name="description"
-    content="RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph." />
+    content="<%= context.config.define.isStatic ? context.config.layout.description : '{{ website_description }}' %>" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-  <title>RAPEX - Response to Air Pollution EXposure</title>
-  <link rel="icon" href="<%= context.config.publicPath +'gene.png'%>" type="image/x-icon" />
+  <title>
+    <%= context.config.define.isStatic ? context.config.layout.title : "{{ website_title }}" %>
+  </title>
+  <link rel="shortcut icon" href="<%= JSON.stringify(context) %>" type="image/x-icon" />
 </head>
 
 <body>
@@ -22,7 +25,8 @@
           <b>enable Javascript</b>
         </a>
       </div>
-      in your browser to use RAPEX platform!
+      in your browser to use <%= context.config.define.isStatic ? context.config.layout.title : "{{ website_title }}" %>
+        !
     </div>
   </noscript>
   <div id="root">
@@ -206,9 +210,10 @@
           min-height: 420px;
         ">
       <div class="page-loading-warp" style="flex-direction: column;">
-        <img src="<%= context.config.publicPath +'logo.png'%>" alt="logo" width="256" />
+        <img src="<%= context.config.define.isStatic ? context.config.layout.logo : '{{ website_logo }}' %>" alt="logo"
+          width="256" />
         <div style="display: flex; align-items: center; justify-content: center; margin: 20px 0px; font-size: 1.5rem;">
-          RAPEX - Response to Air Pollution EXposure
+          <%= context.config.define.isStatic ? context.config.layout.title : "{{ website_title }}" %>
         </div>
         <div class="ant-spin ant-spin-lg ant-spin-spinning">
           <span class="ant-spin-dot ant-spin-dot-spin"><i class="ant-spin-dot-item"></i><i

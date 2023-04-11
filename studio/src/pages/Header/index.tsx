@@ -112,7 +112,7 @@ const GlobalHeaderRight: React.FC = () => {
   return (
     <Space className={`${className} right-content`}>
       <Menu onClick={onClick} selectedKeys={[current]} theme="dark" mode="inline" items={items} />
-      <Row>
+      <Row style={{ display: 'none' }}>
         <Dropdown.Button overlay={<></>}
           onClick={showModal}
           className="dataset-selector-btn"

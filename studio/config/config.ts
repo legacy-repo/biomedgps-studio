@@ -1,18 +1,23 @@
 // https://umijs.org/config/
-import { join } from 'path';
 import { defineConfig } from 'umi';
 
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
 // import routes from './routes';
 
-const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
+const isDev = process.env.NODE_ENV === 'development';
+const isStatic = isDev ? true : (process.env.UMI_APP_IS_STATIC ? process.env.UMI_APP_IS_STATIC : false);
 
 export default defineConfig({
   hash: true,
   antd: {},
   dva: {
     hmr: true,
+  },
+  favicon: '/gene.png',
+  define: {
+    // Whether the frontend is separated from the backend.
+    isStatic: isStatic,
   },
   layout: {
     // https://umijs.org/zh-CN/plugins/plugin-layout

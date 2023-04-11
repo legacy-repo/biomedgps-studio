@@ -162,37 +162,3 @@
 
    ["/dataset/rapex-pathways"
     {:get  (get-results "Get Pathways" :pathways)}]])
-
-(def menus
-  {:routes [{:path "/rapex-plugin/welcome"
-             :name "quick-start"
-             :icon "HomeOutlined"
-             :component "RapexPluginWelcome"}
-            {:path "/rapex-plugin"
-             :key  "expression-analysis"
-             :name "expression-analysis"
-             :icon "AppstoreAddOutlined"
-             :routes [{:path "/rapex-plugin/singlegene"
-                       :name "single-gene"
-                       :icon "SlidersOutlined"
-                       :component "RapexPluginSingleGene"}
-                      {:path "/rapex-plugin/keggpathwaywrapper"
-                       :name "kegg-pathways"
-                       :icon "PartitionOutlined"
-                       :component "RapexPluginKEGGPathwayWrapper"}]}
-            {:path "/rapex-plugin"
-             :key  "custom-analysis"
-             :name "custom-analysis"
-             :icon "BarChartOutlined"
-             :routes [{:path "/rapex-plugin/genelistwrapper"
-                       :name "diff-genes"
-                       :icon "TableOutlined"
-                       :component "RapexPluginGeneListWrapper"}
-                      {:path "/rapex-plugin/statenginewrapper"
-                       :name "gene-expression-profile"
-                       :icon "SmileOutlined"
-                       :component "RapexPluginStatEngineWrapper"}
-                      {:path "/rapex-plugin/similargenelistwrapper"
-                       :name "similar-genes-detection"
-                       :icon "SmileOutlined"
-                       :component "RapexPluginSimilarGeneListWrapper"}]}]})

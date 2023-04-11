@@ -83,14 +83,6 @@ const defaultRoutes = [
     exact: true,
   },
   {
-    name: 'datasets',
-    icon: 'TableOutlined',
-    path: '/datasets',
-    // More details on https://procomponents.ant.design/components/layout/#menu
-    // hideInMenu: true,
-    component: 'Datasets',
-  },
-  {
     name: 'about',
     icon: 'InfoCircleOutlined',
     path: '/about',
@@ -298,44 +290,11 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
         mode: initialState?.customSettings?.mode,
       },
       request: async (params: any, defaultMenuData: any) => {
-        let menuRoutes = [];
         let remoteMenuData = await getMenusDataset({ dataset: params.defaultDataset });
-        if (initialState?.customSettings?.mode === "Developer") {
-          // menuData = await getMenusDataset({ dataset: params.defaultDataset });
-          menuRoutes = [
-            {
-              name: 'knowledge-graph',
-              icon: 'ShareAltOutlined',
-              path: '/knowledgegraph',
-              component: 'KnowledgeGraph',
-            },
-            {
-              name: 'chatbox',
-              icon: 'InfoCircleOutlined',
-              path: '/chatai',
-              component: 'ChatAI',
-            }
-          ]
-
-          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
-          const routes = dynamicRoutesToUsableRoutes(menuRoutes);
-          console.log("Developer DynamicRoutes: ", routes, menuRoutes);
-          return routes
-        } else {
-          menuRoutes = [
-            {
-              name: 'chatbox',
-              icon: 'InfoCircleOutlined',
-              path: '/chatai',
-              component: 'ChatAI',
-            }
-          ]
-
-          menuRoutes = remoteMenuData.routes.concat(menuRoutes).concat(defaultRoutes);
-          const routes = dynamicRoutesToUsableRoutes(menuRoutes);
-          console.log("User DynamicRoutes: ", routes, menuRoutes);
-          return routes
-        }
+        let menuRoutes = remoteMenuData.routes.concat(defaultRoutes);
+        const routes = dynamicRoutesToUsableRoutes(menuRoutes);
+        console.log("User DynamicRoutes: ", routes, menuRoutes);
+        return routes
       },
     },
     rightContentRender: () => <Header />,

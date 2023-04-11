@@ -3,7 +3,7 @@
             [ring.util.http-response :refer [ok not-found]]
             [rapex.plugins.rapex.chart-sepcs :as cs]
             [clojure.spec.alpha :as s]
-            [rapex.config :refer [memorized-get-dataset-metadata]]
+            [rapex.config :refer [memorized-get-dataset-metadata get-full-menus]]
             ;; Plugin
             [rapex.plugins.rapex.core :as rapex]))
 
@@ -85,7 +85,8 @@
    :responses {200 {:body ::specs/Menus}}
    :handler (fn [{{{:keys [dataset]} :path} :parameters}]
               (when dataset
-                (ok rapex/menus)))})
+                ;; TODO: Generate dynamic menus based on dataset
+                (ok (get-full-menus))))})
 
 (def routes
   [[""

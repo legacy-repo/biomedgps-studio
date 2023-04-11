@@ -81,25 +81,37 @@
 
 (s/def ::website_description string?)
 
+(s/def ::website_keywords string?)
+
 (s/def ::website_logo #(some? (re-matches #"(https?://|/).*" %)))
 
 (s/def ::default_dataset string?)
 
 (s/def ::studio-config (s/keys :req-un [::about_url ::help_url ::website_title
-                                        ::website_logo ::website_description]
+                                        ::website_logo ::website_description ::website_keywords]
                                :opt-un [::default_dataset]))
+
+(s/def ::path string?)
+(s/def ::name string?)
+(s/def ::icon string?)
+(s/def ::component string?)
+(s/def ::routes (s/coll-of (s/keys :req-un [::path ::name ::icon]
+                                   :opt-un [::component ::routes])))
+(s/def ::menu-config (s/keys :req-un [::routes]))
 
 (s/def ::enable-gnn boolean?)
 
 (s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
-                                 ::graph-database-url ::database-url]
+                                 ::graph-database-url ::database-url
+                                 ::menu-config]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors ::enable-gnn
                                  ::fs-services ::default-fs-service ::studio-config
                                  ::graph-config]))
 
 (defn check-config
   [env]
-  (let [config (select-keys env [:port :nrepl-port :workdir :datadir :default-dataset :enable-gnn
+  (let [config (select-keys env [:port :nrepl-port :workdir :datadir
+                                 :default-dataset :enable-gnn :menu-config
                                  :cors-origins :enable-cors :database-url :dbtype :graph-database-url
                                  :fs-services :default-fs-service :dataset-metadata
                                  :studio-config :graph-config])]
@@ -180,6 +192,10 @@
                          fs-rootdir))
       (System/exit 1))))
 
+(defn get-full-menus
+  []
+  (:menu-config env))
+
 (defn get-studio-config
   []
   (let [studio-config (:studio-config env)
@@ -187,9 +203,9 @@
                                :help_url "/help.md"
                                :website_title "BioMedGPS"
                                :website_logo "/logo.png"
+                               :website_keywords "bioinformatics, omics, graph, graph database, knowledge graph"
                                :website_description "An analytics platform based on omics data and knowledge graph."
                                :default_dataset (:default-dataset env)}]
     (if studio-config
-      (merge default-studio-config (select-keys studio-config [:about_url :help_url :website_title
-                                                               :website_logo :website_description]))
+      (merge default-studio-config studio-config)
       default-studio-config)))
