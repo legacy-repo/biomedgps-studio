@@ -14,6 +14,9 @@ export type SearchObject = {
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;
+  mode?: "node" | "path";
+  node_type2?: string;
+  node_id2?: string;
 }
 
 export type GraphNode = {

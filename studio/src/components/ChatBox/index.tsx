@@ -3,6 +3,8 @@ import { filter } from 'lodash';
 import { useEffect, useState } from 'react';
 import './index.less';
 
+const aiAPI = process.env.UMI_APP_AI_API ? process.env.UMI_APP_AI_API : 'https://ai.3steps.cn/run/predict';
+
 interface Author {
   id: number
   username?: string
@@ -131,7 +133,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     // let messagesStr = allMessages.join('\n');
     let messagesStr = message;
     let prompt = '\n\nDo you know the above question? please output it as the following format?  {     "entity_type": "xxx",  // One of Gene, Drug or Protein  "entity_name": "xxx", "which_relationships": "xxx", // One of All, Gene-Drug, Gene-Gene, Gene-Protein, Drug-Protein "gene_name": "xxx", "entrez_id": "xxx", "taxid": "xxx",  "which_task": "xxx", // One of KnowledgeGraph, sgRNAs  "which_species": "xxx" // one of rat, mouse and human }'
-    fetch('https://ai.3steps.cn/run/predict', {
+    fetch(aiAPI, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

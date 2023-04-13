@@ -5,7 +5,7 @@ import type { TableColumnType } from 'antd';
 import { DeleteFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
 import Toolbar from './Toolbar';
-import { uniqBy } from 'lodash';
+import { uniqBy, uniq } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
 import QueryBuilder from './QueryBuilder';
 import AdvancedSearch from './AdvancedSearch';
@@ -14,14 +14,13 @@ import StatisticsChart from './Chart/StatisticsChart';
 import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources,
-  makeGraphQueryStrWithSearchObject, defaultLayout
+  makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds
 } from './utils';
-import InfoPanel from './InfoPanel';
+import NodeInfoPanel from './NodeInfoPanel';
 import { getStatistics } from '@/services/swagger/Graph';
 import { SearchObject, GraphData, GraphEdge, GraphNode, NodeStat, EdgeStat } from './typings';
 
 import './index.less';
-import menu from '@/locales/en-US/menu';
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
@@ -53,6 +52,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [edgeStat, setEdgeStat] = useState<EdgeStat[]>([]);
   const [infoPanelVisible, setInfoPanelVisible] = useState<boolean>(false);
 
+  const [clickedNode, setClickedNode] = useState<GraphNode | undefined>(undefined);
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
   const [advancedSearchPanelActive, setAdvancedSearchPanelActive] = useState<boolean>(false);
@@ -67,6 +67,35 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   // You must have a oldLayout to make the layout work before user select a layout from the menu
   const [layout, setLayout] = React.useState<any>(defaultLayout);
+
+  const checkAndSetData = (data: GraphData) => {
+    const nodeIds = new Set(data.nodes.map(node => node.id));
+    const nonexistentEdges = data.edges.filter(edge => !nodeIds.has(edge.source) || !nodeIds.has(edge.target));
+    const edges = data.edges.filter(edge => nodeIds.has(edge.source) && nodeIds.has(edge.target));
+
+    if (nonexistentEdges.length > 0) {
+      message.warn(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`);
+      const ids = nonexistentEdges.map(edge => parseInt(edge.source)).concat(nonexistentEdges.map(edge => parseInt(edge.target)));
+      makeGraphQueryStrWithIds(uniq(ids))
+        .then(response => {
+          const nodes = response.nodes as GraphNode[];
+          const edges = response.edges as GraphEdge[];
+          checkAndSetData({
+            nodes: data.nodes.concat(nodes),
+            edges: data.edges.concat(edges)
+          })
+        })
+        .catch(error => {
+          message.error("Failed to fetch data from server.");
+          console.error(error);
+        })
+    }
+
+    setData({
+      nodes: data.nodes,
+      edges: edges
+    })
+  }
 
   useEffect(() => {
     const nodes = makeDataSources(data.nodes)
@@ -94,7 +123,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     let graphData = localStorage.getItem(internalStoreId)
     graphData = graphData ? JSON.parse(graphData) : null
     if (graphData) {
-      setData(graphData.data)
+      checkAndSetData(graphData.data)
       setLayout(graphData.layout)
       setToolbarVisible(graphData.toolbarVisible)
     }
@@ -116,10 +145,11 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       message.info("Loading data, please wait...")
       makeGraphQueryStrWithSearchObject(searchObject)
         .then(response => {
+          console.log("Query Graph Response: ", response)
           if (searchObject.merge_mode == "replace") {
-            setData(response)
+            checkAndSetData(response)
           } else if (searchObject.merge_mode == "append") {
-            setData({
+            checkAndSetData({
               nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
               edges: uniqBy([...data.edges, ...response.edges], "relid")
             })
@@ -151,7 +181,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             }
 
             console.log("New Data: ", newData, data, response, nodesToRemove)
-            setData(newData)
+            checkAndSetData(newData)
           } else {
             message.warn("Unknown merge mode, please retry later.")
           }
@@ -209,6 +239,10 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
       if (item) {
         graph.removeItem(item);
+        checkAndSetData({
+          nodes: data.nodes.filter(node => node.id != id),
+          edges: data.edges.filter(edge => edge.source != id && edge.target != id)
+        });
       }
     } else if (menuItem.key == 'expand-one-level') {
       enableAdvancedSearch();
@@ -267,7 +301,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const clearGraphData = () => {
     localStorage.removeItem(internalStoreId)
     message.success("Graph data cleared.")
-    setData({ nodes: [], edges: [] })
+    checkAndSetData({ nodes: [], edges: [] })
   }
 
   const onWidthChange = (width?: number, height?: number) => {
@@ -280,13 +314,15 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     }
   }
 
-  const onClickNode = (nodeId: string) => {
-    console.log("Node Clicked: ", nodeId)
-    if (nodeId) {
+  const onClickNode = (nodeId: string, node: GraphNode) => {
+    // TODO: Get node details and pass to InfoPanel
+    console.log("Node Clicked: ", nodeId, data, node)
+    if (node) {
       setInfoPanelVisible(true)
-      // TODO: Get node details and pass to InfoPanel
+      setClickedNode(node)
     }
   }
+
 
   const onClickEdge = (edgeId: string) => {
     console.log("Edge Clicked: ", edgeId)
@@ -320,9 +356,9 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             <Toolbar position='left' width={'60%'} title="Charts" closable={true}>
               <ComplexChart data={data}></ComplexChart>
             </Toolbar>
-            <Toolbar position='right' width={'60%'} closable={false}
+            <Toolbar position='right' width={'80%'} closable={false}
               maskVisible visible={infoPanelVisible} onClose={onCloseInfoPanel}>
-              <InfoPanel></InfoPanel>
+              <NodeInfoPanel node={clickedNode}></NodeInfoPanel>
             </Toolbar>
             <Toolbar position='bottom' width='300px' height='300px' onClick={() => {
               setCurrentNode("") // Clear the selected node

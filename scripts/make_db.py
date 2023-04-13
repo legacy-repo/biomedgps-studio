@@ -35,7 +35,7 @@ def format_key(key):
         return formated_key
 
 
-def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
+def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table, index=None) -> list:
     line = next(reader)
     db_fields = {}
     db_columns = []
@@ -58,7 +58,7 @@ def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
 
     # run db init with key value concatenated to string
     query_str = 'CREATE TABLE IF NOT EXISTS '+table+' (' + \
-                ', '.join(['%s %s' % (key, value)
+                ', '.join(['%s %s %s' % (key, value, 'UNIQUE' if key == index else '')
                           for (key, value) in db_fields.items()]) + ')'
     try:
         print("SQL query string: %s" % query_str)
@@ -70,7 +70,7 @@ def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table) -> list:
     return db_columns
 
 
-def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
+def csv2sqlite(csvfile, dbfile, table_name="data", skip=False, index=None):
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
 
@@ -92,7 +92,7 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
             sys.exit(1)
         cur = conn.cursor()
 
-        db_columns = db_init(reader, cur, filein, table_name)
+        db_columns = db_init(reader, cur, filein, table_name, index=index)
 
         # add papers to table
         for line in reader:
@@ -104,13 +104,13 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False):
             columns = ','.join(db_columns)
             # print("INSERT INTO " + table_name + " (" + columns +
             #   ") VALUES ({qm});".format(qm=qmarks), db_fields)
-            cur.execute("INSERT INTO " + table_name + " (" + columns +
+            cur.execute("INSERT OR IGNORE INTO " + table_name + " (" + columns +
                         ") VALUES ({qm});".format(qm=qmarks), db_fields)
 
         conn.commit()
 
 
-def csv2duckdb(csvfile, dbfile, table_name="data", skip=False):
+def csv2duckdb(csvfile, dbfile, table_name="data", skip=False, index=None):
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
     conn = duckdb.connect(dbfile)
@@ -470,7 +470,7 @@ def graph_labels(graph_metadata_file, output_dir, db):
 
                     if os.path.exists(temp_file_path):
                         func_map.get(db)(temp_file_path, dbfile,
-                                         table_name=key, skip=True)
+                                         table_name=key, skip=True, index="id")
                     else:
                         print("Cannot find the datafile (%s)" % temp_file_path)
 

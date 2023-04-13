@@ -114,12 +114,32 @@ export function makeGraphQueryStr(
   return `{:match "${match_clause}" :where "${where_clause}" :limit ${_limit} :return "${return_clause_str}"}`;
 }
 
-export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
-  const { node_type, node_id, relation_types, all_relation_types, enable_prediction, limit } = searchObject;
+export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
+  let query_str = `{:match "(n)" :where "ID(n) in [${ids}]" :return "n"}`;
   return new Promise((resolve, reject) => {
-    if (node_type && node_id) {
-      let query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
-      let payload = {}
+    postNodes({ query_str: query_str }, {}).then((res) => {
+      if (res) {
+        resolve(res)
+      } else {
+        reject(res)
+      }
+    }).catch((err) => {
+      reject(err)
+    })
+  })
+}
+
+export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
+  const {
+    node_type, node_id, relation_types, all_relation_types,
+    enable_prediction, limit, mode, node_id2, node_type2
+  } = searchObject;
+  return new Promise((resolve, reject) => {
+    let payload = {}
+    let query_str = ""
+
+    if (mode == "node" && node_type && node_id) {
+      query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
 
       if (!relation_types || relation_types?.length == 0) {
         if (searchObject.nsteps && searchObject.nsteps <= 1) {
@@ -127,7 +147,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         } else {
           // This is a bug in the backend, if we use *1..${searchObject.nsteps} it will not return the correct result
           // But it will not be ran into this case, since we will not have nsteps > 1 in the frontend
-          query_str = makeGraphQueryStr(`(n:${node_type})-[r: *1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,r,m", limit)
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,r,m", limit)
         }
 
         // It will cause performance issue if we enable prediction for all relation types
@@ -143,7 +163,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         if (searchObject.nsteps && searchObject.nsteps <= 1) {
           query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`]-(m)`, `n.id = '${node_id}'`, undefined, limit)
         } else {
-          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\` *1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, undefined, limit)
         }
 
         payload = {
@@ -153,7 +173,23 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
           enable_prediction: enable_prediction
         }
       }
+    }
 
+    if (mode == "path" && node_type && node_id && node_type2 && node_id2) {
+      if (!relation_types || relation_types?.length == 0) {
+        // Just return all the relations between two nodes, but only one step
+        query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m:${node_type2})`,
+          `n.id = '${node_id}' and m.id = '${node_id2}'`,
+          undefined, limit)
+      } else {
+        const relation_types_str = relation_types.join("`|`")
+        query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`*1..${searchObject.nsteps}]-(m:${node_type2})`,
+          `n.id = '${node_id}' and m.id = '${node_id2}'`,
+          undefined, limit)
+      }
+    }
+
+    if (query_str) {
       postNodes({ query_str: query_str }, payload).then((res) => {
         if (res) {
           resolve(res)

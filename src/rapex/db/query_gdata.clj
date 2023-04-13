@@ -248,7 +248,7 @@
 
 (defn merge-node-relationships
   [formated-node-relationships]
-  (apply concat (map (fn [item] [(:n item) (:r item) (:m item)]) formated-node-relationships)))
+  (apply concat (map (fn [item] (filter some? [(:n item) (:r item) (:m item)])) formated-node-relationships)))
 
 (defn limit
   [limit-clause]
@@ -302,7 +302,8 @@
        (flatten-vector)
        (merge-node-relationships)
        (distinct)
-       (group-by :category)))
+       (group-by :category)
+       (merge {:nodes [] :edges []})))
 
 (defn query-gdb
   [tx query-map]
@@ -385,7 +386,8 @@
        (format-node-relationships)
        (merge-node-relationships)
        (distinct)
-       (group-by :category)))
+       (group-by :category)
+       (merge {:nodes [] :edges []})))
 
 (defn search-node-relationships-by-id
   [tx node-type id & {:keys [limit skip]}]
@@ -397,7 +399,8 @@
        (format-node-relationships)
        (merge-node-relationships)
        (distinct)
-       (group-by :category)))
+       (group-by :category)
+       (merge {:nodes [] :edges []})))
 
 (defn query&predict
   [query-map predicted-payload]

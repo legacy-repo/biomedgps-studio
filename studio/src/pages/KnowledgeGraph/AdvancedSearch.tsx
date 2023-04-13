@@ -1,4 +1,4 @@
-import { Form, Select, Empty, Switch, Modal, InputNumber } from "antd";
+import { Form, Select, Empty, Switch, Modal, InputNumber, Radio, message } from "antd";
 import React, { useState, useEffect } from "react";
 import { getNodeTypes, getLabels, getRelationshipTypes } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
@@ -15,6 +15,10 @@ type AdvancedSearchProps = {
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
   const [form] = Form.useForm();
+  const mode = Form.useWatch('mode', form);
+  const enable_prediction = Form.useWatch('enable_prediction', form);
+  const nsteps = Form.useWatch('nsteps', form);
+  const relation_types = Form.useWatch('relation_types', form);
 
   const [labelOptions, setLabelOptions] = useState<OptionType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -23,6 +27,40 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
   const [relationTypeOptions, setRelationTypeOptions] = useState<any[] | undefined>(undefined);
   const [label, setLabel] = useState<string>("");
   const [helpWarning, setHelpWarning] = useState<string>("");
+
+  useEffect(() => {
+    let mergeMode = "replace";
+    if (mode === "node") {
+      if (props.searchObject?.merge_mode) {
+        mergeMode = props.searchObject.merge_mode;
+      } else {
+        mergeMode = "replace";
+      }
+    } else {
+      mergeMode = "append";
+    }
+
+    form.setFieldsValue({
+      merge_mode: mergeMode
+    })
+  }, [props.searchObject, mode])
+
+  useEffect(() => {
+    if (relation_types && relation_types.length === 0) {
+      if (mode === "path" || nsteps > 1) {
+        setHelpWarning("Use all relation types instead of none, but it may take a long time to search.");
+        // setHelpWarning("Please select at least one relation type for performance if you want to link nodes by paths.");
+        // return;
+      } else if (enable_prediction) {
+        setHelpWarning("Please select at least one relation type for performance if you enable prediction.");
+        // return;
+      } else {
+        setHelpWarning("");
+      }
+    } else {
+      setHelpWarning("");
+    }
+  }, [enable_prediction, nsteps, relation_types, mode])
 
   const mergeModeOptions = [
     { label: "Replace", value: "replace" },
@@ -34,6 +72,8 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
     { label: "1 Step", value: 1 },
     { label: "2 Steps", value: 2 },
     { label: "3 Steps", value: 3 },
+    { label: "4 Steps", value: 4 },
+    { label: "5 Steps", value: 5 },
   ]
 
   // This function is used to fetch the nodes of the selected label.
@@ -89,11 +129,6 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
   const validateForm = function () {
     form.validateFields()
       .then(values => {
-        if ((values.enable_prediction || values.nsteps > 1) && values.relation_types.length === 0) {
-          setHelpWarning("Please select at least one relation type for performance if you enable prediction or set nsteps > 1.");
-          return;
-        }
-
         console.log("values: ", values);
         if (props.onOk) {
           props.onOk({
@@ -149,12 +184,21 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
       } else {
         setRelationTypeOptions([]);
       }
+    }).catch(error => {
+      message.error("Get types of relation error, please refresh the page and try again.");
+      console.log("Get types of relation error: ", error)
     })
   }, [label])
 
   return (
     <Modal title="Advanced Search" visible={props.visible} onOk={validateForm} onCancel={props.onCancel}>
       <Form layout={"horizontal"} form={form} labelCol={{ span: 7 }} wrapperCol={{ span: 17 }}>
+        <Form.Item name="mode" label="Mode" initialValue={"node"}>
+          <Radio.Group>
+            <Radio value="node">Node</Radio>
+            <Radio value="path">Path</Radio>
+          </Radio.Group>
+        </Form.Item>
         <Form.Item label="Node Type" name="node_type"
           initialValue={props.searchObject?.node_type ? props.searchObject?.node_type : undefined}
           rules={[{ required: true, message: 'Please select a node type.' }]}>
@@ -171,6 +215,40 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         <Form.Item label="Which Node" name="node_id"
           initialValue={props.searchObject?.node_id ? props.searchObject?.node_id : undefined}
           rules={[{ required: true, message: 'Please enter your expected node.' }]}>
+          <Select
+            showSearch
+            allowClear
+            loading={loading}
+            defaultActiveFirstOption={false}
+            showArrow={true}
+            placeholder={placeholder}
+            onSearch={handleSearch}
+            options={nodeOptions}
+            filterOption={false}
+            notFoundContent={<Empty description={
+              loading ? "Searching..." : (nodeOptions !== undefined ? "Not Found" : `Enter your interested ${label} ...`)
+            } />}
+          >
+          </Select>
+        </Form.Item>
+        <Form.Item label="Node Type (2)" name="node_type2"
+          hidden={mode === "node"}
+          initialValue={props.searchObject?.node_type ? props.searchObject?.node_type : undefined}
+          rules={[{ required: mode === "path" ? true : false, message: 'Please select a node type.' }]}>
+          <Select
+            allowClear
+            defaultActiveFirstOption={false}
+            showArrow={true}
+            placeholder={"Please select a node type"}
+            options={labelOptions}
+            filterOption={true}
+            onSelect={handleSelectLabel}
+          />
+        </Form.Item>
+        <Form.Item label="Which Node (2)" name="node_id2"
+          hidden={mode === "node"}
+          initialValue={props.searchObject?.node_id ? props.searchObject?.node_id : undefined}
+          rules={[{ required: mode === "path" ? true : false, message: 'Please enter your expected node.' }]}>
           <Select
             showSearch
             allowClear
@@ -210,19 +288,22 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
         <Form.Item
           name="limit"
           label="Max Num of Nodes"
+          hidden={mode === "path"}
           initialValue={props.searchObject?.limit ? props.searchObject?.limit : 10}
           rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
         >
           <InputNumber min={1} max={1000} />
         </Form.Item>
         <Form.Item label="Enable Prediction" name="enable_prediction"
+          hidden={mode === "path"}
           initialValue={props.searchObject?.enable_prediction ? props.searchObject?.enable_prediction : false}
           valuePropName="checked">
           <Switch />
         </Form.Item>
-        <Form.Item label="Merging Mode" name="merge_mode"
-          initialValue={props.searchObject?.merge_mode ? props.searchObject?.merge_mode : "replace"}>
-          <Select placeholder="Please select mode for merging nodes & relationships" options={mergeModeOptions}>
+        <Form.Item label="Merging Mode" name="merge_mode">
+          <Select disabled={mode == 'path'}
+            placeholder="Please select mode for merging nodes & relationships"
+            options={mergeModeOptions}>
           </Select>
         </Form.Item>
       </Form>

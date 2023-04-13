@@ -381,15 +381,15 @@ const FocusBehavior = (props: { queriedId?: string }) => {
     return null;
 };
 
-const NodeClickBehavior = (props: { onClick?: (nodeId: string) => void }) => {
+const NodeClickBehavior = (props: { onClick?: (nodeId: string, nodes: any) => void }) => {
     const { graph, apis } = useContext(GraphinContext);
 
     useEffect(() => {
         const handleClick = (evt: IG6GraphEvent) => {
             if (props.onClick) {
                 const node = evt.item as INode;
-                const model = node.getModel() as NodeConfig;
-                props.onClick(model.id);
+                const model = node.getModel() as GraphNode;
+                props.onClick(model.id, model);
             }
         };
 

@@ -47,7 +47,7 @@
                      {:handler (constantly {:status 200
                                             :headers {"Content-Type" "text/html"}
                                             :body (selmer-parser/render-file
-                                                   (io/resource "public/index.html")
+                                                   (io/resource "public/index.html.tmpl")
                                                    (get-studio-config))})}}]
      (app-routes/routes)
      ; <ROOT>/custom/* will be served from the workdir
