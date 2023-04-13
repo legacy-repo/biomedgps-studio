@@ -273,7 +273,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       { label: 'Edges', key: 'edges', children: counts >= 2 ? childrenArray[1] : 'No Content' },
     ];
     return (
-      <Tabs>
+      <Tabs className="tabs-nav-center">
         {items.map(item => {
           return (
             <Tabs.TabPane tab={item.label} key={item.key}>
