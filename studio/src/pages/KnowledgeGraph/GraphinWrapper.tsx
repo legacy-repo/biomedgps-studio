@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
-import { INode, NodeConfig, IEdge, EdgeConfig } from '@antv/g6';
+import { INode, NodeConfig, IEdge } from '@antv/g6';
 import { ContextMenu, FishEye, Toolbar } from '@antv/graphin-components';
 import {
-    TagFilled,
     BoxPlotOutlined,
     BarChartOutlined,
     HeatMapOutlined,
@@ -21,7 +20,10 @@ import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/
 import DataArea from './DataArea';
 import { message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu } from 'antd';
 import { makeDataSource } from './utils';
-import type { NodeOnClickFn, EdgeOnClickFn, GraphNode } from "./typings";
+import type {
+    OnNodeMenuClickFn, OnEdgeMenuClickFn, GraphNode,
+    OnClickEdgeFn, OnClickNodeFn, GraphEdge
+} from "./typings";
 import voca from 'voca';
 import './graphin-wrapper.less';
 
@@ -42,7 +44,7 @@ const snapLineOptions = {
 };
 
 type EdgeMenuProps = {
-    onChange?: EdgeOnClickFn,
+    onChange?: OnEdgeMenuClickFn,
     chatbotVisible?: boolean,
     item?: IG6GraphEvent['item'];
 }
@@ -54,16 +56,18 @@ const EdgeMenu = (props: EdgeMenuProps) => {
     const [visible, setVisible] = useState<boolean>(false);
     const [sourceNode, setSourceNode] = useState<GraphNode | undefined>(undefined);
     const [targetNode, setTargetNode] = useState<GraphNode | undefined>(undefined);
+    const [edge, setEdge] = useState<GraphEdge | undefined>(undefined);
 
     useEffect(() => {
-        if (item && item._cfg) {
-            const source = item._cfg.source;
-            const target = item._cfg.target;
+        if (item) {
+            const edge = item.getModel() as GraphEdge;
+            const source = graph.findById(edge.source).getModel() as GraphNode;
+            const target = graph.findById(edge.target).getModel() as GraphNode;
 
-            // Don't worry about the type of source and target.
-            if (source && source._cfg && target && target._cfg) {
-                setSourceNode(source._cfg.model)
-                setTargetNode(target._cfg.model)
+            if (source && target && edge) {
+                setSourceNode(source);
+                setTargetNode(target)
+                setEdge(edge)
                 setVisible(true)
             }
         }
@@ -137,7 +141,7 @@ const EdgeMenu = (props: EdgeMenuProps) => {
     }
 
     const onChange = function (item: any) {
-        if (props.onChange && graph && apis) {
+        if (props.onChange && sourceNode && targetNode && edge && graph && apis) {
             props.onChange(item, sourceNode, targetNode, graph, apis)
             setVisible(false);
         } else {
@@ -149,7 +153,7 @@ const EdgeMenu = (props: EdgeMenuProps) => {
 }
 
 type NodeMenuProps = {
-    onChange?: NodeOnClickFn,
+    onChange?: OnNodeMenuClickFn,
     chatbotVisible?: boolean,
     item?: IG6GraphEvent['item'];
 }
@@ -166,7 +170,7 @@ const NodeMenu = (props: NodeMenuProps) => {
 
     useEffect(() => {
         if (item && item._cfg) {
-            const nodeModel = item._cfg.model;
+            const nodeModel = item.getModel() as GraphNode;
 
             // Don't worry about the type of nodeModel.
             setNode(nodeModel)
@@ -213,7 +217,7 @@ const NodeMenu = (props: NodeMenuProps) => {
     }
 
     const onChange = function (item: any) {
-        if (props.onChange && graph && apis) {
+        if (props.onChange && node && graph && apis) {
             props.onChange(item, node, graph, apis)
             setVisible(false);
         } else {
@@ -381,7 +385,7 @@ const FocusBehavior = (props: { queriedId?: string }) => {
     return null;
 };
 
-const NodeClickBehavior = (props: { onClick?: (nodeId: string, nodes: any) => void }) => {
+const NodeClickBehavior = (props: { onClick?: OnClickNodeFn }) => {
     const { graph, apis } = useContext(GraphinContext);
 
     useEffect(() => {
@@ -401,15 +405,17 @@ const NodeClickBehavior = (props: { onClick?: (nodeId: string, nodes: any) => vo
     return null;
 };
 
-const EdgeClickBehavior = (props: { onClick?: (edgeId: string) => void }) => {
+const EdgeClickBehavior = (props: { onClick?: OnClickEdgeFn }) => {
     const { graph, apis } = useContext(GraphinContext);
 
     useEffect(() => {
         const handleClick = (evt: IG6GraphEvent) => {
             if (props.onClick) {
                 const edge = evt.item as IEdge;
-                const model = edge.getModel() as EdgeConfig;
-                props.onClick(model.id || "");
+                const model = edge.getModel() as GraphEdge;
+                const startNode = graph.findById(model.source).getModel() as GraphNode;
+                const endNode = graph.findById(model.target).getModel() as GraphNode;
+                props.onClick(model.relid, startNode, endNode, model);
             }
         };
 
@@ -487,14 +493,14 @@ export type GraphinProps = {
     layout: any;
     style: any;
     containerId?: string;
-    onNodeMenuClick?: NodeOnClickFn;
-    onEdgeMenuClick?: EdgeOnClickFn;
+    onNodeMenuClick?: OnNodeMenuClickFn;
+    onEdgeMenuClick?: OnEdgeMenuClickFn;
     queriedId?: string;
     statistics: any;
     chatbotVisible?: boolean;
     toolbarVisible?: boolean;
-    onClickNode?: (nodeId: string) => void;
-    onClickEdge?: (edgeId: string) => void;
+    onClickNode?: OnClickNodeFn;
+    onClickEdge?: OnClickEdgeFn;
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {

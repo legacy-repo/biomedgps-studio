@@ -48,14 +48,16 @@ export type GraphData = {
   edges: GraphEdge[];
 }
 
-export type NodeOnClickFn = (
-  (item: { key: string, name: string },
-    data: GraphNode, graph: Graph, graphin: any) => void)
+export type OnNodeMenuClickFn = (
+  item: { key: string, name: string },
+  data: GraphNode, graph: Graph, graphin: any
+) => void
 
-export type EdgeOnClickFn = (
-  (item: { key: string, name: string },
-    source: GraphNode, target: GraphNode,
-    graph: Graph, graphin: any) => void)
+export type OnEdgeMenuClickFn = (
+  item: { key: string, name: string },
+  source: GraphNode, target: GraphNode, edge: GraphEdge,
+  graph: Graph, graphin: any
+) => void
 
 export type NodeStat = {
   node_type: string;
@@ -70,3 +72,12 @@ export type EdgeStat = {
   end_node_type: string;
   relation_count: number;
 }
+
+export type EdgeInfo = {
+  startNode: GraphNode,
+  endNode: GraphNode,
+  edge: GraphEdge
+}
+
+export type OnClickEdgeFn = (edgeId: string, startNode: GraphNode, endNode: GraphNode, edge: GraphEdge) => void;
+export type OnClickNodeFn = (nodeId: string, node: GraphNode) => void;

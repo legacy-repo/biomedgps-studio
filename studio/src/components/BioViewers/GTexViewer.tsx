@@ -44,10 +44,10 @@ const GTexViewer: React.FC<GTexViewerProps> = (props) => {
         props.type == 'gene' ?
           <div>
             <GTexGeneBoxplotViewer rootId={rootId + 'boxplot'}
-              title={props.title || 'GTEx Gene Boxplot Viewer'}
+              title={props.title || 'Boxplot'}
               geneId={props.officialGeneSymbol} />
             <GTexGeneViolinViewer rootId={rootId + 'violin'}
-              title={props.title || 'GTEx Gene Violin Viewer'}
+              title={props.title || 'Violin Plot'}
               geneId={props.officialGeneSymbol} />
           </div>
           : null
