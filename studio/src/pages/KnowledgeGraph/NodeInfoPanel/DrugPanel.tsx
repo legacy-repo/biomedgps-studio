@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Tabs } from 'antd';
+
+import type { GeneInfo } from '@/plugins/utils';
 import type { GraphNode } from '@/pages/KnowledgeGraph/typings';
-import { MolStarViewer } from '@/components/BioViewers';
-import type { GeneInfo } from '@/components/BioViewers';
 
 import './index.less';
 
@@ -24,7 +24,7 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
         Comming Soon...
       </Tabs.TabPane>
       <Tabs.TabPane tab={"3D Structure"} key={"drug-3d"}>
-        <MolStarViewer />
+        Comming Soon...
       </Tabs.TabPane>
     </Tabs>
   )

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, Empty, Button, Popover } from 'antd';
 import { filter, map } from 'lodash';
+import { getGeneInfo } from '@/plugins/utils';
+import { getItems4GenePanel } from '@/plugins';
+
 import type { GraphNode } from '@/pages/KnowledgeGraph/typings';
-import {
-  GTexViewer, MutationViewer, MolStarViewer,
-  getGeneInfo
-} from '@/components/BioViewers';
-import type { GeneInfo } from '@/components/BioViewers';
+import type { GeneInfo } from '@/plugins/utils';
 
 import './gene-panel.less';
 import { SettingOutlined } from "@ant-design/icons";
@@ -19,6 +18,11 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   const { node } = props;
   const [info, setInfo] = useState<GeneInfo | undefined>(undefined);
   const [checkItems, setCheckItems] = useState<any[]>([
+    {
+      label: "Summary",
+      key: "summary",
+      checked: true
+    },
     {
       label: "Gene",
       key: "gene",
@@ -38,7 +42,12 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
       label: "3D Structure",
       key: "structure",
       checked: true
-    }
+    },
+    {
+      label: "Sgrna",
+      key: "sgrna",
+      checked: true
+    },
   ]);
   const [items, setItems] = useState<any[]>([]);
 
@@ -48,7 +57,7 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
       getGeneInfo(node.data.id).then((info) => {
         setInfo(info);
 
-        setItems(getItems(info.ensembl.gene, filter(checkItems, (item) => !item.checked)));
+        setItems(getItems4GenePanel(info, filter(checkItems, (item) => !item.checked)));
       });
     }
   }, [node, checkItems]);
@@ -92,61 +101,6 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
       </Button>
     </Popover>
   );
-
-  const getItems = (id: string, hiddenItems: string[]) => {
-    let items = []
-    if (id) {
-      items = [
-        {
-          label: "Gene",
-          key: "gene",
-          children: <GTexViewer officialGeneSymbol={id} type="gene" />
-        },
-        {
-          label: "Transcript",
-          key: "transcript",
-          children: <GTexViewer officialGeneSymbol={id} type="transcript" />
-        },
-        {
-          label: "Mutation",
-          key: "mutation",
-          children: <MutationViewer />
-        },
-        {
-          label: "3D Structure",
-          key: "structure",
-          children: <MolStarViewer />
-        }
-      ]
-    } else {
-      items = [
-        {
-          label: "Gene",
-          key: "gene",
-          children: <Empty description="No gene data" />
-        },
-        {
-          label: "Transcript",
-          key: "transcript",
-          children: <Empty description="No transcript data" />
-        },
-        {
-          label: "Mutation",
-          key: "mutation",
-          children: <Empty description="No mutation data" />
-        },
-        {
-          label: "3D Structure",
-          key: "structure",
-          children: <Empty description="No structure data" />
-        }
-      ]
-    }
-
-    return filter(items, (item: any) => {
-      return !hiddenItems.includes(item.key)
-    })
-  }
 
   return (
     <Tabs className="gene-info-panel tabs-nav-right"

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Empty, Row } from 'antd';
 import type { GraphNode } from '@/pages/KnowledgeGraph/typings';
 import DiseasePanel from './DiseasePanel';
@@ -13,44 +13,32 @@ type NodeInfoPanelProps = {
 
 const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   const { node } = props;
-  const [nodeType, setNodeType] = useState<string | undefined>(undefined);
 
-  const whichPanel = (type: string | undefined) => {
-    switch (type) {
-      case "gene":
-        return <GenePanel node={node} />
-      case "drug":
-        return <DrugPanel node={node} />
-      case "disease":
-        return <DiseasePanel node={node} />
-      default:
-        return <Empty />
-    }
-  }
-
-
-  useEffect(() => {
+  // You should add your own logic here to map the node label to the panel type
+  const mapNode2Type = (node: GraphNode | undefined) => {
     if (node) {
       const label = node.nlabel.toLocaleLowerCase();
 
       if (["gene", "protein"].includes(label)) {
-        setNodeType("gene");
+        return <GenePanel node={node} />;
       }
 
       if (["drug", "chemical", "compound"].includes(label)) {
-        setNodeType("drug");
+        return <DrugPanel node={node} />;
       }
 
       if (["disease"].includes(label)) {
-        setNodeType("disease");
+        return <DiseasePanel node={node} />;
       }
     }
-  }, [node]);
+
+    return (<Empty />);
+  }
 
   return (
     <Row className="node-info-panel">
       {
-        whichPanel(nodeType)
+        mapNode2Type(node)
       }
     </Row>
   )

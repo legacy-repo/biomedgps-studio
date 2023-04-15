@@ -68,7 +68,19 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: message,
       timestamp: +new Date(),
-      type: textType
+      type: textType,
+      buttons: [
+        {
+          type: 'URL',
+          title: 'Yes',
+          payload: 'yes',
+        },
+        {
+          type: 'URL',
+          title: 'No',
+          payload: 'no',
+        },
+      ]
     };
     return [...messages, newMessage];
   };
@@ -96,7 +108,19 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: 'Sorry, error occurred, please try again later.',
       timestamp: +new Date(),
-      type: textType
+      type: textType,
+      buttons: [
+        {
+          type: 'URL',
+          title: 'Yes',
+          payload: 'yes',
+        },
+        {
+          type: 'URL',
+          title: 'No',
+          payload: 'no',
+        },
+      ]
     };
     return [...messages, newMessage];
   }

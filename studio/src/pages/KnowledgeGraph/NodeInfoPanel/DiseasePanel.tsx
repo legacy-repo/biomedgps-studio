@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Tabs } from 'antd';
 import type { GraphNode } from '@/pages/KnowledgeGraph/typings';
-import type { GeneInfo } from '@/components/BioViewers';
+import type { GeneInfo } from '@/plugins/utils';
 
 import './index.less';
 
