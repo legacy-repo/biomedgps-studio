@@ -53,6 +53,11 @@ export type OnNodeMenuClickFn = (
   data: GraphNode, graph: Graph, graphin: any
 ) => void
 
+export type OnCanvasMenuClickFn = (
+  item: { key: string, name: string },
+  graph: Graph, graphin: any
+) => void
+
 export type OnEdgeMenuClickFn = (
   item: { key: string, name: string },
   source: GraphNode, target: GraphNode, edge: GraphEdge,
@@ -81,3 +86,5 @@ export type EdgeInfo = {
 
 export type OnClickEdgeFn = (edgeId: string, startNode: GraphNode, endNode: GraphNode, edge: GraphEdge) => void;
 export type OnClickNodeFn = (nodeId: string, node: GraphNode) => void;
+
+export type AdjacencyList = Map<string, string[]>; // node id -> list of node ids

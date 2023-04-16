@@ -45,13 +45,12 @@ export async function getNodeTypes(options?: { [key: string]: any }) {
 
 /** Get the nodes which matched the query conditions. Get the nodes which matched the query conditions. POST /api/v1/nodes */
 export async function postNodes(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.postNodesParams,
   body: {
     source_id?: string;
     relation_types?: string[];
     topk?: number;
     enable_prediction?: boolean;
+    query_map?: Record<string, any>;
   },
   options?: { [key: string]: any },
 ) {
@@ -59,9 +58,6 @@ export async function postNodes(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-    },
-    params: {
-      ...params,
     },
     data: body,
     ...(options || {}),

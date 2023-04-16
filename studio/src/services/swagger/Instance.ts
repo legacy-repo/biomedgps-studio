@@ -84,7 +84,7 @@ export async function postTasks(
   },
   options?: { [key: string]: any },
 ) {
-  return request<any>('/api/v1/tasks', {
+  return request<{ message: { id?: string } }>('/api/v1/tasks', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -127,7 +127,7 @@ export async function postUpload(body: {}, files?: File, options?: { [key: strin
     }
   });
 
-  return request<any>('/api/v1/upload', {
+  return request<{ upload_path: string; files: string[]; total: number }>('/api/v1/upload', {
     method: 'POST',
     data: formData,
     requestType: 'form',

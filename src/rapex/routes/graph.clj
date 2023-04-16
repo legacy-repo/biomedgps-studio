@@ -136,8 +136,7 @@
 
    ["/nodes"
     {:post  {:summary    "Get the nodes which matched the query conditions."
-             :parameters {:query {:query_str string?}
-                          :body specs/nodes-query-spec}
+             :parameters {:body specs/nodes-query-spec}
              :responses  {200 {:body {:nodes (s/coll-of any?)
                                       :edges (s/coll-of any?)}}
                           404 {:body specs/database-error-body}
@@ -149,17 +148,14 @@
                                    :return \"n, r, m\"
                                    :where (format \"id(n) = %s\" id)
                                    :limit 10}"}
-                           [{{{:keys [query_str]} :query
-                              {:keys [source_id relation_types topk enable_prediction]} :body} :parameters}]
+                           [{{{:keys [query_map source_id relation_types topk enable_prediction]} :body} :parameters}]
                            (try
-                             (log/info (format "Get the nodes which matched the query conditions: %s" query_str))
-                             (let [query-map (qd/read-string-as-map query_str)]
-                               (log/info "Graph Query Map: " query-map)
-                               (log/info "Prediction Payload" source_id relation_types topk enable_prediction)
-                               (ok (gdb/query&predict query-map {:source_id source_id
-                                                                 :relation_types relation_types
-                                                                 :topk topk
-                                                                 :enable_prediction enable_prediction})))
+                             (log/info "Graph Query Map: " query_map)
+                             (log/info "Prediction Payload" source_id relation_types topk enable_prediction)
+                             (ok (gdb/query&predict query_map {:source_id source_id
+                                                               :relation_types relation_types
+                                                               :topk topk
+                                                               :enable_prediction enable_prediction}))
                              (catch Exception e
                                (log/error "Error: " e)
                                (get-error-response e))))}}]])

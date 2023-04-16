@@ -2,7 +2,7 @@ import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
 import { postNodes } from '@/services/swagger/Graph';
-import { SearchObject, GraphData, GraphNode, GraphEdge } from './typings';
+import { SearchObject, GraphData, GraphNode } from './typings';
 import voca from 'voca';
 // import { Graph } from '@antv/g6';
 
@@ -108,16 +108,53 @@ export function makeGraphQueryStr(
   where_clause: string,
   return_clause?: string,
   limit?: number
-): string {
+): Record<string, any> {
   let return_clause_str = return_clause ? return_clause : "n,m,r";
   let _limit = limit ? limit : 10;
-  return `{:match "${match_clause}" :where "${where_clause}" :limit ${_limit} :return "${return_clause_str}"}`;
+  return {
+    "match": match_clause,
+    "where": where_clause,
+    "limit": _limit,
+    "return": return_clause_str
+  };
 }
 
 export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
-  let query_str = `{:match "(n)" :where "ID(n) in [${ids}]" :return "n"}`;
+  let query_map = {
+    "match": "(n)",
+    "where": `ID(n) in [${ids}]`,
+    "return": "n"
+  };
   return new Promise((resolve, reject) => {
-    postNodes({ query_str: query_str }, {}).then((res) => {
+    postNodes({ query_map: query_map }).then((res) => {
+      if (res) {
+        resolve(res)
+      } else {
+        reject(res)
+      }
+    }).catch((err) => {
+      reject(err)
+    })
+  })
+}
+
+export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
+  // To convert the js object into a literal string
+  let nodeList = nodes.map(item => {
+    // In fact, id is a number in neo4j, but it is converted to a string in the front end.
+    return { id: parseInt(item.id), label: item.nlabel }
+  })
+  let nodeListStr = JSON.stringify(nodeList, null).replace(/"([^"]+)":/g, '$1:');
+  let idListStr = JSON.stringify(nodes.map(item => parseInt(item.id)), null);
+  let query_map = {
+    "with": `${nodeListStr} as nodeList, ${idListStr} as idList`,
+    "unwind": "nodeList AS node",
+    "match": "(n)-[r]-(m)",
+    "where": "node.label in labels(n) and ID(n) = node.id and ID(m) in idList",
+    "return": "n,m,r"
+  };
+  return new Promise((resolve, reject) => {
+    postNodes({ query_map: query_map }).then((res) => {
       if (res) {
         resolve(res)
       } else {
@@ -136,7 +173,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
   } = searchObject;
   return new Promise((resolve, reject) => {
     let payload = {}
-    let query_str = ""
+    let query_str = {}
 
     if (mode == "node" && node_type && node_id) {
       query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
@@ -190,7 +227,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
     }
 
     if (query_str) {
-      postNodes({ query_str: query_str }, payload).then((res) => {
+      postNodes({ query_map: query_str, ...payload }).then((res) => {
         if (res) {
           resolve(res)
         } else {
@@ -211,7 +248,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 export const searchRelationshipsById = (label: string, id: string | undefined): Promise<GraphData> => {
   return new Promise((resolve, reject) => {
     if (label && id) {
-      postNodes({ query_str: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }, {}).then((res) => {
+      postNodes({ query_map: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }).then((res) => {
         if (res) {
           resolve(res)
         } else {

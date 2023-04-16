@@ -212,10 +212,6 @@ declare namespace API {
     chart_name: string;
   };
 
-  type postNodesParams = {
-    query_str?: string;
-  };
-
   type RapexDEGData = {
     pvalue: number;
     ensembl_id: string;

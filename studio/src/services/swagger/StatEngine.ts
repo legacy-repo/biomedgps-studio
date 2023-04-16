@@ -10,7 +10,7 @@ export async function postChartChartName(
   options?: { [key: string]: any },
 ) {
   const { chart_name: param0, ...queryParams } = params;
-  return request<any>(`/api/v1/chart/${param0}`, {
+  return request<API.TaskCreationResponse>(`/api/v1/chart/${param0}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

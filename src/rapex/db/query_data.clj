@@ -87,6 +87,8 @@
   ^PersistentArrayMap [^String query-string]
   (try
     (read-string query-string)
+    ;; Don't use read-string, it will convert string to keyword.
+    ;; (json/read-str query-string :key-fn #(keyword (subs % 1)))
     (catch Exception e
       (throw (custom-ex-info "Wrong query string."
                              :bad-request

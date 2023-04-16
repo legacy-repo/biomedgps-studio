@@ -274,6 +274,18 @@
     (format "MATCH %s" match-clause)
     (throw (Exception. "Match clause is missing."))))
 
+(defn with
+  [with-clause]
+  (if with-clause
+    (format "WITH %s" with-clause)
+    ""))
+
+(defn unwind
+  [unwind-clause]
+  (if unwind-clause
+    (format "UNWIND %s" unwind-clause)
+    ""))
+
 (defn return
   [return-clause]
   (if return-clause
@@ -282,10 +294,12 @@
 
 (defn make-query
   "
-   {:match xxx :where xxx :return xxx :limit xxx}
+   {:with xxx :unwind xxx :match xxx :where xxx :return xxx :limit xxx}
   "
   [query-map]
-  (let [query (format "%s %s %s %s %s"
+  (let [query (format "%s %s %s %s %s %s %s"
+                      (with (:with query-map))
+                      (unwind (:unwind query-map))
                       (match (:match query-map))
                       (where (:where query-map))
                       (return (:return query-map))

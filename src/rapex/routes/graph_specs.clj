@@ -244,6 +244,15 @@
     :swagger/default     true
     :reason              "The enable_prediction parameter can't be none."}))
 
+(s/def ::query_map
+  (st/spec
+   {:spec                map?
+    :type                :object
+    :description         "Query string"
+    :swagger/type        "object"
+    :swagger/default     ""
+    :reason              "The query_str parameter can't be none."}))
+
 (def nodes-query-spec
-  (s/keys :req-un []
+  (s/keys :req-un [::query_map]
           :opt-un [::source_id ::relation_types ::topk ::enable_prediction]))

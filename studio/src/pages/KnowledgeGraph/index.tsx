@@ -13,7 +13,7 @@ import ComplexChart from './Chart/ComplexChart';
 import StatisticsChart from './Chart/StatisticsChart';
 import ReactResizeDetector from 'react-resize-detector';
 import {
-  makeColumns, makeDataSources,
+  makeColumns, makeDataSources, autoConnectNodes,
   makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
@@ -21,7 +21,7 @@ import EdgeInfoPanel from './EdgeInfoPanel';
 import { getStatistics } from '@/services/swagger/Graph';
 import {
   SearchObject, GraphData, GraphEdge, GraphNode,
-  NodeStat, EdgeStat, EdgeInfo, OnClickEdgeFn
+  NodeStat, EdgeStat, EdgeInfo
 } from './typings';
 
 import './index.less';
@@ -228,6 +228,35 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     })
   }
 
+  const onCanvasMenuClick = (
+    menuItem: { key: string, name: string },
+    graph: any, apis: any
+  ) => {
+    if (menuItem.key == 'auto-connect') {
+      message.info("Auto connecting nodes, please wait...")
+      setLoading(true)
+      const nodes = graph.getNodes().map((node: any) => node.getModel() as GraphNode);
+      autoConnectNodes(nodes).then((response: GraphData) => {
+        console.log("Auto Connect Response: ", response)
+        checkAndSetData({
+          nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
+          edges: uniqBy([...data.edges, ...response.edges], "relid")
+        })
+
+        if (response.nodes.length == 0 && response.edges.length == 0) {
+          message.warn("No more relationships can be found.")
+        } else {
+          message.success(`Find ${response.nodes.length} entities and ${response.edges.length} relationships.`)
+        }
+      }).catch((error: any) => {
+        console.log("Auto Connect Error: ", error)
+        message.warn("Something went wrong, please try again later.")
+      }).finally(() => {
+        setLoading(false)
+      })
+    }
+  }
+
   const onEdgeMenuClick = (
     menuItem: { key: string, name: string },
     source: GraphNode, target: GraphNode,
@@ -235,7 +264,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   ) => {
     if (menuItem.key == 'what-is-the-relationship') {
       if (props.postMessage) {
-        props.postMessage(`what is the relationship between ${source.data.name} and ${target.data.name}`)
+        props.postMessage(`what is the relationship between ${source.data.name} and ${target.data.name}?`)
       }
     } else if (menuItem.key == 'show-edge-details') {
       setEdgeInfoPanelVisible(true)
@@ -270,7 +299,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       })
     } else if (menuItem.key == 'what-is-the-node') {
       if (props.postMessage) {
-        props.postMessage(`what is ${node.data.name}`)
+        props.postMessage(`what is the ${node.data.name}?`)
       }
     } else if (menuItem.key == 'show-node-details') {
       setNodeInfoPanelVisible(true)
@@ -366,15 +395,19 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     <ReactResizeDetector onResize={onWidthChange}>
       <Row className='knowledge-graph-container'>
         <Spin spinning={loading}>
-          <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle" icon={<SettingOutlined />} />
-          <Button className='save-button' onClick={saveGraphData}
-            shape="circle" icon={<DownloadOutlined />} />
-          <Button className='clear-button' onClick={clearGraphData}
-            shape="circle" icon={<DeleteFilled />} />
-          <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
-          <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
-            onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
-          </AdvancedSearch>
+          <Row className='left-toolbar'>
+            <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle" icon={<SettingOutlined />} />
+            <Button className='save-button' onClick={saveGraphData}
+              shape="circle" icon={<DownloadOutlined />} />
+            <Button className='clear-button' onClick={clearGraphData}
+              shape="circle" icon={<DeleteFilled />} />
+          </Row>
+          <Row className='top-toolbar'>
+            <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
+            <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
+              onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
+            </AdvancedSearch>
+          </Row>
           <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
             <Toolbar position='top' width='300px' height='100%' closable={true} title="Statistics">
               <StatisticsChart nodeStat={nodeStat} edgeStat={edgeStat}></StatisticsChart>
@@ -419,7 +452,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
               statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
-              onClickNode={onClickNode} onClickEdge={onClickEdge}>
+              onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
             </GraphinWrapper>
           </Col>
         </Spin>

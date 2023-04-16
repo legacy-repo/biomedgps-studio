@@ -14,7 +14,8 @@ import {
     EyeOutlined,
     BranchesOutlined,
     AimOutlined,
-    InfoCircleFilled
+    InfoCircleFilled,
+    ForkOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -22,8 +23,10 @@ import { message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu 
 import { makeDataSource } from './utils';
 import type {
     OnNodeMenuClickFn, OnEdgeMenuClickFn, GraphNode,
-    OnClickEdgeFn, OnClickNodeFn, GraphEdge
+    OnClickEdgeFn, OnClickNodeFn, GraphEdge, OnCanvasMenuClickFn,
+    AdjacencyList
 } from "./typings";
+import ShowPaths from './Components/ShowPaths';
 import voca from 'voca';
 import './graphin-wrapper.less';
 
@@ -142,7 +145,7 @@ const EdgeMenu = (props: EdgeMenuProps) => {
 
     const onChange = function (item: any) {
         if (props.onChange && sourceNode && targetNode && edge && graph && apis) {
-            props.onChange(item, sourceNode, targetNode, graph, apis)
+            props.onChange(item, sourceNode, targetNode, edge, graph, apis)
             setVisible(false);
         } else {
             message.warn("Cannot catch the changes.")
@@ -228,12 +231,26 @@ const NodeMenu = (props: NodeMenuProps) => {
     return visible ? <AntdMenu items={options} onClick={onChange} /> : null;
 }
 
-const CanvasMenu = (props: any) => {
-    const { graph, contextmenu } = useContext(GraphinContext);
+type CanvasMenuProps = {
+    onCanvasClick?: OnCanvasMenuClickFn,
+    handleOpenFishEye?: () => void,
+}
+
+const CanvasMenu = (props: CanvasMenuProps) => {
+    const { graph, contextmenu, apis } = useContext(GraphinContext);
     const context = contextmenu.canvas;
     const handleDownload = () => {
         graph.downloadFullImage('canvas-contextmenu');
         context.handleClose();
+    };
+
+    const handleAutoConnect = () => {
+        if (props.onCanvasClick) {
+            props.onCanvasClick({
+                key: 'auto-connect',
+                name: 'AutoConnect',
+            }, graph, apis);
+        }
     };
 
     // const handleClear = () => {
@@ -249,11 +266,16 @@ const CanvasMenu = (props: any) => {
     // };
 
     const handleOpenFishEye = () => {
-        props.handleOpenFishEye();
+        if (props.handleOpenFishEye) {
+            props.handleOpenFishEye();
+        }
     };
 
     return (
         <Menu bindType="canvas">
+            <Menu.Item onClick={handleAutoConnect}>
+                <ForkOutlined /> Auto Connect
+            </Menu.Item>
             <Menu.Item onClick={handleOpenFishEye}>
                 <EyeOutlined /> Enable FishEye
             </Menu.Item>
@@ -362,7 +384,7 @@ const HighlightNode = (props: { selectedNode?: string }) => {
     return null;
 }
 
-const FocusBehavior = (props: { queriedId?: string }) => {
+const FocusBehavior = (props: { queriedId?: string, onClickNode?: (nodes: GraphNode) => void }) => {
     const { graph, apis } = useContext(GraphinContext);
 
     useEffect(() => {
@@ -375,13 +397,20 @@ const FocusBehavior = (props: { queriedId?: string }) => {
             const node = evt.item as INode;
             const model = node.getModel() as NodeConfig;
             apis.focusNodeById(model.id);
+
+            if (props.onClickNode) {
+                props.onClickNode(node.getModel() as GraphNode);
+            }
         };
+
         // 每次点击聚焦到点击节点上
         graph.on('node:click', handleClick);
+
         return () => {
             graph.off('node:click', handleClick);
         };
     }, []);
+
     return null;
 };
 
@@ -495,6 +524,7 @@ export type GraphinProps = {
     containerId?: string;
     onNodeMenuClick?: OnNodeMenuClickFn;
     onEdgeMenuClick?: OnEdgeMenuClickFn;
+    onCanvasMenuClick?: OnCanvasMenuClickFn;
     queriedId?: string;
     statistics: any;
     chatbotVisible?: boolean;
@@ -504,7 +534,10 @@ export type GraphinProps = {
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
-    const { data, layout, style, onNodeMenuClick, onEdgeMenuClick, selectedNode } = props
+    const {
+        data, layout, style, onNodeMenuClick,
+        onEdgeMenuClick, selectedNode, onCanvasMenuClick
+    } = props
     const [fishEyeVisible, setFishEyeVisible] = useState(false);
 
     const [autoPin, setAutoPin] = useState(false);
@@ -520,6 +553,8 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
     const [currentEdge, setCurrentEdge] = useState<any>(null);
     const [currentNode, setCurrentNode] = useState<any>(null);
+    const [focusedNodes, setFocusedNodes] = useState<GraphNode[]>([]);
+    const [adjacencyList, setAdjacencyList] = useState<AdjacencyList>({}); // Adjacency list for the current graph
 
     const ref = React.useRef(null);
 
@@ -542,6 +577,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const onCloseFishEye = () => {
         setFishEyeVisible(false);
     };
+
+    const onClickNodeInFocusMode = (node: GraphNode) => {
+        setFocusedNodes(prevState => [...prevState, node]);
+    }
+
+    const onClosePathsFinder = () => {
+        setFocusedNodes([]);
+    }
 
     const HoverText: React.FC<{ data: Record<string, any>, style: any }> = ({ data, style }) => {
         console.log("HoverText: ", data)
@@ -572,6 +615,19 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         console.log(checkedValue, options);
     };
 
+    useEffect(() => {
+        // create a map to hold the adjacency list
+        const adjacencyList = new Map();
+        for (const node of data.nodes) {
+            adjacencyList.set(node.id, []);
+        }
+        for (const edge of data.edges) {
+            adjacencyList.get(edge.source).push(edge.target);
+            adjacencyList.get(edge.target).push(edge.source);
+        }
+        setAdjacencyList(adjacencyList);
+    }, [data]);
+
     return (
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
@@ -593,7 +649,8 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     item={currentNode} onChange={onNodeMenuClick} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="canvas">
-                <CanvasMenu handleOpenFishEye={handleOpenFishEye} />
+                <CanvasMenu handleOpenFishEye={handleOpenFishEye}
+                    onCanvasClick={onCanvasMenuClick} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
                 <EdgeMenu item={currentEdge} chatbotVisible={props.chatbotVisible}
@@ -705,7 +762,11 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <NodeSearcher></NodeSearcher>
 
             {focusNodeEnabled ?
-                <FocusBehavior queriedId={props.queriedId} />
+                <>
+                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode} />
+                    <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
+                        onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList} />
+                </>
                 : null
             }
             {(selectedNodeEnabled && !focusNodeEnabled) ?
