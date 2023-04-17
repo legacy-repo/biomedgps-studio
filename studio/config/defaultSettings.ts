@@ -10,7 +10,7 @@ const Settings: LayoutSettings & {
   navTheme: 'light',
   // 拂晓蓝
   primaryColor: '#1890ff',
-  layout: 'mix',
+  layout: 'top',
   contentWidth: 'Fluid',
   fixedHeader: false,
   fixSiderbar: true,
@@ -19,7 +19,7 @@ const Settings: LayoutSettings & {
   description: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
   keywords: 'RAPEX, transcriptomics, air pollution, knowledge graph',
   pwa: false,
-  logo: '/logo-white.png',
+  logo: '/logo.png',
   iconfontUrl: '',
 };
 

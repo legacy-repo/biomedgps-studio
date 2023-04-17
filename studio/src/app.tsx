@@ -1,5 +1,5 @@
 import Footer from '@/components/Footer';
-import Header from '@/pages/Header';
+import Header from '@/components/Header';
 import { BookOutlined, BulbOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
@@ -7,99 +7,8 @@ import type { RunTimeLayoutConfig } from 'umi';
 import { history, Link, RequestConfig, useIntl } from 'umi';
 import defaultSettings, { CustomSettings, defaultCustomSettings, AppVersion } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
-import { getStudioConfig, getVersion, getMenusDataset } from '@/services/swagger/Instance';
-import type { MenuDataItem } from '@ant-design/pro-components';
-import * as icons from "@ant-design/icons";
-import { createElement } from "react";
-import { dynamic } from "umi";
-
-const Component = {
-  // RapexPlugin => rapex-plugin is a group name
-  // GeneListWrapper is a component name, it will be transformed to genelistwrapper as a route path.
-  RapexPluginGeneListWrapper: dynamic(() => import("@/pages/rapex-plugin/GeneListWrapper")),
-  RapexPluginKEGGPathwayWrapper: dynamic(() => import("@/pages/rapex-plugin/KEGGPathwayWrapper")),
-  RapexPluginSimilarGeneListWrapper: dynamic(() => import("@/pages/rapex-plugin/SimilarGeneListWrapper")),
-  RapexPluginSingleGene: dynamic(() => import("@/pages/rapex-plugin/SingleGene")),
-  RapexPluginStatEngineWrapper: dynamic(() => import("@/pages/rapex-plugin/StatEngineWrapper")),
-  RapexPluginWelcome: dynamic(() => import("@/pages/rapex-plugin/Welcome")),
-
-  // Common Components
-  About: dynamic(() => import("@/pages/About")),
-  Help: dynamic(() => import("@/pages/Help")),
-  KnowledgeGraph: dynamic(() => import("@/pages/KnowledgeGraph")),
-  Datasets: dynamic(() => import("@/pages/Datasets")),
-  NotFound: dynamic(() => import("@/pages/404")),
-};
-
-function dynamicRoutesToUsableRoutes(routes: MenuDataItem[]): MenuDataItem[] {
-  return routes.map(route => {
-    // route 是后端返回的数据
-    // item 是最终antd-pro需要数据
-    const item: MenuDataItem = {
-      ...route,
-      exact: false,
-    };
-
-    // icon 匹配
-    if (route?.icon) {
-      item.icon = createElement(icons[route.icon]);
-    }
-
-    // 组件匹配, 因为后端菜单配置的时候只会返回当前菜单对应的组件标识，所以通过组件标识来匹配组件
-    if (route?.component) {
-      item.component = Component[route.component || ""];
-      // item.exact = true;
-    }
-
-    // 子路由 处理
-    if (route.routes && route.routes.length > 0) {
-      item.routes = [
-        // 如果有子路由那么肯定是要进行重定向的，重定向为第一个组件
-        {
-          path: item.path,
-          redirect: route.routes[0].path,
-          // exact: true
-        },
-        ...dynamicRoutesToUsableRoutes(route.routes),
-      ];
-      item.children = [
-        {
-          path: item.path,
-          redirect: route.routes[0].path,
-          // exact: true
-        },
-        ...dynamicRoutesToUsableRoutes(route.routes),
-      ];
-    }
-
-    return item;
-  });
-}
-
-const defaultRoutes = [
-  {
-    path: '/',
-    redirect: '/welcome',
-    exact: true,
-  },
-  {
-    name: 'about',
-    icon: 'InfoCircleOutlined',
-    path: '/about',
-    hideInMenu: true,
-    component: 'about',
-  },
-  {
-    name: 'help',
-    icon: 'QuestionCircleOutlined',
-    path: '/help',
-    hideInMenu: true,
-    component: 'help',
-  },
-  {
-    component: 'NotFound',
-  }
-]
+import { getStudioConfig, getVersion } from '@/services/swagger/Instance';
+import { getDatasets } from '@/services/swagger/StatEngine';
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
@@ -208,6 +117,7 @@ export const initialStateConfig = {
 /**
  * @see  https://umijs.org/zh-CN/plugins/plugin-initial-state
  * */
+// TODO: After releasing the first version, try to improve the customized settings.
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
   loading?: boolean;
@@ -283,45 +193,24 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
   console.log("initialState: ", initialState);
 
   return {
-    menu: {
-      // Re-execute request whenever initialState?.currentUser?.userid is modified
-      params: {
-        defaultDataset: initialState?.customSettings?.defaultDataset,
-        mode: initialState?.customSettings?.mode,
-      },
-      request: async (params: any, defaultMenuData: any) => {
-        let remoteMenuData = await getMenusDataset({ dataset: params.defaultDataset });
-        let menuRoutes = remoteMenuData.routes.concat(defaultRoutes);
-        const routes = dynamicRoutesToUsableRoutes(menuRoutes);
-        console.log("User DynamicRoutes: ", routes, menuRoutes);
-        return routes
-      },
-    },
-    rightContentRender: () => <Header />,
+    // TODO: Improve the interface for getDatasets.
+    rightContentRender: () => <Header getDatasets={getDatasets} />,
     disableContentMargin: false,
     waterMarkProps: {
       // content: initialState?.currentUser?.name,
     },
-    onCollapse: (collapsed) => {
-      console.log("onCollapse: ", initialState, collapsed);
-      setInitialState({
-        ...initialState,
-        collapsed: !initialState?.collapsed
-      })
-    },
-    collapsed: initialState?.collapsed === undefined ? true : initialState?.collapsed,
+    // TODO: Remove these codes
+    // onCollapse: (collapsed: boolean) => {
+    //   console.log("onCollapse: ", initialState, collapsed);
+    //   setInitialState({
+    //     ...initialState,
+    //     collapsed: !initialState?.collapsed
+    //   })
+    // },
+    // collapsed: initialState?.collapsed === undefined ? true : initialState?.collapsed,
     footerRender: () => <Footer />,
     onPageChange: () => {
       const { location } = history;
-
-      if (location.pathname === "/") {
-        history.push("/knowledgegraph");
-      }
-
-      // It's just a trick to redirect to `/index.html` when you visit `/` .
-      if (location.pathname === "/index.html") {
-        history.push("/knowledgegraph");
-      }
 
       // // Change the collapsed status of menu
       // console.log("onPageChange: ", initialState);
