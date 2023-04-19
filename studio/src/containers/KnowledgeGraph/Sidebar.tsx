@@ -2,7 +2,7 @@ import React from "react";
 import Icon, {
     BranchesOutlined
 } from "@ant-design/icons";
-import './sidebar.less';
+import './Sidebar.less';
 
 const Sidebar: React.FC = () => {
     function SidebarOption({ text, name }) {

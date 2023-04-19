@@ -91,19 +91,10 @@
                                         ::website_logo ::website_description ::website_keywords]
                                :opt-un [::default_dataset]))
 
-(s/def ::path string?)
-(s/def ::name string?)
-(s/def ::icon string?)
-(s/def ::component string?)
-(s/def ::routes (s/coll-of (s/keys :req-un [::path ::name ::icon]
-                                   :opt-un [::component ::routes])))
-(s/def ::menu-config (s/keys :req-un [::routes]))
-
 (s/def ::enable-gnn boolean?)
 
 (s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
-                                 ::graph-database-url ::database-url
-                                 ::menu-config]
+                                 ::graph-database-url ::database-url]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors ::enable-gnn
                                  ::fs-services ::default-fs-service ::studio-config
                                  ::graph-config]))
@@ -111,8 +102,8 @@
 (defn check-config
   [env]
   (let [config (select-keys env [:port :nrepl-port :workdir :datadir
-                                 :default-dataset :enable-gnn :menu-config
-                                 :cors-origins :enable-cors :database-url :dbtype :graph-database-url
+                                 :default-dataset :enable-gnn :cors-origins
+                                 :enable-cors :database-url :dbtype :graph-database-url
                                  :fs-services :default-fs-service :dataset-metadata
                                  :studio-config :graph-config])]
     (when (not (s/valid? ::config config))
@@ -191,10 +182,6 @@
                          workdir
                          fs-rootdir))
       (System/exit 1))))
-
-(defn get-full-menus
-  []
-  (:menu-config env))
 
 (defn get-studio-config
   []

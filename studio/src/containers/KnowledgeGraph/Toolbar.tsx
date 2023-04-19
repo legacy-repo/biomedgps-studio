@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Drawer } from 'antd';
 
-import './toolbar.less';
+import './Toolbar.less';
 
 type ToolbarProps = {
     position: "right" | "left" | "top" | "bottom" | undefined,

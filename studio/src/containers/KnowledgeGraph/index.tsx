@@ -148,7 +148,11 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }, [])
 
   useEffect(() => {
-    if (searchObject.node_id && searchObject.node_type && advancedSearchPanelActive === false) {
+    // You need to check if the data is empty, otherwise it will update on an unmounted component. 
+    if (advancedSearchPanelActive === false && (
+      (searchObject.node_type && searchObject.node_id) ||
+      searchObject.node_ids
+    )) {
       setLoading(true)
       message.info("Loading data, please wait...")
       makeGraphQueryStrWithSearchObject(searchObject)

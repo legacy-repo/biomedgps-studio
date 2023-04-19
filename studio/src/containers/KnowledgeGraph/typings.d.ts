@@ -1,20 +1,22 @@
 import type { Graph, GraphData as AntvGraphData } from '@antv/graphin';
 
 export type OptionType = {
-  label: string,
+  order: number;
+  label: string;
   value: string
 }
 
 export type SearchObject = {
-  node_type: string;
-  node_id: string | undefined;
+  node_type?: string;
+  node_id?: string | undefined;
   merge_mode: "append" | "replace" | "subtract";
   relation_types?: string[];
   all_relation_types?: string[];
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;
-  mode?: "node" | "path";
+  mode?: "node" | "path" | "batchIds";
+  node_ids?: string[];
   node_type2?: string;
   node_id2?: string;
 }

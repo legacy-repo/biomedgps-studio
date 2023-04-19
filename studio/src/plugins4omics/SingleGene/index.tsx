@@ -209,7 +209,7 @@ const SingleGene: React.FC<{ ensemblId: string | null }> = (props) => {
           <Row className='statistics'>
             <PlotlyViewer responsiveKey={1} plotlyData={barPlot} key="1" mode="Plotly"></PlotlyViewer>
             <PlotlyViewer responsiveKey={2} plotlyData={boxPlot} key="2" mode="Plotly"></PlotlyViewer>
-            <Row>
+            <Row className='similar-genelist-container'>
               <h3>
                 Most Similar Genes
               </h3>

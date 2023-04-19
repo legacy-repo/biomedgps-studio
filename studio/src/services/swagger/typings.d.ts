@@ -160,10 +160,6 @@ declare namespace API {
     label_type: string;
   };
 
-  type getMenusDatasetParams = {
-    dataset: string;
-  };
-
   type getNodePropertiesParams = {
     node_name?: string;
   };
@@ -186,6 +182,10 @@ declare namespace API {
     page?: number;
     /** Num of items per page. */
     page_size?: number;
+    /** Only return the total number of records */
+    only_total?: string;
+    /** Don't return the total number of records */
+    disable_total?: string;
   };
 
   type getTasksIdParams = {

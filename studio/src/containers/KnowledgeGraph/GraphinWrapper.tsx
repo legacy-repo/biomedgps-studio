@@ -28,7 +28,7 @@ import type {
 } from "./typings";
 import ShowPaths from './Components/ShowPaths';
 import voca from 'voca';
-import './graphin-wrapper.less';
+import './GraphinWrapper.less';
 
 const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 

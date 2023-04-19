@@ -110,7 +110,7 @@
 ;; More Details for `:type`: https://cljdoc.org/d/metosin/spec-tools/0.6.1/doc/readme#type-based-conforming
 (s/def ::label_type
   (st/spec
-   {:spec                (s/and string? #(some? (re-matches #"[0-9A-Za-z]+" %)))  ;; such as 00000000
+   {:spec                (s/and string? #(some? (re-matches #"[0-9A-Za-z_]+" %)))  ;; such as gene, molecular_function
     :description         "Label type."
     :swagger/default     "Gene"
     :swagger/type        "string"
@@ -167,10 +167,31 @@
     :swagger/default     ""
     :reason              "The msg parameter can't be none."}))
 
+(s/def ::disable_total
+  (st/spec
+   {:spec                #{"true" "false"}
+    :type                :string
+    :description         "Disable total."
+    :swagger/default     "false"
+    :reason              "The disable_total parameter can't be none."}))
+
+(s/def ::only_total
+  (st/spec
+   {:spec                #{"true" "false"}
+    :type                :string
+    :description         "Only show total."
+    :swagger/default     "false"
+    :reason              "The only_total parameter can't be none."}))
+
 (s/def ::DBQueryParams
   (st/spec
    (s/keys :req-un [::query_str ::label_type]
-           :opt-un [::page ::page_size])))
+           :opt-un [::page ::page_size ::disable_total ::only_total])))
+
+(s/def ::RelationshipsQueryParams
+  (st/spec
+   (s/keys :req-un [::query_str]
+           :opt-un [::page ::page_size ::disable_total ::only_total])))
 
 (s/def ::DBItems
   (st/spec
@@ -179,8 +200,8 @@
 
 (s/def ::DBDataItems
   (st/spec
-   (s/keys :req-un [::data]
-           :opt-un [])))
+   (s/keys :req-un []
+           :opt-un [::page ::page_size ::total ::data])))
 
 (s/def ::node_stat
   (st/spec

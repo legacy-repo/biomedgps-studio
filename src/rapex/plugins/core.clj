@@ -3,7 +3,7 @@
             [ring.util.http-response :refer [ok not-found]]
             [rapex.plugins.rapex.chart-sepcs :as cs]
             [clojure.spec.alpha :as s]
-            [rapex.config :refer [memorized-get-dataset-metadata get-full-menus]]
+            [rapex.config :refer [memorized-get-dataset-metadata]]
             ;; Plugin
             [rapex.plugins.rapex.core :as rapex]))
 
@@ -78,22 +78,9 @@
                 (ok (memorized-get-dataset-metadata))
                 (ok (gen-dataset-map))))})
 
-(defn get-menus
-  []
-  {:summary "Get menus"
-   :parameters {:path ::specs/MenuParams}
-   :responses {200 {:body ::specs/Menus}}
-   :handler (fn [{{{:keys [dataset]} :path} :parameters}]
-              (when dataset
-                ;; TODO: Generate dynamic menus based on dataset
-                (ok (get-full-menus))))})
-
 (def routes
   [[""
     {:swagger {:tags ["Visualization for Omics Data"]}}
-
-    ["/menus/:dataset"
-     {:get (get-menus)}]
 
     ["/datasets"
      {:get (get-datasets)}]

@@ -169,7 +169,7 @@ export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
   const {
     node_type, node_id, relation_types, all_relation_types,
-    enable_prediction, limit, mode, node_id2, node_type2
+    enable_prediction, limit, mode, node_id2, node_type2, node_ids
   } = searchObject;
   return new Promise((resolve, reject) => {
     let payload = {}
@@ -226,7 +226,11 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       }
     }
 
-    if (query_str) {
+    if (mode == 'batchIds' && node_ids) {
+      query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(node_ids)}`, "n", limit)
+    }
+
+    if (Object.keys(query_str).length > 0) {
       postNodes({ query_map: query_str, ...payload }).then((res) => {
         if (res) {
           resolve(res)

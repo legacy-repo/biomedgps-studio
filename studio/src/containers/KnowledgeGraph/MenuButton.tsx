@@ -15,7 +15,7 @@ import {
     CustomerServiceFilled,
 } from '@ant-design/icons';
 import { defaultLayout } from './utils';
-import './menu-button.less';
+import './MenuButton.less';
 
 
 const { Panel } = Collapse;

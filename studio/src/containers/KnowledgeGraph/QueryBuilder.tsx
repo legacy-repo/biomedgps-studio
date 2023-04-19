@@ -3,7 +3,7 @@ import { Row, Empty, Select, Button } from "antd";
 import { getNodeTypes, getLabels } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
 import { OptionType } from './typings';
-import './query-builder.less';
+import './QueryBuilder.less';
 
 let timeout: ReturnType<typeof setTimeout> | null;
 

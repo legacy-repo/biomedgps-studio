@@ -17,28 +17,6 @@ export async function getDownload(
   });
 }
 
-/** Get menus. Get menus based on dataset plugin. GET /api/v1/menus/${param0} */
-export async function getMenusDataset(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.getMenusDatasetParams,
-  options?: { [key: string]: any },
-) {
-  const { dataset: param0, ...queryParams } = params;
-  return request<{
-    routes: {
-      path?: string;
-      name?: string;
-      icon?: string;
-      component?: string;
-      routes?: { path?: string; name?: string; icon?: string; component?: string }[];
-    }[];
-  }>(`/api/v1/menus/${param0}`, {
-    method: 'GET',
-    params: { ...queryParams },
-    ...(options || {}),
-  });
-}
-
 /** Get config for studio Get config for studio GET /api/v1/studio-config */
 export async function getStudioConfig(options?: { [key: string]: any }) {
   return request<{

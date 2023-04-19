@@ -70,26 +70,31 @@
 
    ["/relationships"
     {:get {:summary    "Query the relationships"
-           :parameters {:query ::specs/DBQueryParams}
+           :parameters {:query ::specs/RelationshipsQueryParams}
            :responses  {200 {:body ::specs/DBDataItems}
                         404 {:body specs/database-error-body}
                         400 {:body specs/database-error-body}
                         500 {:body specs/database-error-body}}
-           :handler    (fn [{{{:keys [page page_size query_str]} :query} :parameters
+           :handler    (fn [{{{:keys [page page_size query_str
+                                      only_total disable_total]} :query} :parameters
                              {:as headers} :headers}]
                          (try
                            (let [page (or page 1)
-                                 page_size (or page_size 50)
+                                 page_size (or page_size 100)
                                  query-map (qd/read-string-as-map query_str)
                                  query-map (merge query-map {:limit page_size
                                                              :offset (* (- page 1) page_size)
                                                              :from :relationships})
                                  dbpath (qd/get-db-path "graph_metadata" :datadir (get-datadir))]
                              (log/info "database:" dbpath "query-map:" query-map)
-                             (ok {:total (qd/get-total dbpath query-map)
-                                  :page page
-                                  :page_size page_size
-                                  :data (qd/get-results dbpath query-map)}))
+                             (if (= only_total "true")
+                               (ok {:total (qd/get-total dbpath query-map)})
+                               (if (= disable_total "true")
+                                 (ok {:data (qd/get-results dbpath query-map)})
+                                 (ok {:total (qd/get-total dbpath query-map)
+                                      :page page
+                                      :page_size page_size
+                                      :data (qd/get-results query-map)}))))
                            (catch Exception e
                              (log/error "Error: " e)
                              (get-error-response e))))}}]

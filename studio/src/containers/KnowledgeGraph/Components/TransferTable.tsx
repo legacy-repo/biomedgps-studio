@@ -1,30 +1,68 @@
 import React, { useState } from 'react';
-import { Table, Tag, Transfer } from 'antd';
+import { Table, Tag, Transfer, Button, Row, message } from 'antd';
 import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
-import type { TransferItem, TransferProps } from 'antd/es/transfer';
+import type { TransferProps } from 'antd/es/transfer';
 import difference from 'lodash/difference';
+import type { SearchObject } from '../typings';
 
-interface RecordType {
+import './TransferTable.less';
+
+export interface DataType {
   key: string;
-  id: string;
-  name: string;
-  disabled: boolean;
-  status: string;
+  node_id: string;
+  node_type: string;
+  matched_id?: string;
+  matched_name?: string;
+  disabled?: boolean;
 }
 
-interface DataType {
-  key: string;
-  id: string;
-  name: string;
-  disabled: boolean;
-  status: string;
-}
-
-interface TableTransferProps extends TransferProps<TransferItem> {
+interface TableTransferProps extends TransferProps<DataType> {
   dataSource: DataType[];
   leftColumns: ColumnsType<DataType>;
   rightColumns: ColumnsType<DataType>;
 }
+
+const leftTableColumns: ColumnsType<DataType> = [
+  {
+    dataIndex: 'node_id',
+    title: 'ID',
+    align: 'center',
+  },
+  {
+    dataIndex: 'node_type',
+    title: 'Type',
+    align: 'center',
+  },
+  {
+    dataIndex: 'matched_id',
+    title: 'Matched ID',
+    align: 'center',
+  },
+  {
+    dataIndex: 'matched_name',
+    title: 'Matched Name',
+    align: 'center',
+  },
+  {
+    dataIndex: 'disabled',
+    title: 'Status',
+    align: 'center',
+    render: (disabled) => <Tag>{disabled ? 'Not Matched' : 'Matched'}</Tag>,
+  },
+];
+
+const rightTableColumns: ColumnsType<DataType> = [
+  {
+    dataIndex: 'node_id',
+    title: 'Raw ID',
+    align: 'center',
+  },
+  {
+    dataIndex: 'matched_id',
+    title: 'Matched ID',
+    align: 'center',
+  },
+];
 
 // Customize Table Transfer
 const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: TableTransferProps) => (
@@ -39,7 +77,7 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: TableTransfe
     }) => {
       const columns = direction === 'left' ? leftColumns : rightColumns;
 
-      const rowSelection: TableRowSelection<TransferItem> = {
+      const rowSelection: TableRowSelection<DataType> = {
         getCheckboxProps: (item) => ({ disabled: listDisabled || item.disabled }),
         onSelectAll(selected, selectedRows) {
           const treeSelectedKeys = selectedRows
@@ -75,68 +113,54 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: TableTransfe
   </Transfer>
 );
 
-const mockStatusList = ['Not Found', 'Found'];
+type TransferTableProps = {
+  dataSource: DataType[];
+  onCancel?: () => void;
+  onOk?: (searchObj: SearchObject) => void;
+};
 
-const mockData: RecordType[] = Array.from({ length: 10 }).map((_, i) => ({
-  key: i.toString(),
-  id: `MESH:${i + 1} * 1000`,
-  name: `description of content${i + 1}`,
-  disabled: mockStatusList[i % 2] == 'Not Found',
-  status: mockStatusList[i % 2],
-}));
+const TransferTable: React.FC<TransferTableProps> = (props) => {
+  const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
-const originTargetKeys = mockData
-  .filter((item) => Number(item.key) % 3 > 1)
-  .map((item) => item.key);
-
-const leftTableColumns: ColumnsType<DataType> = [
-  {
-    dataIndex: 'id',
-    title: 'ID',
-  },
-  {
-    dataIndex: 'name',
-    title: 'Name',
-  },
-  {
-    dataIndex: 'status',
-    title: 'Status',
-    render: (tag) => <Tag>{tag}</Tag>,
-  },
-];
-
-const rightTableColumns: ColumnsType<Pick<DataType, 'id'>> = [
-  {
-    dataIndex: 'id',
-    title: 'ID',
-  },
-  {
-    dataIndex: 'formated_id',
-    title: 'Formated ID',
-  },
-];
-
-const TransferTable: React.FC = () => {
-  const [targetKeys, setTargetKeys] = useState<string[]>(originTargetKeys);
+  const submitData = () => {
+    if (targetKeys.length === 0) {
+      message.warn('Please select at least one node from the left table.');
+      return;
+    } else {
+      props.onOk?.({
+        node_ids: targetKeys,
+        merge_mode: 'append',
+        mode: 'batchIds'
+      })
+    }
+  };
 
   const onChange = (nextTargetKeys: string[]) => {
     setTargetKeys(nextTargetKeys);
+    console.log('targetKeys: ', nextTargetKeys);
   };
 
   return (
-    <>
+    <Row className='transfer-table'>
       <TableTransfer
-        dataSource={mockData}
+        dataSource={props.dataSource}
         targetKeys={targetKeys}
         showSearch={true}
         onChange={onChange}
         filterOption={(inputValue, item) =>
-          item.title!.indexOf(inputValue) !== -1 || item.tag.indexOf(inputValue) !== -1
+          item.node_id!.indexOf(inputValue) !== -1 || item.node_type.indexOf(inputValue) !== -1
         }
         leftColumns={leftTableColumns}
         rightColumns={rightTableColumns}
       />
-    </>
+      <Row className='button-group'>
+        <Button onClick={props.onCancel}>Cancel</Button>
+        <Button type='primary'
+          onClick={submitData}>
+          Search
+        </Button>
+      </Row>
+    </Row>
   );
 };
 
