@@ -5,16 +5,19 @@ import { useEffect, useState } from 'react';
 import './index.less';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 
+const kgFullSpan = 24;
+const kgThreeQuartersSpan = 18;
+
 const ChatAI: React.FC = () => {
   const [message, setMessage] = useState<string>('')
   const [chatBoxVisible, setChatBoxVisible] = useState<boolean>(false)
-  const [span, setSpan] = useState<number>(18)
+  const [span, setSpan] = useState<number>(kgFullSpan)
 
   useEffect(() => {
     if (chatBoxVisible) {
-      setSpan(18)
+      setSpan(kgThreeQuartersSpan)
     } else {
-      setSpan(24)
+      setSpan(kgFullSpan)
     }
   }, [chatBoxVisible])
 

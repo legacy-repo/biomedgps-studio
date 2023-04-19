@@ -19,14 +19,17 @@ import {
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
-import { message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu } from 'antd';
-import { makeDataSource } from './utils';
+import {
+    message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu
+} from 'antd';
+import { makeDataSource, layouts } from './utils';
 import type {
     OnNodeMenuClickFn, OnEdgeMenuClickFn, GraphNode,
     OnClickEdgeFn, OnClickNodeFn, GraphEdge, OnCanvasMenuClickFn,
     AdjacencyList
 } from "./typings";
 import ShowPaths from './Components/ShowPaths';
+import { GraphLayoutPredict } from '@antv/vis-predict-engine';
 import voca from 'voca';
 import './GraphinWrapper.less';
 
@@ -535,11 +538,12 @@ export type GraphinProps = {
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const {
-        data, layout, style, onNodeMenuClick,
+        data, style, onNodeMenuClick,
         onEdgeMenuClick, selectedNode, onCanvasMenuClick
     } = props
     const [fishEyeVisible, setFishEyeVisible] = useState(false);
 
+    const [layout, setLayout] = useState(props.layout);
     const [autoPin, setAutoPin] = useState(false);
     const [nodeLabelVisible, setNodeLabelVisible] = useState(true);
     const [edgeLabelVisible, setEdgeLabelVisible] = useState(true);
@@ -668,6 +672,37 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     bottom: '45px', left: 'unset',
                     marginBottom: '0px', opacity: 0.8,
                 }}>
+                    <Toolbar.Item>
+                        <Select style={{ width: '100%' }} allowClear
+                            defaultValue={layout.type}
+                            onChange={(value) => {
+                                // TODO: Need to notice the user that the layout is changed, but it's not working when the previous layout is not finished.
+                                if (value == 'auto') {
+                                    GraphLayoutPredict.predict(data).then((layout) => {
+                                        console.log("Predicted layout: ", layout)
+                                        const l = layouts.find(item => item.type === layout.predictLayout);
+                                        setLayout(l);
+                                    })
+                                } else {
+                                    const l = layouts.find(item => item.type === value);
+                                    setLayout(l)
+                                }
+                            }}
+                            placeholder="Select a layout">
+                            {
+                                layouts.map(item => {
+                                    const { type } = item;
+                                    return (
+                                        <Select.Option key={type} value={type}>
+                                            <ForkOutlined />
+                                            &nbsp;
+                                            {type}
+                                        </Select.Option>
+                                    );
+                                })
+                            }
+                        </Select>
+                    </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
                             setAutoPin(checked)

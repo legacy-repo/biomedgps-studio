@@ -1,8 +1,9 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
+import { FullScreen, useFullScreenHandle } from "react-full-screen";
 import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty } from 'antd';
 import type { TableColumnType } from 'antd';
-import { DeleteFilled, DownloadOutlined, SettingOutlined } from '@ant-design/icons';
+import { DeleteFilled, DownloadOutlined, FullscreenExitOutlined, FullscreenOutlined, SettingOutlined } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
 import Toolbar from './Toolbar';
 import { uniqBy, uniq } from 'lodash';
@@ -11,7 +12,7 @@ import QueryBuilder from './QueryBuilder';
 import AdvancedSearch from './AdvancedSearch';
 import ComplexChart from './Chart/ComplexChart';
 import StatisticsChart from './Chart/StatisticsChart';
-import ReactResizeDetector from 'react-resize-detector';
+// import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources, autoConnectNodes,
   makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds
@@ -50,7 +51,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [edgeDataSources, setEdgeDataSources] = useState<Array<Record<string, any>>>([]);
   const [toolbarVisible, setToolbarVisible] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
-  const [graphRefreshKey, setGraphRefreshKey] = useState<number>(0);
 
   const [nodeStat, setNodeStat] = useState<NodeStat[]>([]);
   const [edgeStat, setEdgeStat] = useState<EdgeStat[]>([]);
@@ -385,21 +385,26 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     setNodeInfoPanelVisible(false);
   }
 
-  const onWidthChange = (width?: number, height?: number) => {
-    // message.info(`Graph width changed to ${width}`)
-    // TODO: Fix this hacky way to refresh graph
-    if (width) {
-      setGraphRefreshKey(width)
-    } else if (height) {
-      setGraphRefreshKey(height)
-    }
-  }
+  // const onWidthChange = (width?: number, height?: number) => {
+  //   // message.info(`Graph width changed to ${width}`)
+  //   // TODO: Fix this hacky way to refresh graph
+  //   if (width) {
+  //     setGraphRefreshKey(width)
+  //   } else if (height) {
+  //     setGraphRefreshKey(height)
+  //   }
+  // }
+
+  const enterFullScreenHandler = useFullScreenHandle();
 
   return (
-    <ReactResizeDetector onResize={onWidthChange}>
+    <FullScreen handle={enterFullScreenHandler}>
       <Row className='knowledge-graph-container'>
         <Spin spinning={loading}>
           <Row className='left-toolbar'>
+            <Button className='full-screen-button'
+              onClick={enterFullScreenHandler.active ? enterFullScreenHandler.exit : enterFullScreenHandler.enter} shape="circle"
+              icon={enterFullScreenHandler.active ? <FullscreenExitOutlined /> : <FullscreenOutlined />} />
             <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle" icon={<SettingOutlined />} />
             <Button className='save-button' onClick={saveGraphData}
               shape="circle" icon={<DownloadOutlined />} />
@@ -465,14 +470,14 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             </Toolbar>
             <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
-              statistics={statistics} toolbarVisible={toolbarVisible} key={graphRefreshKey}
+              statistics={statistics} toolbarVisible={toolbarVisible}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
               onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
             </GraphinWrapper>
           </Col>
         </Spin>
       </Row >
-    </ReactResizeDetector >
+    </FullScreen>
   );
 
 };

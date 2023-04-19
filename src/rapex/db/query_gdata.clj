@@ -111,6 +111,7 @@
 ;; More details on https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=9
 (def colors ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
              "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6"])
+(def degrees [0 10 20 30 40 50 60 70 80 90 100])
 
 (defn- format-nlabel
   [item]
@@ -124,7 +125,16 @@
                       sort)]
       (merge (zipmap labels colors) (get-color-map)))))
 
+(defn gen-degree-map
+  []
+  (with-open [session (db/get-session @gdb-conn)]
+    (let [labels (->> (list-labels session)
+                      (map (fn [item] (keyword (format-nlabel item))))
+                      sort)]
+      (zipmap labels degrees))))
+
 (def memorized-gen-color-map (memoize gen-color-map))
+(def memorized-gen-degree-map (memoize gen-degree-map))
 
 (defn set-style
   [node-label nlabel & {:keys [is-badge]
@@ -163,6 +173,7 @@
        :id       (str (:identity node))
        :label    label
        :nlabel   nlabel
+       :degree   ((keyword nlabel) (memorized-gen-degree-map))
        :style    (set-style (or name node-label) (format-nlabel nlabel))
        :category :nodes
        :type     "graphin-circle"

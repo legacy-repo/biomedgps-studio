@@ -17,6 +17,7 @@
 
   .left-toolbar {
 
+    .full-screen-button,
     .toolbar-button,
     .save-button,
     .clear-button {
@@ -28,6 +29,14 @@
       z-index: 2;
     }
 
+    .full-screen-button {
+      top: calc(25% - 40px);
+    }
+
+    .toolbar-button {
+      top: 25%;
+    }
+
     .save-button {
       top: calc(25% + 40px);
     }
@@ -35,5 +44,11 @@
     .clear-button {
       top: calc(25% + 80px);
     }
+  }
+}
+
+.fullscreen-enabled {
+  .knowledge-graph-container {
+    height: 100vh;
   }
 }

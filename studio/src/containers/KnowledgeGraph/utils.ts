@@ -306,3 +306,85 @@ export const defaultLayout = {
     return 50;
   },
 }
+
+export const layouts = [
+  {
+    type: 'auto',
+  },
+  {
+    type: 'graphin-force',
+    workerEnabled: true, // 可选，开启 web-worker
+    gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
+    animation: true,
+    preset: {
+      type: 'grid', // 力导的前置布局
+    },
+    clustering: true,
+    leafCluster: true,
+    preventOverlap: true,
+    nodeClusterBy: 'nlabel', // 节点聚类的映射字段
+    clusterNodeStrength: 40, // 节点聚类作用力
+    minNodeSpacing: 20,
+    nodeSize: 40,
+  },
+  {
+    type: 'grid',
+    begin: [0, 0], // 可选，
+    preventOverlap: true, // 可选，必须配合 nodeSize
+    preventOverlapPdding: 20, // 可选
+    nodeSize: 30, // 可选
+    condense: false, // 可选
+    rows: 5, // 可选
+    cols: 5, // 可选
+    sortBy: 'degree', // 可选
+    workerEnabled: false, // 可选，开启 web-worker
+  },
+  {
+    type: 'radial',
+    center: [200, 200], // 可选，默认为图的中心
+    linkDistance: 50, // 可选，边长
+    maxIteration: 1000, // 可选
+    focusNode: 'node11', // 可选
+    unitRadius: 100, // 可选
+    preventOverlap: true, // 可选，必须配合 nodeSize
+    nodeSize: 30, // 可选
+    strictRadial: false, // 可选
+    workerEnabled: false, // 可选，开启 web-worker
+  },
+  {
+    type: 'force',
+    preventOverlap: true,
+    // center: [200, 200], // 可选，默认为图的中心
+    nodeStrength: 30, // 可选
+    edgeStrength: 0.8, // 可选
+    collideStrength: 0.8, // 可选
+    nodeSize: 30, // 可选
+    nodeClusterBy: 'nlabel', // 节点聚类的映射字段
+    alpha: 0.9, // 可选
+    alphaDecay: 0.3, // 可选
+    alphaMin: 0.01, // 可选
+    forceSimulation: null, // 可选
+    onTick: () => {
+      // 可选
+      console.log('ticking');
+    },
+    onLayoutEnd: () => {
+      // 可选
+      console.log('force layout done');
+    },
+  },
+  {
+    type: 'concentric',
+    center: [0, 0], // 可选，
+    preventOverlap: true, // 可选，必须配合 nodeSize
+    nodeSize: 1, // 可选
+    // sweep: 10, // 可选
+    minNodeSpacing: 50, // 可选
+    equidistant: true, // 可选
+    startAngle: 0, // 可选
+    clockwise: false, // 可选
+    maxLevelDiff: 50, // 可选
+    sortBy: 'degree', // 可选
+    workerEnabled: false, // 可选，开启 web-worker
+  }
+];
