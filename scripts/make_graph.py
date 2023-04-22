@@ -332,8 +332,16 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
 
     graph_labels = {}
     print("Entity files:", len(entity_files))
+    expected_columns = ['ID', ':LABEL', 'name']
     for f in entity_files:
         df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
+        actual_columns = list(df.columns)
+        if not all([c in actual_columns for c in expected_columns]):
+            print("Invalid entity file:", f)
+            print(
+                f"Expected Columns: {expected_columns}, Actual Columns: {actual_columns}\n")
+            continue
+
         entity_type = to_snake_case(df[":LABEL"][0])
         print("Entity type:", entity_type, "file:", f,
               "rows:", df.shape[0], "columns:", df.shape[1])
@@ -345,14 +353,43 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
 
     relationship_labels = []
     print("Relationship files:", len(relationship_files))
+    expected_columns = ['START_ID', 'END_ID', 'TYPE',
+                        'resource', 'source_type', 'target_type']
     for f in relationship_files:
         df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
+        actual_columns = list(df.columns)
+        if not all([c in actual_columns for c in expected_columns]):
+            print("Invalid relationship file: ", f)
+            print(
+                f"Expected Columns: {expected_columns}, Actual Columns: {actual_columns}\n")
+            continue
+
+        if df["TYPE"].nunique() > 1 or not df["TYPE"][0]:
+            print("Invalid relationship file: ", f)
+            print("Relationship type should be the same for all rows.\n")
+            continue
+
+        if df["resource"].nunique() > 1 or not df["resource"][0]:
+            print("Invalid relationship file: ", f)
+            print("Resource should be the same for all rows.\n")
+            continue
+
+        if df["source_type"].nunique() > 1 or not df["source_type"][0]:
+            print("Invalid relationship file: ", f)
+            print("Source type should be the same for all rows.\n")
+            continue
+
+        if df["target_type"].nunique() > 1 or not df["target_type"][0]:
+            print("Invalid relationship file: ", f)
+            print("Target type should be the same for all rows.\n")
+            continue
+
         nrows = df.shape[0]
         if nrows > 0:
             relation_type = df["TYPE"][0]
-            source = relation_type.split("::")[0].upper()
-            start_node_type = relation_type.split("::")[-1].split(":")[0]
-            end_node_type = relation_type.split("::")[-1].split(":")[1]
+            source = df["resource"][0]
+            start_node_type = df["source_type"][0]
+            end_node_type = df["target_type"][0]
             relationship_labels.append({
                 "source": source,
                 "relation_type": relation_type,

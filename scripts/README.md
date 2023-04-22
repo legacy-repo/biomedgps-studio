@@ -1,4 +1,6 @@
-## Preparation
+## Prepare Omics Data
+
+Assume you have installed `make_data.py` in your system.
 
 ### Directory
 
@@ -43,7 +45,7 @@ logfc means the log2 transforming of the fc value.
 ensembl_id,entrez_id,gene_symbol,padj,pvalue,logfc,direction
 ```
 
-### Prepare expr files
+### Prepare expr Files
 
 File name must be `[organ]_[fpkm|tpm|counts]_[limma|wilcox|ttest].csv`.
 
@@ -53,7 +55,7 @@ Each organ have a expression table. The row is ensembl id, the column is sample,
 ensembl_id,sample001,sample002,...
 ```
 
-### Prepare pathway file
+### Prepare Pathway File
 
 ```
 entrez_id
@@ -63,7 +65,7 @@ ensembl_id
 pathway_name
 ```
 
-### Prepare genes file
+### Prepare Gene Files
 
 ```
 # genes.csv
@@ -101,8 +103,68 @@ python3 scripts/make_db.py merge -d examples/temp -o examples/data/000000/format
 ```
 
 
-## Make databases
+### Make a Dataset
+
 
 ```
 python3 scripts/make_db.py dataset -d examples/data/000000 -o examples/db/ -b sqlite
 ```
+
+## Prepare Knowledge Base
+
+Assume you have installed `make_graph.py` in your system.
+
+### Build Metadata, Nodes and Relationships
+
+Assume all the data are in `~/Documents/Datasets/rapex-gdata`.
+
+1. Build Metadata
+
+```bash
+root_dir=~/Documents/Datasets/rapex-gdata
+python3 scripts/make_db.py graph-metadata -e ${root_dir}/formatted_data -r ${root_dir}/formatted_data/relationships -o ${root_dir}/graph_metadata.json -f tsv
+```
+
+2. Build Nodes and Relationships
+
+```bash
+python3 scripts/make_db.py graph-labels -m ${root_dir}/graph_metadata.json -o ${root_dir}
+```
+
+### Upload to a import directory of Neo4j
+
+```bash
+rsync -avP ${root_dir}/formatted_data/ neo4j@localhost:/xxx/import/
+```
+
+## Make Neo4j Database
+
+Assume you have installed `cypher.py` in your system.
+
+```bash
+# Change to the import directory(all the files must be in the same directory as the import directory)
+cd ${root_dir}/formatted_data
+
+# Import nodes
+cypher.py import-entities -D 127.0.0.1:7687/default -U neo4j -P xxx -f ./ 
+
+# Import relationships
+python3 ../cypher.py import-relationships -f ./relationships -D 127.0.0.1:7687/default -U neo4j -P xxx 
+```
+
+## FAQs
+1. START_IDs and END_IDs in relationship table cannot match with the IDs in related nodes table?
+2. Specification of node and relationship file format? How to check the format of the file?
+    Node file format:
+    ```
+    ID,:LABEL,name,resource
+    ENTREZ:1000,GENE,ABCA1,entrez
+    ```
+
+    Relationship file format:
+    ```
+    START_ID,END_ID,TYPE,resource,source_type,target_type
+    ENTREZ:1000,ENTREZ:1001,INTERACTS_WITH,entrez,GENE,GENE
+    ```
+
+3. Prefer to use csv or tsv format?
