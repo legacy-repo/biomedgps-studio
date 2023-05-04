@@ -473,13 +473,12 @@ def graph_labels(graph_metadata_file, output_dir, db):
                 df_list = []
                 # Loop over each CSV file and load it into a pandas DataFrame
                 for file in file_list:
-                    file = os.path.join(os.path.dirname(
-                        graph_metadata_file), file)
+                    print("Loading file: %s\n" % file)
                     df = pd.read_csv(file, sep="," if file.endswith(
                         "csv") else "\t", header=0)
                     # Use the first part of the filename as the source field which means the data source
-                    filename = os.path.basename(
-                        file).strip(".csv").strip(".tsv")
+                    filename = os.path.basename(file)
+                    filename, _ = os.path.splitext(filename)
                     source = filename.split("_")[0].upper()
                     df["source"] = source
                     df_list.append(df)

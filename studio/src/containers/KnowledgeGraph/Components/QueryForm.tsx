@@ -203,8 +203,8 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         query_str: `
         {:select [[[:count :*] :ncount] [:_type :relationship_type]]
           :from :relationships
-          :where [:or [:= :start_id ${node_id}]
-                      [:= :end_id ${node_id}]]
+          :where [:or [:= :start_id "${node_id}"]
+                      [:= :end_id "${node_id}"]]
           :group-by [:relationship_type]
           :order-by [[:ncount :desc]]}
         `,

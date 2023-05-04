@@ -61,15 +61,24 @@ def importer():
 def import_relationships(file, db_url, db_username, db_password, filter, format):
     # TODO: you may need to add index for the entity id, such as `CREATE INDEX ON :ENTITY(id);` for speeding up the query.
     sep = "," if format == "csv" else "\t"
+
     cypher_query = """
-        USING PERIODIC COMMIT 10000
-        LOAD CSV WITH HEADERS FROM "file:///FILE_PATH" AS line
-        FIELDTERMINATOR '%s'
-        MATCH (p:START_LABEL {id: line.START_ID})
-        MATCH (mp:END_LABEL {id: line.END_ID})
-        MERGE (p)-[r:`RELASTIONSHIP`]->(mp)
-        RETURN COUNT(r) AS c;
+    CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line
+    MATCH (p:<START_LABEL> {id: line.START_ID})
+    MATCH (mp:<END_LABEL> {id: line.END_ID})
+    CREATE (p)-[r:`<RELASTIONSHIP>` { resource: line.resource, source_type: line.source_type, target_type: line.target_type }]->(mp)
+    RETURN COUNT(r) AS c;
     """ % sep
+
+    # cypher_query = """
+    #     USING PERIODIC COMMIT 100000
+    #     LOAD CSV WITH HEADERS FROM "file:///<FILE_PATH>" AS line
+    #     FIELDTERMINATOR '%s'
+    #     MATCH (p:<START_LABEL> {id: line.START_ID})
+    #     MATCH (mp:<END_LABEL> {id: line.END_ID})
+    #     MERGE (p)-[r:`<RELASTIONSHIP>`]->(mp)
+    #     RETURN COUNT(r) AS c;
+    # """ % sep
 
     driver = connect_neo4j(db_url=db_url,
                            user=db_username,
@@ -87,8 +96,8 @@ def import_relationships(file, db_url, db_username, db_password, filter, format)
         else:
             which_relationship = types[0]
             print("Import relationships with `%s` type." % which_relationship)
-            query = cypher_query.replace("RELASTIONSHIP", which_relationship).replace(
-                "START_LABEL", source_type[0]).replace("END_LABEL", target_type[0]).replace("FILE_PATH", file)
+            query = cypher_query.replace("<RELASTIONSHIP>", which_relationship).replace(
+                "<START_LABEL>", source_type[0]).replace("<END_LABEL>", target_type[0]).replace("<FILE_PATH>", file)
             print("Your summiting query clause is: %s" % query)
             commit_query(driver, query)
 
@@ -119,13 +128,20 @@ def import_entities(file, db_url, db_username, db_password, format):
     sep = "," if format == "csv" else "\t"
 
     cypher_query = """
-    USING PERIODIC COMMIT 10000
-    LOAD CSV WITH HEADERS FROM "file:///<FILEPATH>" AS line
-    FIELDTERMINATOR "%s"
+    CALL apoc.load.csv("file:///<FILEPATH>", { sep: "%s" }) YIELD map AS line
     MERGE (e:`<ENTITY>` {id: line.ID})
     ON CREATE SET <FIELDS>
     RETURN COUNT(e) AS c;
     """ % sep
+
+    # cypher_query = """
+    # USING PERIODIC COMMIT 5000
+    # LOAD CSV WITH HEADERS FROM "file:///<FILEPATH>" AS line
+    # FIELDTERMINATOR "%s"
+    # MERGE (e:`<ENTITY>` {id: line.ID})
+    # ON CREATE SET <FIELDS>
+    # RETURN COUNT(e) AS c;
+    # """ % sep
 
     index_cypher_query = "CREATE INDEX ON :`<ENTITY>`(id);"
 
@@ -151,9 +167,9 @@ def import_entities(file, db_url, db_username, db_password, format):
             query = cypher_query.replace("<ENTITY>", which_entity).replace(
                 "<FIELDS>", fields_str).replace("<FILEPATH>", file)
             print("Your summiting query clause is: %s" % query)
-            commit_query(driver, query)
             commit_query(driver, index_cypher_query.replace(
                 "<ENTITY>", which_entity))
+            commit_query(driver, query)
 
     if os.path.isfile(file):
         commit(file, sep)
