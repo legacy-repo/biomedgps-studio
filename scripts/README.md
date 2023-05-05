@@ -134,7 +134,7 @@ python3 scripts/make_db.py graph-labels -m ${root_dir}/graph_metadata.json -o ${
 ### Upload to a import directory of Neo4j
 
 ```bash
-rsync -avP ${root_dir}/formatted_data/ neo4j@localhost:/xxx/import/
+rsync -avP ${root_dir}/formatted_data/ neo4j@localhost:/xxx/import/formatted_data/
 ```
 
 ## Make Neo4j Database
@@ -143,13 +143,13 @@ Assume you have installed `cypher.py` in your system.
 
 ```bash
 # Change to the import directory(all the files must be in the same directory as the import directory)
-cd ${root_dir}/formatted_data
+cd ${root_dir}
 
 # Import nodes
-cypher.py import-entities -D 127.0.0.1:7687/default -U neo4j -P xxx -f ./ 
+cypher.py import-entities -D 127.0.0.1:7687/default -U neo4j -P xxx -f ./formatted_data/ 
 
 # Import relationships
-python3 ../cypher.py import-relationships -f ./relationships -D 127.0.0.1:7687/default -U neo4j -P xxx 
+cypher.py import-relationships -f ./formatted_data/relationships -D 127.0.0.1:7687/default -U neo4j -P xxx 
 ```
 
 ## FAQs
