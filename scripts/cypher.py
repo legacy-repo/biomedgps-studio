@@ -62,13 +62,11 @@ def import_relationships(file, db_url, db_username, db_password, filter):
 
     def gen_query(sep):
         return """
-        CALL apoc.periodic.iterate('
-            CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line
-            MATCH (p:<START_LABEL> {id: line.START_ID})
-            MATCH (mp:<END_LABEL> {id: line.END_ID})
-            CREATE (p)-[r:`<RELASTIONSHIP>` { resource: line.resource, source_type: line.source_type, target_type: line.target_type }]->(mp)
-            RETURN COUNT(r) AS c;
-        ', {batchSize:10000, iterateList:true, parallel:true});
+        CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line
+        MATCH (p:<START_LABEL> {id: line.START_ID})
+        MATCH (mp:<END_LABEL> {id: line.END_ID})
+        CREATE (p)-[r:`<RELASTIONSHIP>` { resource: line.resource, source_type: line.source_type, target_type: line.target_type }]->(mp)
+        RETURN COUNT(r) AS c;
         """ % sep
 
     # cypher_query = """
@@ -130,12 +128,10 @@ def import_entities(file, db_url, db_username, db_password):
 
     def gen_query(sep):
         return """
-        CALL apoc.periodic.iterate('
-            CALL apoc.load.csv("file:///<FILEPATH>", { sep: "%s" }) YIELD map AS line
-            MERGE (e:`<ENTITY>` {id: line.ID})
-            ON CREATE SET <FIELDS>
-            RETURN COUNT(e) AS c;
-        ', {batchSize:10000, iterateList:true, parallel:true});
+        CALL apoc.load.csv("file:///<FILEPATH>", { sep: "%s" }) YIELD map AS line
+        MERGE (e:`<ENTITY>` {id: line.ID})
+        ON CREATE SET <FIELDS>
+        RETURN COUNT(e) AS c;
         """ % sep
 
     # cypher_query = """
