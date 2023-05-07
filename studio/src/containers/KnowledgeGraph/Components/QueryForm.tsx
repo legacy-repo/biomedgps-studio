@@ -4,7 +4,7 @@ import {
 } from "antd";
 import React, { useState, useEffect } from "react";
 import { getNodeTypes, getLabels, getRelationships } from '@/services/swagger/Graph';
-import { makeQueryStr } from '../utils';
+import { makeQueryStr, getRelationshipOption, makeRelationshipTypes, getMaxDigits } from '../utils';
 import { OptionType, SearchObject, EdgeStat } from '../typings';
 
 let timeout: ReturnType<typeof setTimeout> | null;
@@ -29,36 +29,6 @@ const nStepsOptions = [
   { label: "4 Steps", value: 4 },
   { label: "5 Steps", value: 5 },
 ]
-
-const getMaxDigits = (nums: number[]): number => {
-  let max = 0;
-  nums.forEach((element: number) => {
-    let digits = element.toString().length;
-    if (digits > max) {
-      max = digits;
-    }
-  });
-
-  return max;
-}
-
-const makeRelationshipTypes = (edgeStat: EdgeStat[]): OptionType[] => {
-  let o: OptionType[] = []
-  const maxDigits = getMaxDigits(edgeStat.map((element: EdgeStat) => element.relation_count));
-
-  edgeStat.forEach((element: EdgeStat) => {
-    const relation_count = element.relation_count.toString().padStart(maxDigits, '0');
-    const relationshipType = `${element.source}:${element.relation_type}:${element.start_node_type}:${element.end_node_type}`;
-
-    o.push({
-      order: element.relation_count,
-      label: `[${relation_count}] ${relationshipType}`,
-      value: relationshipType
-    })
-  });
-
-  return o.sort((a: any, b: any) => a.order - b.order);
-}
 
 const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
   // Single Tab
@@ -189,7 +159,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
               const oldlabel = item.label.split(" ")[1]
               return {
                 order: 9999,
-                label: `[${'0'.padStart(4, '.')}] ${oldlabel}`,
+                label: `[${'0'.padStart(4, '0')}] ${oldlabel}`,
                 value: item.value
               }
             }
@@ -230,6 +200,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       :group-by [:relationship_type :source_type :target_type :resource]
       :order-by ${order_clause}}
     `;
+
     getRelationships({
       query_str: query_str,
       disable_total: "true"
@@ -240,11 +211,14 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         const maxDigits = getMaxDigits(response.data.map((item: any) => item.ncount));
 
         response.data.forEach((element: any, index: number) => {
-          const relationship = `${element.resource}:${element.relationship_type}:${element.source_type}:${element.target_type}`;
+          const relationship = getRelationshipOption(
+            element.relationship_type, element.resource,
+            element.source_type, element.target_type
+          )
 
           o.push({
             order: index,
-            label: `[${element.ncount.toString().padStart(maxDigits, '.')}] ${relationship}`,
+            label: `[${element.ncount.toString().padStart(maxDigits, '0')}] ${relationship}`,
             value: relationship
           })
         });
@@ -354,7 +328,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       </Form.Item>
       <Form.Item label="Which Nodes" name="node_ids"
         hidden={mode == "node"}
-        rules={[{ required: true, message: 'Please enter your expected nodes.' }]}>
+        rules={[{ required: mode == "node" ? false : true, message: 'Please enter your expected nodes.' }]}>
         <Select
           showSearch
           allowClear

@@ -1,8 +1,8 @@
 import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
-import { filter, uniq } from 'lodash';
+import { filter, get, uniq } from 'lodash';
 import { postNodes } from '@/services/swagger/Graph';
-import { SearchObject, GraphData, GraphNode, Relationship } from './typings';
+import { SearchObject, GraphData, GraphNode, Relationship, EdgeStat, OptionType } from './typings';
 import voca from 'voca';
 // import { Graph } from '@antv/g6';
 
@@ -166,14 +166,33 @@ export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
   })
 }
 
+export const getDefaultRelSep = () => {
+  return "<>"
+}
+
+export const getRelationshipOption = (relationType: string, resource: string,
+  sourceNodeType: string, targetNodeType: string) => {
+  const sep = getDefaultRelSep();
+
+  // Two formats of relationships are supported:
+  // 1. Single field mode: bioarx::Covid2_acc_host_gene::Disease:Gene
+  // 2. Multiple fields mode: relationshipType<>resource<>sourceNodeType<>targetNodeType
+  if (relationType.indexOf("::") >= 0) {
+    return relationType;
+  } else {
+    return [relationType, resource, sourceNodeType, targetNodeType].join(sep);
+  }
+}
+
 function makeRelationMaps(relationships: string[]): Relationship[] {
   let relationMaps = [];
+  let sep = getDefaultRelSep();
   for (let i = 0; i < relationships.length; i++) {
-    let [resource, relationshipType, sourceNode, targetNode] = relationships[i].split(":");
+    let [relationshipType, resource, sourceNode, targetNode] = relationships[i].split(sep);
     let relationMap = {
+      "relationshipType": relationshipType,
       "sourceNodeType": sourceNode,
       "targetNodeType": targetNode,
-      "relationshipType": relationshipType,
       "resource": resource
     }
 
@@ -181,6 +200,39 @@ function makeRelationMaps(relationships: string[]): Relationship[] {
   }
 
   return relationMaps;
+}
+
+export const getMaxDigits = (nums: number[]): number => {
+  let max = 0;
+  nums.forEach((element: number) => {
+    let digits = element.toString().length;
+    if (digits > max) {
+      max = digits;
+    }
+  });
+
+  return max;
+}
+
+export const makeRelationshipTypes = (edgeStat: EdgeStat[]): OptionType[] => {
+  let o: OptionType[] = []
+  const maxDigits = getMaxDigits(edgeStat.map((element: EdgeStat) => element.relation_count));
+
+  edgeStat.forEach((element: EdgeStat) => {
+    const relation_count = element.relation_count.toString().padStart(maxDigits, '0');
+    const relationshipType = getRelationshipOption(
+      element.relation_type, element.source,
+      element.start_node_type, element.end_node_type
+    );
+
+    o.push({
+      order: element.relation_count,
+      label: `[${relation_count}] ${relationshipType}`,
+      value: relationshipType
+    })
+  });
+
+  return o.sort((a: any, b: any) => a.order - b.order);
 }
 
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
@@ -219,11 +271,26 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         const relationshipMaps = makeRelationMaps(relation_types);
         // TODO: Do we need to filter out the relation types that are not related to the node type?
         // const filteredRelationshipMaps = relationshipMaps.filter(item => item.sourceNodeType == node_type);
-        const relationTypes = relationshipMaps.map(item => `'${item.relationshipType}'`)
-        const whereRelClause = relationshipMaps.map(item => `type(r) = '${item.relationshipType}'`).join(" or ");
-        const labels = relationshipMaps.map(item => `'${item.targetNodeType}'`).join(",");
-        const resources = relationshipMaps.map(item => `'${item.resource}'`).join(",");
-        const whereNodeClause = `labels(m) in [${labels}] and m.resource in [${resources}] and ( ${whereRelClause} )`;
+
+        const filtered_labels = relationshipMaps.filter(item => item.targetNodeType);
+        let labels_clause = "";
+        if (filtered_labels.length > 0) {
+          const labels = uniq(relationshipMaps.map(item => `m:${item.targetNodeType}`)).join(" or ");
+          labels_clause = labels ? `( ${labels} ) and ` : "";
+        }
+
+        const filtered_resources = relationshipMaps.filter(item => item.resource);
+        let resources_clause = "";
+        if (filtered_resources.length > 0) {
+          const resources = uniq(relationshipMaps.map(item => `'${item.resource}'`)).join(",");
+          resources_clause = resources ? `r.resource in [${resources}] and ` : "";
+        }
+
+        const relationTypes = uniq(relationshipMaps.map(item => item.relationshipType))
+        const relationConditions = relationTypes.map(item => `type(r) = '${item}'`).join(" or ");
+        const whereRelClause = relationConditions ? `( ${relationConditions} )` : "";
+
+        const whereNodeClause = `${labels_clause} ${resources_clause} ${whereRelClause}`;
         if (searchObject.nsteps && searchObject.nsteps <= 1) {
           query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`,
             `n.id = '${node_id}' and ${whereNodeClause}`, undefined, limit)
