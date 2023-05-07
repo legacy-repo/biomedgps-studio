@@ -168,3 +168,35 @@ cypher.py import-relationships -f ./formatted_data/relationships -D 127.0.0.1:76
     ```
 
 3. Prefer to use csv or tsv format?
+
+## Make graph metadata database
+
+### Use sqlite database
+
+Upload the metadata file to the dataset directory of Rapex server.
+
+```bash
+rsync -avP ./graph_metadata.sqlite root@xxx:/xxx/datasets
+```
+
+### Use postgresql database
+
+```bash
+# Create a database
+createdb -U postgres -h localhost -p 5432 graph_metadata
+
+# Upload the metadata file to the dataset directory of Rapex server.
+rsync -avP ./graph_metadata.sqlite root@xxx:/xxx/datasets
+
+# Import the metadata file to the database
+## Install pgloader on Ubuntu
+sudo apt-get install pgloader
+
+## Install pgloader on Mac
+brew install pgloader
+
+## Migrate the sqlite database to postgresql database
+pgloader ./graph_metadata.sqlite 'pgsql://127.0.0.1:5432/graph_metadata?user=postgres&password=password'
+
+## Modify the :graph-metadb-url in the config file
+```

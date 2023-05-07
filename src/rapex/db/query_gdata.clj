@@ -2,10 +2,30 @@
   (:require [rapex.db.neo4j.core :as db]
             [clojure.string :as clj-str]
             [rapex.models.gnn :as gnn]
+            [honey.sql :as sql]
+            [next.jdbc :as jdbc]
+            [conman.core :as conman]
+            [mount.core :refer [defstate]]
+            [next.jdbc.result-set :as rs]
             [rapex.config :refer [env get-label-blacklist get-color-map]]
             [clojure.tools.logging :as log])
-  (:import (java.net URI)))
+  (:import [java.net URI]
+           [java.sql SQLException]
+           [java.lang IllegalStateException IllegalArgumentException]
+           [clojure.lang PersistentArrayMap Keyword]))
 
+(defstate ^:dynamic *graph-metadb*
+  :start (if-let [jdbc-url (env :graph-metadb-url)]
+           (conman/connect! {:jdbc-url jdbc-url})
+           (do
+             (log/warn "database connection URL was not found, please set :graph-metadb-url in your config, e.g: dev-config.edn")
+             *graph-metadb*))
+  :stop (conman/disconnect! *graph-metadb*))
+
+(defn get-gmetadb-connection []
+  (:datasource *graph-metadb*))
+
+;; --------------------------------- Neo4j ---------------------------------
 (def gdb-conn (atom nil))
 (def labels (atom []))
 (def relationships (atom []))
@@ -457,4 +477,62 @@
                :edges (distinct edges)})
             r))))))
 
-(comment)
+;; ---------------------------------------- Graph Metadata Database ----------------------------------------
+(defn custom-ex-info
+  [^String msg ^Keyword code ^PersistentArrayMap info-map]
+  (ex-info msg
+           (merge {:code code} info-map)))
+
+(defn get-results
+  "Get records based on user's query string.
+  "
+  [^PersistentArrayMap sqlmap]
+  (try
+    (let [sqlstr (sql/format sqlmap)
+          con (get-gmetadb-connection)]
+      (log/info "Query String:" sqlstr)
+      (jdbc/execute! con sqlstr {:builder-fn rs/as-unqualified-maps}))
+    (catch Exception e
+      (condp (fn [cs t] (some #(instance? % t) cs)) e
+
+        [IllegalStateException IllegalArgumentException]
+        (throw (custom-ex-info "Cannot format your query string."
+                               :bad-request
+                               {:query_str (str sqlmap)
+                                :error e}))
+
+        [SQLException]
+        (throw (custom-ex-info "Please check your query string, it has illegal argument."
+                               :bad-request
+                               {:query_str (str sqlmap)
+                                :error e
+                                :formated_str (str (sql/format sqlmap))}))
+
+        ;; whe pass through the exception when not handled
+        (throw e)))))
+
+(defn get-total
+  "Get total number of records based on user's query string.
+   
+   (get-total {:select [:*] :from :gut_fpkm})
+  "
+  ^Integer [^PersistentArrayMap sqlmap]
+  (let [sqlmap (merge sqlmap {:select [[:%count.* :total]]})
+        cleaned-sqlmap (apply dissoc sqlmap [:limit :offset :order-by])
+        results (get-results cleaned-sqlmap)]
+    ;; [{:total 333}]
+    (:total (first results))))
+
+(defn read-string-as-map
+  "Read string and convert it to a hash map which is accepted by honey library.
+  "
+  ^PersistentArrayMap [^String query-string]
+  (try
+    (read-string query-string)
+    ;; Don't use read-string, it will convert string to keyword.
+    ;; (json/read-str query-string :key-fn #(keyword (subs % 1)))
+    (catch Exception e
+      (throw (custom-ex-info "Wrong query string."
+                             :bad-request
+                             {:query-string query-string
+                              :error (.getMessage e)})))))

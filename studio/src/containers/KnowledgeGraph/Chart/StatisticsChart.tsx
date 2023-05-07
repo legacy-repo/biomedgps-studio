@@ -30,6 +30,27 @@ const mergeTwoFields = (array: any[], key1: string, key2: string, newkey: string
   return array;
 };
 
+const groupByTwoFields = (array: any[], key1: string, key2: string, countKey: string): {
+  [key1: string]: string | number;
+}[] => {
+  const groupedCounts = array.reduce((acc, item) => {
+    const groupKey = `${item[key1]}-${item[key2]}`;
+
+    if (!acc[groupKey]) {
+      acc[groupKey] = {
+        [key1]: item[key1],
+        [key2]: item[key2],
+        [countKey]: 0,
+      };
+    }
+
+    acc[groupKey][countKey] += item[countKey];
+    return acc;
+  }, {});
+
+  return Object.values(groupedCounts);
+};
+
 const makeWideFormat = (array: any[], key1: string, key2: string, vkey: string) => {
   var wideData = Object.values(array.reduce(function (result, current) {
     const formated_key1 = voca.snakeCase(current[key1]);
@@ -196,7 +217,8 @@ const StatisticsChart: React.FC<StatisticsChartProps> = (props) => {
       });
 
       // Table 2
-      data = makeWideFormat(edgeStat, 'relation_type', 'source', 'relation_count');
+      const groupedEdgeStat = groupByTwoFields(edgeStat, 'source', 'relation_type', 'relation_count');
+      data = makeWideFormat(groupedEdgeStat, 'relation_type', 'source', 'relation_count');
       columns = Array.from(new Set((edgeStat.map((item) => item.source))));
       cellValues = transposedArray(data.map(function (item) {
         let row = [item['relation_type']];
@@ -214,7 +236,7 @@ const StatisticsChart: React.FC<StatisticsChartProps> = (props) => {
       let table2 = {
         type: 'table',
         header: {
-          values: ["Node Type"].concat(columns),
+          values: ["Relationship Type"].concat(columns),
           align: ["center", "center"],
           line: { width: 1, color: 'black' },
           fill: { color: headerColor },

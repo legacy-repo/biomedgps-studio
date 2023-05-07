@@ -3,10 +3,8 @@
             [rapex.routes.graph-specs :as specs]
             [clojure.spec.alpha :as s]
             [rapex.db.neo4j.core :as db]
-            [rapex.db.query-data :as qd]
             [clojure.string :as clj-str]
             [rapex.db.query-gdata :as gdb]
-            [rapex.config :refer [get-datadir]]
             [clojure.tools.logging :as log]))
 
 (defn to-snake-case
@@ -54,16 +52,15 @@
                          (try
                            (let [page (or page 1)
                                  page_size (or page_size 50)
-                                 query-map (qd/read-string-as-map query_str)
+                                 query-map (gdb/read-string-as-map query_str)
                                  query-map (merge query-map {:limit page_size
                                                              :offset (* (- page 1) page_size)
-                                                             :from (keyword (to-snake-case label_type))})
-                                 dbpath (qd/get-db-path "graph_metadata" :datadir (get-datadir))]
-                             (log/info "database:" dbpath "query-map:" query-map)
-                             (ok {:total (qd/get-total dbpath query-map)
+                                                             :from (keyword (to-snake-case label_type))})]
+                             (log/info "query-map:" query-map)
+                             (ok {:total (gdb/get-total query-map)
                                   :page page
                                   :page_size page_size
-                                  :data (qd/get-results dbpath query-map)}))
+                                  :data (gdb/get-results query-map)}))
                            (catch Exception e
                              (log/error "Error: " e)
                              (get-error-response e))))}}]
@@ -81,20 +78,19 @@
                          (try
                            (let [page (or page 1)
                                  page_size (or page_size 100)
-                                 query-map (qd/read-string-as-map query_str)
+                                 query-map (gdb/read-string-as-map query_str)
                                  query-map (merge query-map {:limit page_size
                                                              :offset (* (- page 1) page_size)
-                                                             :from :relationships})
-                                 dbpath (qd/get-db-path "graph_metadata" :datadir (get-datadir))]
-                             (log/info "database:" dbpath "query-map:" query-map)
+                                                             :from :relationships})]
+                             (log/info "query-map:" query-map)
                              (if (= only_total "true")
-                               (ok {:total (qd/get-total dbpath query-map)})
+                               (ok {:total (gdb/get-total query-map)})
                                (if (= disable_total "true")
-                                 (ok {:data (qd/get-results dbpath query-map)})
-                                 (ok {:total (qd/get-total dbpath query-map)
+                                 (ok {:data (gdb/get-results query-map)})
+                                 (ok {:total (gdb/get-total query-map)
                                       :page page
                                       :page_size page_size
-                                      :data (qd/get-results query-map)}))))
+                                      :data (gdb/get-results query-map)}))))
                            (catch Exception e
                              (log/error "Error: " e)
                              (get-error-response e))))}}]
@@ -111,11 +107,10 @@
                            (let [node-stat-query-map {:from :graph_node_metadata
                                                       :select [:*]}
                                  rel-stat-query-map {:from :graph_relationship_metadata
-                                                     :select [:*]}
-                                 dbpath (qd/get-db-path "graph_metadata" :datadir (get-datadir))]
-                             (log/info "database:" dbpath "node-stat-query-map:" node-stat-query-map "rel-stat-query-map:" rel-stat-query-map)
-                             (ok {:node_stat (qd/get-results dbpath node-stat-query-map)
-                                  :relationship_stat (qd/get-results dbpath rel-stat-query-map)}))
+                                                     :select [:*]}]
+                             (log/info "node-stat-query-map:" node-stat-query-map "rel-stat-query-map:" rel-stat-query-map)
+                             (ok {:node_stat (gdb/get-results node-stat-query-map)
+                                  :relationship_stat (gdb/get-results rel-stat-query-map)}))
                            (catch Exception e
                              (log/error "Error: " e)
                              (get-error-response e))))}}]

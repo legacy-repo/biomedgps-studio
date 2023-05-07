@@ -41,6 +41,8 @@
 
 (s/def ::graph-database-url (s/and string? #(some? (re-matches #"neo4j:.*" %))))
 
+(s/def ::graph-metadb-url (s/and string? #(some? (re-matches #"jdbc:(postgresql|sqlite|duckdb):.*" %))))
+
 ;; Knowledge Graph
 (s/def ::label-blacklist (s/coll-of string?))
 
@@ -94,7 +96,7 @@
 (s/def ::enable-gnn boolean?)
 
 (s/def ::config (s/keys :req-un [::port ::workdir ::datadir ::default-dataset ::dataset-metadata
-                                 ::graph-database-url ::database-url]
+                                 ::graph-database-url ::database-url ::graph-metadb-url]
                         :opt-un [::nrepl-port ::cors-origins ::enable-cors ::enable-gnn
                                  ::fs-services ::default-fs-service ::studio-config
                                  ::graph-config]))
@@ -102,7 +104,7 @@
 (defn check-config
   [env]
   (let [config (select-keys env [:port :nrepl-port :workdir :datadir
-                                 :default-dataset :enable-gnn :cors-origins
+                                 :default-dataset :enable-gnn :cors-origins :graph-metadb-url
                                  :enable-cors :database-url :dbtype :graph-database-url
                                  :fs-services :default-fs-service :dataset-metadata
                                  :studio-config :graph-config])]

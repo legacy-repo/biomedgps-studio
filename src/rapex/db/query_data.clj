@@ -33,10 +33,22 @@
                (.setProperty "duckdb.read_only" "true")))
 
 (defn get-connection
+  "Get connection based on database type: postgresql, filedb.
+   
+   If the server is running in the dev mode, it will expect the database type is sqlite or duckdb.
+   And then it will find the database file in the datadir and use the database type based on the file extension. Otherwise, it will use the connection from the db-core/get-connection.
+  "
   [^String database]
-  (if (clj-str/ends-with? database "duckdb")
-    (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop)
-    (jdbc/get-connection (format "jdbc:sqlite:%s" database))))
+  (cond
+    (clj-str/ends-with? database "duckdb")
+    (do
+      (log/info "Get connection from duckdb")
+      (DriverManager/getConnection (format "jdbc:duckdb:%s" database) ro-prop))
+
+    :else
+    (do
+      (log/info "Get connection from sqlite")
+      (jdbc/get-connection (format "jdbc:sqlite:%s" database)))))
 
 (defn get-results
   "Get records based on user's query string.

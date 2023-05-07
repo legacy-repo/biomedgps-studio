@@ -442,7 +442,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
               }
             </Toolbar>
             <Toolbar position='bottom' width='300px' height='300px'
-              onClick={() => { setCurrentNode("") }}> // Clear the selected node
+              onClick={() => { setCurrentNode("") }}>
               <TableTabs>
                 {
                   nodeColumns.length > 0 ?
