@@ -1,6 +1,6 @@
 import { Modal, Tabs, Input, Button } from "antd";
 import React, { useState } from "react";
-import { SearchObject } from './typings';
+import { SearchObject, EdgeStat } from './typings';
 import TransferTable from './Components/TransferTable';
 import type { DataType } from './Components/TransferTable';
 import UploadNode from './Components/UploadNode';
@@ -14,6 +14,7 @@ type AdvancedSearchProps = {
   onOk?: (searchObj: SearchObject) => void;
   onCancel?: () => void;
   searchObject?: SearchObject;
+  edgeStat: EdgeStat[]
 }
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
@@ -26,7 +27,8 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
     {
       label: "Single Query",
       key: "single",
-      children: <QueryForm onCancel={props.onCancel} onOk={props.onOk} searchObject={props.searchObject} />
+      children: <QueryForm edgeStat={props.edgeStat} onCancel={props.onCancel}
+        onOk={props.onOk} searchObject={props.searchObject} />
     },
     {
       label: "Batch Query",

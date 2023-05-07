@@ -414,7 +414,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
           <Row className='top-toolbar'>
             <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
             <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
-              onCancel={disableAdvancedSearch} searchObject={searchObject} key={searchObject.node_id}>
+              onCancel={disableAdvancedSearch} searchObject={searchObject} edgeStat={edgeStat}
+              key={searchObject.node_id}>
             </AdvancedSearch>
           </Row>
           <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>

@@ -1,11 +1,11 @@
 import {
-  Form, Select, Empty, Switch,
-  InputNumber, Radio, message, Button
+  Form, Select, Empty, Switch, Radio,
+  InputNumber, message, Button
 } from "antd";
 import React, { useState, useEffect } from "react";
-import { getNodeTypes, getLabels, getRelationshipTypes, getRelationships } from '@/services/swagger/Graph';
+import { getNodeTypes, getLabels, getRelationships } from '@/services/swagger/Graph';
 import { makeQueryStr } from '../utils';
-import { OptionType, SearchObject } from '../typings';
+import { OptionType, SearchObject, EdgeStat } from '../typings';
 
 let timeout: ReturnType<typeof setTimeout> | null;
 
@@ -13,6 +13,7 @@ type AdvancedSearchProps = {
   onOk?: (searchObj: SearchObject) => void;
   onCancel?: () => void;
   searchObject?: SearchObject;
+  edgeStat: EdgeStat[];
 }
 
 const mergeModeOptions = [
@@ -29,38 +30,125 @@ const nStepsOptions = [
   { label: "5 Steps", value: 5 },
 ]
 
+const getMaxDigits = (nums: number[]): number => {
+  let max = 0;
+  nums.forEach((element: number) => {
+    let digits = element.toString().length;
+    if (digits > max) {
+      max = digits;
+    }
+  });
+
+  return max;
+}
+
+const makeRelationshipTypes = (edgeStat: EdgeStat[]): OptionType[] => {
+  let o: OptionType[] = []
+  const maxDigits = getMaxDigits(edgeStat.map((element: EdgeStat) => element.relation_count));
+
+  edgeStat.forEach((element: EdgeStat) => {
+    const relation_count = element.relation_count.toString().padStart(maxDigits, '0');
+    const relationshipType = `${element.source}:${element.relation_type}:${element.start_node_type}:${element.end_node_type}`;
+
+    o.push({
+      order: element.relation_count,
+      label: `[${relation_count}] ${relationshipType}`,
+      value: relationshipType
+    })
+  });
+
+  return o.sort((a: any, b: any) => a.order - b.order);
+}
+
 const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
   // Single Tab
   const [form] = Form.useForm();
   const mode = Form.useWatch('mode', form);
   const node_id = Form.useWatch('node_id', form);
+  const node_type = Form.useWatch('node_type', form);
   const enable_prediction = Form.useWatch('enable_prediction', form);
   const nsteps = Form.useWatch('nsteps', form);
   const relation_types = Form.useWatch('relation_types', form);
+
   const [labelOptions, setLabelOptions] = useState<OptionType[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [placeholder, setPlaceholder] = useState<string>("Search Gene nodes ...");
-  const [nodeOptions, setNodeOptions] = useState<any[] | undefined>(undefined);
-  const [relationTypeOptions, setRelationTypeOptions] = useState<any[] | undefined>(undefined);
-  const [label, setLabel] = useState<string>("");
+  const [relationTypeOptions, setRelationTypeOptions] = useState<any[]>(makeRelationshipTypes(props.edgeStat));
   const [helpWarning, setHelpWarning] = useState<string>("");
+
+  const [placeholder, setPlaceholder] = useState<string>("Search nodes ...");
+  const [nodeOptions, setNodeOptions] = useState<any[] | undefined>(undefined);
+
+  useEffect(() => {
+    getNodeTypes()
+      .then(response => {
+        console.log("Get types of nodes: ", response)
+        let o: OptionType[] = []
+        if (response.node_types) {
+          response.node_types.forEach((element: string) => {
+            o.push({
+              order: 0,
+              label: element,
+              value: element
+            })
+          });
+          setLabelOptions(o);
+        } else {
+          setLabelOptions([]);
+        }
+      })
+      .catch(error => {
+        console.log('requestNodes Error: ', error);
+        message.error("Get types of nodes error, please refresh the page");
+      });
+  }, [])
 
   useEffect(() => {
     let mergeMode = "replace";
-    if (mode === "node") {
-      if (props.searchObject?.merge_mode) {
-        mergeMode = props.searchObject.merge_mode;
-      } else {
-        mergeMode = "replace";
-      }
-    } else {
-      mergeMode = "append";
+    if (props.searchObject?.merge_mode) {
+      mergeMode = props.searchObject.merge_mode;
     }
 
-    form.setFieldsValue({
+    let fields = {}
+
+    console.log("props.searchObject: ", props.searchObject);
+    // Initialize limit to 50
+    if (!props.searchObject?.limit) {
+      fields = {
+        ...fields,
+        limit: 50
+      }
+    }
+
+    if (!props.searchObject?.nsteps) {
+      fields = {
+        ...fields,
+        nsteps: 1
+      }
+    }
+
+    if (props.searchObject) {
+      for (const item in props.searchObject) {
+        if (props.searchObject[item]) {
+          fields = {
+            ...fields,
+            [item]: props.searchObject[item]
+          }
+        }
+      }
+    }
+
+    fields = {
+      ...fields,
       merge_mode: mergeMode
-    })
-  }, [props.searchObject, mode])
+    }
+
+    form.setFieldsValue(fields);
+
+    // Initialize and load the node options
+    if (props.searchObject?.node_type && props.searchObject?.node_id) {
+      handleSearchNode(props.searchObject.node_type, props.searchObject.node_id);
+    }
+  }, [props.searchObject])
 
   useEffect(() => {
     if (relation_types && relation_types.length === 0) {
@@ -81,11 +169,100 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
     return () => {
       setHelpWarning("");
     }
-  }, [enable_prediction, nsteps, relation_types, mode])
+  }, [enable_prediction, nsteps, relation_types])
+
+  useEffect(() => {
+    if (node_id) {
+      fetchRelationshipTypes(node_id, "node", (o: any) => {
+        console.log("fetchRelationshipTypes within node mode: ", o);
+        if (o.length > 0) {
+          const merged = relationTypeOptions?.map((item: any) => {
+            let matched = o.find((i: any) => {
+              const newlabel = i.label.split(" ")[1]
+              const oldlabel = item.label.split(" ")[1]
+              return oldlabel === newlabel;
+            });
+
+            if (matched) {
+              return matched;
+            } else {
+              const oldlabel = item.label.split(" ")[1]
+              return {
+                order: 9999,
+                label: `[${'0'.padStart(4, '.')}] ${oldlabel}`,
+                value: item.value
+              }
+            }
+          })
+
+          console.log("Update the number of relationships: ", merged);
+          setRelationTypeOptions(merged?.sort((a: any, b: any) => a.order - b.order));
+        }
+      })
+    }
+  }, [node_id])
+
+  const fetchRelationshipTypes = async (query: string, queryType: "node" | "nodeType",
+    callback: (any: any) => void) => {
+    let where_clause = "";
+    let count_clause = "";
+    let order_clause = "";
+    if (queryType == "node" && query) {
+      where_clause = `:where [:or [:= :start_id "${query}"]
+                                  [:= :end_id "${query}"]]`
+      count_clause = `[[:count :*] :ncount]`
+      order_clause = `[[:ncount :desc]]`
+    } else if (queryType == "nodeType" && query) {
+      where_clause = `:where [:or [:= :source_type "${query}"]
+                                  [:= :target_type "${query}"]]`
+      count_clause = `[[:count :*] :ncount]`
+      order_clause = `[[:ncount :desc]]`
+    } else {
+      fail("Invalid query type or query string.");
+    }
+
+    const query_str = `
+    {:select [${count_clause} [:_type :relationship_type] 
+              [:source_type :source_type] [:target_type :target_type] 
+              [:resource :resource]]
+      :from :relationships
+      ${where_clause}
+      :group-by [:relationship_type :source_type :target_type :resource]
+      :order-by ${order_clause}}
+    `;
+    getRelationships({
+      query_str: query_str,
+      disable_total: "true"
+    }).then(response => {
+      console.log("Get relationships: ", response)
+      let o: OptionType[] = []
+      if (response.data.length > 0) {
+        const maxDigits = getMaxDigits(response.data.map((item: any) => item.ncount));
+
+        response.data.forEach((element: any, index: number) => {
+          const relationship = `${element.resource}:${element.relationship_type}:${element.source_type}:${element.target_type}`;
+
+          o.push({
+            order: index,
+            label: `[${element.ncount.toString().padStart(maxDigits, '.')}] ${relationship}`,
+            value: relationship
+          })
+        });
+
+        callback(o);
+      } else {
+        callback([]);
+      }
+    }).catch(error => {
+      message.error("Get relationships error, please refresh the page and try again.");
+      console.log("Get relationships error: ", error)
+      callback([]);
+    })
+  }
 
   // This function is used to fetch the nodes of the selected label.
   // All the nodes will be added to the options as a dropdown list.
-  const fetch = async (label_type: string, value: string) => {
+  const fetchNode = async (label_type: string, value: string, callback: (any: any) => void) => {
     if (timeout) {
       clearTimeout(timeout);
       timeout = null;
@@ -107,11 +284,11 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
           // const options = formatedData.map(d => <Option key={d.value}>{d.text}</Option>);
           const options = formatedData.map(d => { return { label: d.text, value: d.value } })
           setLoading(false);
-          setNodeOptions(options);
+          callback(options);
         })
         .catch((error) => {
           console.log('requestNodes Error: ', error);
-          setNodeOptions([]);
+          callback([]);
           setLoading(false)
         });
     };
@@ -119,131 +296,22 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
     timeout = setTimeout(fetchData, 300);
   };
 
-  const handleSelectLabel = function (value: string) {
-    setLabel(value);
+  const handleSelectNodeType = function (value: string) {
     setNodeOptions(undefined);
     setPlaceholder(`Search ${value} nodes ...`);
   }
 
-  const handleSearch = function (value: string) {
+  const handleSearchNode = function (nodeType: string, value: string) {
     if (value) {
-      fetch(label, value);
+      fetchNode(nodeType, value, setNodeOptions);
     } else {
       setNodeOptions(undefined);
     }
   }
 
-  useEffect(() => {
-    getNodeTypes()
-      .then(response => {
-        console.log("Get types of nodes: ", response)
-        let o: OptionType[] = []
-        if (response.node_types) {
-          response.node_types.forEach((element: string) => {
-            o.push({
-              label: element,
-              value: element
-            })
-          });
-          setLabelOptions(o);
-          setLabel(response.node_types[0]);
-        } else {
-          setLabelOptions([]);
-          setLabel("");
-        }
-      })
-      .catch(error => {
-        console.log('requestNodes Error: ', error);
-        message.error("Get types of nodes error, please refresh the page");
-      });
-
-    // return a function to clean up subscription and async task
-    return () => {
-      console.log("unmounting...");
-      setLabelOptions([]);
-      setLabel("");
-    };
-  }, [])
-
   const updateFormStatus = function () {
     setHelpWarning("");
   }
-
-  useEffect(() => {
-    if (label) {
-      getRelationshipTypes({ node_type: label }).then(response => {
-        console.log("Get types of relation: ", response)
-        let o: OptionType[] = []
-        if (response.relationship_types) {
-          response.relationship_types.forEach((element: string) => {
-            o.push({
-              label: element,
-              value: element
-            })
-          });
-          setRelationTypeOptions(o);
-        } else {
-          setRelationTypeOptions([]);
-        }
-      }).catch(error => {
-        message.error("Get types of relation error, please refresh the page and try again.");
-        console.log("Get types of relation error: ", error)
-      })
-    }
-
-    return () => {
-      setRelationTypeOptions([]);
-    }
-  }, [label])
-
-  useEffect(() => {
-    if (label && node_id) {
-      // SELECT count(*) as ncount, _type as relationship_type FROM relationships WHERE start_id = '7157' or end_id = '7157' GROUP BY _type ORDER BY ncount DESC;
-      getRelationships({
-        query_str: `
-        {:select [[[:count :*] :ncount] [:_type :relationship_type]]
-          :from :relationships
-          :where [:or [:= :start_id "${node_id}"]
-                      [:= :end_id "${node_id}"]]
-          :group-by [:relationship_type]
-          :order-by [[:ncount :desc]]}
-        `,
-        disable_total: "true"
-      }).then(response => {
-        console.log("Get relationships: ", response)
-        let o: OptionType[] = []
-        if (response.data.length > 0) {
-          response.data.forEach((element: any, index: number) => {
-            o.push({
-              order: index,
-              label: `[${element.ncount.toString().padStart(4, '.')}] ${element.relationship_type}`,
-              value: element.relationship_type
-            })
-          });
-
-          if (o.length > 0) {
-            const merged = relationTypeOptions?.map((item: any) => {
-              let matched = o.find((i: any) => i.value === item.value);
-              if (matched) {
-                return matched;
-              } else {
-                return {
-                  order: 9999,
-                  label: `[${'0'.padStart(4, '.')}] ${item.value}`,
-                  value: item.value
-                }
-              }
-            })
-
-            setRelationTypeOptions(merged?.sort((a: any, b: any) => a.order - b.order));
-          }
-        }
-      }).catch(error => {
-        message.error("Get relationships error, please refresh the page and try again.");
-        console.log("Get relationships error: ", error)
-      })
-    }
-  }, [label, node_id])
 
   const onConfirm = () => {
     form.validateFields()
@@ -268,12 +336,11 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       form={form} labelCol={{ span: 7 }} wrapperCol={{ span: 17 }}>
       <Form.Item name="mode" label="Mode" initialValue={"node"}>
         <Radio.Group>
-          <Radio value="node">Node</Radio>
-          <Radio value="path">Path</Radio>
+          <Radio value="node">Relationship</Radio>
+          <Radio value="batchIds">Node</Radio>
         </Radio.Group>
       </Form.Item>
       <Form.Item label="Node Type" name="node_type"
-        initialValue={props.searchObject?.node_type ? props.searchObject?.node_type : undefined}
         rules={[{ required: true, message: 'Please select a node type.' }]}>
         <Select
           allowClear
@@ -282,46 +349,32 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
           placeholder={"Please select a node type"}
           options={labelOptions}
           filterOption={true}
-          onSelect={handleSelectLabel}
+          onSelect={handleSelectNodeType}
         />
       </Form.Item>
-      <Form.Item label="Which Node" name="node_id"
-        initialValue={props.searchObject?.node_id ? props.searchObject?.node_id : undefined}
-        rules={[{ required: true, message: 'Please enter your expected node.' }]}>
+      <Form.Item label="Which Nodes" name="node_ids"
+        hidden={mode == "node"}
+        rules={[{ required: true, message: 'Please enter your expected nodes.' }]}>
         <Select
           showSearch
           allowClear
           loading={loading}
+          mode="multiple"
           defaultActiveFirstOption={false}
           showArrow={true}
           placeholder={placeholder}
-          onSearch={handleSearch}
+          onSearch={(value) => handleSearchNode(node_type, value)}
           options={nodeOptions}
           filterOption={false}
           notFoundContent={<Empty description={
-            loading ? "Searching..." : (nodeOptions !== undefined ? "Not Found" : `Enter your interested ${label} ...`)
+            loading ? "Searching..." : (nodeOptions !== undefined ? "Not Found" : `Enter your interested ${node_type} ...`)
           } />}
         >
         </Select>
       </Form.Item>
-      <Form.Item label="Node Type (2)" name="node_type2"
-        hidden={mode === "node"}
-        initialValue={props.searchObject?.node_type ? props.searchObject?.node_type : undefined}
-        rules={[{ required: mode === "path" ? true : false, message: 'Please select a node type.' }]}>
-        <Select
-          allowClear
-          defaultActiveFirstOption={false}
-          showArrow={true}
-          placeholder={"Please select a node type"}
-          options={labelOptions}
-          filterOption={true}
-          onSelect={handleSelectLabel}
-        />
-      </Form.Item>
-      <Form.Item label="Which Node (2)" name="node_id2"
-        hidden={mode === "node"}
-        initialValue={props.searchObject?.node_id ? props.searchObject?.node_id : undefined}
-        rules={[{ required: mode === "path" ? true : false, message: 'Please enter your expected node.' }]}>
+      <Form.Item label="Which Node" name="node_id"
+        hidden={mode == "batchIds"}
+        rules={[{ required: mode == "batchIds" ? false : true, message: 'Please enter your expected node.' }]}>
         <Select
           showSearch
           allowClear
@@ -329,11 +382,11 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
           defaultActiveFirstOption={false}
           showArrow={true}
           placeholder={placeholder}
-          onSearch={handleSearch}
+          onSearch={(value) => handleSearchNode(node_type, value)}
           options={nodeOptions}
           filterOption={false}
           notFoundContent={<Empty description={
-            loading ? "Searching..." : (nodeOptions !== undefined ? "Not Found" : `Enter your interested ${label} ...`)
+            loading ? "Searching..." : (nodeOptions !== undefined ? "Not Found" : `Enter your interested ${node_type} ...`)
           } />}
         >
         </Select>
@@ -341,8 +394,8 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="relation_types"
         label="Relation Types"
+        hidden={mode == "batchIds"}
         validateStatus={helpWarning ? "warning" : ""} help={helpWarning}
-        initialValue={props.searchObject?.relation_types ? props.searchObject?.relation_types : []}
         rules={[{ required: false, message: 'Please select your expected relation types!', type: 'array' }]}
       >
         <Select mode="multiple" onChange={updateFormStatus}
@@ -358,7 +411,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="nsteps"
         label="Num of Steps"
-        initialValue={props.searchObject?.nsteps ? props.searchObject?.nsteps : 1}
+        hidden={mode == "batchIds"}
         rules={[{ required: false, message: 'Please select your expected nsteps', type: 'number' }]}
       >
         <Select placeholder="Please select nsteps" options={nStepsOptions}>
@@ -367,20 +420,18 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="limit"
         label="Max Num of Nodes"
-        hidden={mode === "path"}
-        initialValue={props.searchObject?.limit ? props.searchObject?.limit : 10}
+        hidden={mode == "batchIds"}
         rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
       >
         <InputNumber min={1} max={1000} />
       </Form.Item>
       <Form.Item label="Enable Prediction" name="enable_prediction"
-        hidden={mode === "path"}
-        initialValue={props.searchObject?.enable_prediction ? props.searchObject?.enable_prediction : false}
+        hidden={mode == "batchIds"}
         valuePropName="checked">
         <Switch />
       </Form.Item>
       <Form.Item label="Merging Mode" name="merge_mode">
-        <Select disabled={mode == 'path'}
+        <Select
           placeholder="Please select mode for merging nodes & relationships"
           options={mergeModeOptions}>
         </Select>

@@ -6,6 +6,13 @@ export type OptionType = {
   value: string
 }
 
+export type Relationship = {
+  sourceNodeType: string;
+  targetNodeType: string;
+  relationshipType: string;
+  resource: string;
+}
+
 export type SearchObject = {
   node_type?: string;
   node_id?: string | undefined;
@@ -15,10 +22,8 @@ export type SearchObject = {
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;
-  mode?: "node" | "path" | "batchIds";
+  mode?: "node" | "batchIds";
   node_ids?: string[];
-  node_type2?: string;
-  node_id2?: string;
 }
 
 export type GraphNode = {

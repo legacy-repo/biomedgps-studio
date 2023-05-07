@@ -57,17 +57,35 @@ def importer():
 @click.option('--filter', '-F', default=None, help="The filter of the file name, such as `*.csv`.")
 @click.option('--db-username', '-U', default="neo4j", help="Neo4j database username.")
 @click.option('--db-password', '-P', default="NeO4J", help="Neo4j database password.")
-def import_relationships(file, db_url, db_username, db_password, filter):
+@click.option('--insert-or-update', '-I', default="insert", help="Insert or update the data, default is insert.",
+              type=click.Choice(['insert', 'update']))
+def import_relationships(file, db_url, db_username, db_password, filter, insert_or_update):
     # TODO: you may need to add index for the entity id, such as `CREATE INDEX ON :ENTITY(id);` for speeding up the query.
 
     def gen_query(sep):
-        return """
-        CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line
-        MATCH (p:<START_LABEL> {id: line.START_ID})
-        MATCH (mp:<END_LABEL> {id: line.END_ID})
-        CREATE (p)-[r:`<RELASTIONSHIP>` { resource: line.resource, source_type: line.source_type, target_type: line.target_type }]->(mp)
-        RETURN COUNT(r) AS c;
-        """ % sep
+        if insert_or_update == 'insert':
+            return """
+            CALL apoc.periodic.iterate(
+                'CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line',
+                'MATCH (p:<START_LABEL> {id: line.START_ID})
+                 MATCH (mp:<END_LABEL> {id: line.END_ID})
+                 CREATE (p)-[r:`<RELATIONSHIP>` {resource: line.resource, source_type: line.source_type, target_type: line.target_type}]->(mp)
+                 RETURN COUNT(r) AS c;',
+                {batchSize:10000, iterateList:true, parallel:false}
+            );
+            """ % sep
+        else:
+            return """
+            CALL apoc.periodic.iterate(
+                'CALL apoc.load.csv("file:///<FILE_PATH>", { sep: "%s" }) YIELD map AS line',
+                'MATCH (p:<START_LABEL> {id: line.START_ID})
+                 MATCH (mp:<END_LABEL> {id: line.END_ID})
+                 MERGE (p)-[r:`<RELATIONSHIP>`]->(mp)
+                 ON CREATE SET r.resource = line.resource, r.source_type = line.source_type, r.target_type = line.target_type
+                 RETURN COUNT(r) AS c;',
+                {batchSize:10000, iterateList:true, parallel:false}
+            );
+            """ % sep
 
     # cypher_query = """
     #     USING PERIODIC COMMIT 100000
@@ -75,7 +93,7 @@ def import_relationships(file, db_url, db_username, db_password, filter):
     #     FIELDTERMINATOR '%s'
     #     MATCH (p:<START_LABEL> {id: line.START_ID})
     #     MATCH (mp:<END_LABEL> {id: line.END_ID})
-    #     MERGE (p)-[r:`<RELASTIONSHIP>`]->(mp)
+    #     MERGE (p)-[r:`<RELATIONSHIP>`]->(mp)
     #     RETURN COUNT(r) AS c;
     # """ % sep
 
@@ -96,7 +114,7 @@ def import_relationships(file, db_url, db_username, db_password, filter):
             which_relationship = types[0]
             print("Import relationships with `%s` type." % which_relationship)
             cypher_query = gen_query(sep)
-            query = cypher_query.replace("<RELASTIONSHIP>", which_relationship).replace(
+            query = cypher_query.replace("<RELATIONSHIP>", which_relationship).replace(
                 "<START_LABEL>", source_type[0]).replace("<END_LABEL>", target_type[0]).replace("<FILE_PATH>", file)
             print("Your summiting query clause is: %s" % query)
             commit_query(driver, query)
@@ -128,10 +146,11 @@ def import_entities(file, db_url, db_username, db_password):
 
     def gen_query(sep):
         return """
-        CALL apoc.load.csv("file:///<FILEPATH>", { sep: "%s" }) YIELD map AS line
-        MERGE (e:`<ENTITY>` {id: line.ID})
-        ON CREATE SET <FIELDS>
-        RETURN COUNT(e) AS c;
+        CALL apoc.periodic.iterate(
+            'CALL apoc.load.csv("file:///<FILEPATH>", { sep: "%s" }) YIELD map AS line',
+            'MERGE (e:`<ENTITY>` {id: line.ID}) ON CREATE SET <FIELDS> RETURN COUNT(e) AS c;',
+            {batchSize: 10000, iterateList: true, parallel: false}
+        );
         """ % sep
 
     # cypher_query = """

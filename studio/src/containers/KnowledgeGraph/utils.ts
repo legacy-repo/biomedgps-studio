@@ -2,7 +2,7 @@ import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
 import { postNodes } from '@/services/swagger/Graph';
-import { SearchObject, GraphData, GraphNode } from './typings';
+import { SearchObject, GraphData, GraphNode, Relationship } from './typings';
 import voca from 'voca';
 // import { Graph } from '@antv/g6';
 
@@ -166,10 +166,27 @@ export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
   })
 }
 
+function makeRelationMaps(relationships: string[]): Relationship[] {
+  let relationMaps = [];
+  for (let i = 0; i < relationships.length; i++) {
+    let [resource, relationshipType, sourceNode, targetNode] = relationships[i].split(":");
+    let relationMap = {
+      "sourceNodeType": sourceNode,
+      "targetNodeType": targetNode,
+      "relationshipType": relationshipType,
+      "resource": resource
+    }
+
+    relationMaps.push(relationMap)
+  }
+
+  return relationMaps;
+}
+
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
   const {
     node_type, node_id, relation_types, all_relation_types,
-    enable_prediction, limit, mode, node_id2, node_type2, node_ids
+    enable_prediction, limit, mode, node_ids
   } = searchObject;
   return new Promise((resolve, reject) => {
     let payload = {}
@@ -189,40 +206,38 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 
         // It will cause performance issue if we enable prediction for all relation types
         // So we need to filter out the relation types that are not related to the node type or warn the user that he/she should pick up at least one relation type
+        const allRelationTypes = all_relation_types ? all_relation_types.filter(item => item.match(node_type)) : [];
+        const relationshipMaps = makeRelationMaps(allRelationTypes);
+        const relationTypes = relationshipMaps.map(item => `'${item.relationshipType}'`)
         payload = {
           source_id: `${node_id}`,
-          relation_types: all_relation_types ? all_relation_types.filter(item => item.match(node_type)) : [],
+          relation_types: relationTypes,
           topk: 10,
           enable_prediction: enable_prediction
         }
       } else {
-        const relation_types_str = relation_types.join("`|`")
+        const relationshipMaps = makeRelationMaps(relation_types);
+        // TODO: Do we need to filter out the relation types that are not related to the node type?
+        // const filteredRelationshipMaps = relationshipMaps.filter(item => item.sourceNodeType == node_type);
+        const relationTypes = relationshipMaps.map(item => `'${item.relationshipType}'`)
+        const whereRelClause = relationshipMaps.map(item => `type(r) = '${item.relationshipType}'`).join(" or ");
+        const labels = relationshipMaps.map(item => `'${item.targetNodeType}'`).join(",");
+        const resources = relationshipMaps.map(item => `'${item.resource}'`).join(",");
+        const whereNodeClause = `labels(m) in [${labels}] and m.resource in [${resources}] and ( ${whereRelClause} )`;
         if (searchObject.nsteps && searchObject.nsteps <= 1) {
-          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`,
+            `n.id = '${node_id}' and ${whereNodeClause}`, undefined, limit)
         } else {
-          query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\` *1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+          query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m)`,
+            `n.id = '${node_id}' and ${whereNodeClause}`, undefined, limit)
         }
 
         payload = {
           source_id: node_id,
-          relation_types: relation_types,
+          relation_types: relationTypes,
           topk: 10,
           enable_prediction: enable_prediction
         }
-      }
-    }
-
-    if (mode == "path" && node_type && node_id && node_type2 && node_id2) {
-      if (!relation_types || relation_types?.length == 0) {
-        // Just return all the relations between two nodes, but only one step
-        query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m:${node_type2})`,
-          `n.id = '${node_id}' and m.id = '${node_id2}'`,
-          undefined, limit)
-      } else {
-        const relation_types_str = relation_types.join("`|`")
-        query_str = makeGraphQueryStr(`(n:${node_type})-[r:\`${relation_types_str}\`*1..${searchObject.nsteps}]-(m:${node_type2})`,
-          `n.id = '${node_id}' and m.id = '${node_id2}'`,
-          undefined, limit)
       }
     }
 
