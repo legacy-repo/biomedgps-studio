@@ -235,17 +235,67 @@ export const makeRelationshipTypes = (edgeStat: EdgeStat[]): OptionType[] => {
   return o.sort((a: any, b: any) => a.order - b.order);
 }
 
+export const isValidNodeMode = (searchObject: SearchObject): boolean => {
+  const { mode, node_type, node_id } = searchObject;
+  if (mode == "node" && node_type && node_id) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export const isValidBatchIdsMode = (searchObject: SearchObject): boolean => {
+  const { mode, node_ids } = searchObject;
+  if (mode == "batchIds" && node_ids && node_ids.length > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export const isValidSimilarityMode = (searchObject: SearchObject): boolean => {
+  const { mode, node_id, node_type } = searchObject;
+  if (mode == "similarity" && node_id && node_type) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export const isValidBatchNodesMode = (searchObject: SearchObject): boolean => {
+  const { mode, nodes, node_type } = searchObject;
+  if (mode == "batchNodes" && nodes && nodes.length > 0 && node_type) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+export const isValidSearchObject = (searchObject: SearchObject): boolean => {
+  if (
+    isValidNodeMode(searchObject) ||
+    isValidBatchIdsMode(searchObject) ||
+    isValidSimilarityMode(searchObject) ||
+    isValidBatchNodesMode(searchObject)
+  ) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
+  console.log("makeGraphQueryStrWithSearchObject: ", searchObject)
   const {
     node_type, node_id, relation_types, all_relation_types,
-    enable_prediction, limit, mode, node_ids, topk
+    enable_prediction, limit, mode, node_ids, topk, nodes,
   } = searchObject;
   return new Promise((resolve, reject) => {
     let payload = {}
     let query_str = {}
 
-    if (mode == "node" || mode == "batchIds") {
-      if (mode == "node" && node_type && node_id) {
+    if (mode == "node" || mode == "batchIds" || mode == "batchNodes") {
+      if (isValidNodeMode(searchObject)) {
         query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
 
         if (!relation_types || relation_types?.length == 0) {
@@ -309,10 +359,22 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
         }
       }
 
-      if (mode == 'batchIds' && node_ids) {
+      if (isValidBatchIdsMode(searchObject)) {
         query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(node_ids)}`, "n", limit)
       }
 
+      if (isValidBatchNodesMode(searchObject)) {
+        const whereClause = uniq(nodes?.map(item => `(n.id = '${item.data.id}' and n:${item.nlabel})`)).join(" or ");
+
+        query_str = makeGraphQueryStr(
+          `(n)-[r]-(m:${node_type})`,
+          whereClause,
+          "n,r,m",
+          limit
+        )
+      }
+
+      console.log("query_str: ", query_str)
       if (Object.keys(query_str).length > 0) {
         postNodes({ query_map: query_str, ...payload }).then((res) => {
           if (res) {
@@ -328,7 +390,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       }
     }
 
-    if (mode == "similarity" && node_id && node_type) {
+    if (isValidSimilarityMode(searchObject)) {
       // TODO: Current version only support the format of node_id = "node_type:node_id"
       // How to keep consistency with the format of node_id in the deep learning model?
       postSimilarity({

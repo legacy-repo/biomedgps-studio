@@ -297,14 +297,17 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
   const onConfirm = () => {
     form.validateFields()
       .then(values => {
-        console.log("values: ", values);
+        console.log("onConfirm form values: ", values);
         if (props.onOk) {
-          props.onOk({
+          let payload = {
             ...values,
             all_relation_types: relationTypeOptions ? relationTypeOptions.map((item: any) => item.value) : [],
+            enable_prediction: values.enable_prediction ? values.enable_prediction : false,
             relation_types: values.relation_types ? values.relation_types : [],
-            enable_prediction: values.enable_prediction ? values.enable_prediction : false
-          });
+            nodes: props.searchObject?.nodes,
+          }
+
+          props.onOk(payload);
         }
       })
       .catch(errorInfo => {
@@ -315,15 +318,21 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
   const isNodeMode = mode == "node";
   const isBatchIdsMode = mode == "batchIds";
   const isSimilarityMode = mode == "similarity";
+  const isBatchNodesMode = mode == "batchNodes"
 
   return (
     <Form className="query-form" layout={"horizontal"}
       form={form} labelCol={{ span: 7 }} wrapperCol={{ span: 17 }}>
       <Form.Item name="mode" label="Mode" initialValue={"node"}>
         <Radio.Group>
+          {/* Need to keep consistent with the value of mode in SearchObject class */}
           <Radio value="node">Relationship</Radio>
-          <Radio value="batchIds">Node</Radio>
-          <Radio value="similarity">Similarity Nodes</Radio>
+          <Radio value="batchIds">Nodes</Radio>
+          <Radio value="similarity">Similarity</Radio>
+          {
+            (props.searchObject?.nodes && props.searchObject?.nodes.length > 0) &&
+            <Radio value="batchNodes">BatchExpand</Radio>
+          }
         </Radio.Group>
       </Form.Item>
       <Form.Item label="Node Type" name="node_type"
@@ -359,8 +368,11 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         </Select>
       </Form.Item>
       <Form.Item label="Which Node" name="node_id"
-        hidden={isBatchIdsMode}
-        rules={[{ required: isBatchIdsMode ? false : true, message: 'Please enter your expected node.' }]}>
+        hidden={isBatchIdsMode || isBatchNodesMode}
+        rules={[{
+          required: (isBatchIdsMode || isBatchNodesMode) ? false : true,
+          message: 'Please enter your expected node.'
+        }]}>
         <Select
           showSearch
           allowClear
@@ -380,7 +392,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="relation_types"
         label="Relation Types"
-        hidden={(isBatchIdsMode || isSimilarityMode)}
+        hidden={(isBatchIdsMode || isSimilarityMode || isBatchNodesMode)}
         validateStatus={helpWarning ? "warning" : ""} help={helpWarning}
         rules={[{ required: false, message: 'Please select your expected relation types!', type: 'array' }]}
       >
@@ -397,7 +409,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="nsteps"
         label="Num of Steps"
-        hidden={(isBatchIdsMode || isSimilarityMode)}
+        hidden={(isBatchIdsMode || isSimilarityMode || isBatchNodesMode)}
         rules={[{ required: false, message: 'Please select your expected nsteps', type: 'number' }]}
       >
         <Select placeholder="Please select nsteps" options={nStepsOptions}>
@@ -409,17 +421,17 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         hidden={(isBatchIdsMode || isSimilarityMode)}
         rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
       >
-        <InputNumber min={1} max={1000} />
+        <InputNumber min={1} max={500} />
       </Form.Item>
       <Form.Item label="Enable Prediction" name="enable_prediction"
-        hidden={(isBatchIdsMode || isSimilarityMode)}
+        hidden={(isBatchIdsMode || isSimilarityMode || isBatchNodesMode)}
         valuePropName="checked">
         <Switch />
       </Form.Item>
       <Form.Item
         name="topk"
         label="Top K"
-        hidden={isBatchIdsMode}
+        hidden={isBatchIdsMode || isBatchNodesMode}
         rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
       >
         <InputNumber min={1} max={100} />

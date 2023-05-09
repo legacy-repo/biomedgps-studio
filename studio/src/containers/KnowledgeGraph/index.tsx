@@ -15,10 +15,12 @@ import StatisticsChart from './Chart/StatisticsChart';
 // import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources, autoConnectNodes,
-  makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds
+  makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds,
+  isValidSearchObject
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
+import type { Graph } from '@antv/graphin';
 import { getStatistics } from '@/services/swagger/Graph';
 import {
   SearchObject, GraphData, GraphEdge, GraphNode,
@@ -149,10 +151,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   useEffect(() => {
     // You need to check if the data is empty, otherwise it will update on an unmounted component. 
-    if (advancedSearchPanelActive === false && (
-      (searchObject.node_type && searchObject.node_id) ||
-      searchObject.node_ids
-    )) {
+    if (advancedSearchPanelActive === false && isValidSearchObject(searchObject)) {
       setLoading(true)
       message.info("Loading data, please wait...")
       makeGraphQueryStrWithSearchObject(searchObject)
@@ -204,6 +203,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
           message.warn("Unknown errors or Cannot find any entities & relationships.")
           setLoading(false)
         })
+    } else {
+      console.log("Advanced Search Panel is active or search object is invalid.")
     }
   }, [searchObject])
 
@@ -264,7 +265,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const onEdgeMenuClick = (
     menuItem: { key: string, name: string },
     source: GraphNode, target: GraphNode,
-    edge: GraphEdge, graph: any, graphin: any
+    edge: GraphEdge, graph: Graph, graphin: any
   ) => {
     if (menuItem.key == 'what-is-the-relationship') {
       if (props.postMessage) {
@@ -281,7 +282,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     }
   }
 
-  const onNodeMenuClick = (menuItem: any, node: GraphNode, graph: any, graphin: any) => {
+  const onNodeMenuClick = (menuItem: any, node: GraphNode, graph: Graph, graphin: any) => {
     console.log(`onNodeMenuClick [${menuItem.key}]: `, menuItem, node);
     if (menuItem.key == 'delete-node') {
       const id = node.id;
@@ -300,6 +301,20 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         node_type: node.nlabel,
         node_id: node.data.id,
         merge_mode: "append"
+      })
+    } else if (menuItem.key == 'expand-selected-nodes') {
+      const nodes = graph.getNodes().filter(
+        (node) => node.hasState('selected')
+      ).map(
+        node => node.getModel() as GraphNode
+      );
+      enableAdvancedSearch();
+      setSearchObject({
+        nodes: nodes,
+        merge_mode: "append",
+        mode: "batchNodes",
+        node_id: "",
+        node_type: "",
       })
     } else if (menuItem.key == 'what-is-the-node') {
       if (props.postMessage) {

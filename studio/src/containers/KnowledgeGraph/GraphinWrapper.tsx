@@ -15,7 +15,8 @@ import {
     BranchesOutlined,
     AimOutlined,
     InfoCircleFilled,
-    ForkOutlined
+    ForkOutlined,
+    FullscreenOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -195,6 +196,11 @@ const NodeMenu = (props: NodeMenuProps) => {
             icon: <ExpandAltOutlined />,
             label: 'Expand One Level',
         },
+        {
+            key: 'expand-selected-nodes',
+            icon: <FullscreenOutlined />,
+            label: 'Expand Selected Nodes',
+        },
         // {
         //     key: 'tag',
         //     icon: <TagFilled />,
@@ -204,6 +210,7 @@ const NodeMenu = (props: NodeMenuProps) => {
             key: 'delete-node',
             icon: <DeleteFilled />,
             label: 'Delete Node',
+            danger: true,
         },
     ];
 
@@ -808,11 +815,11 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
                 : null
             }
-            {(selectedNodeEnabled && !focusNodeEnabled) ?
+            {(!selectedNodeEnabled && !focusNodeEnabled) ?
                 <NodeClickBehavior onClick={props.onClickNode}></NodeClickBehavior>
                 : null
             }
-            {(selectedNodeEnabled && !focusNodeEnabled) ?
+            {(!selectedNodeEnabled && !focusNodeEnabled) ?
                 <EdgeClickBehavior onClick={props.onClickEdge}></EdgeClickBehavior>
                 : null
             }
