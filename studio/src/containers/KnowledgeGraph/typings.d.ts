@@ -22,7 +22,8 @@ export type SearchObject = {
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;
-  mode?: "node" | "batchIds";
+  mode?: "node" | "batchIds" | "similarity";
+  topk?: number;
   node_ids?: string[];
 }
 

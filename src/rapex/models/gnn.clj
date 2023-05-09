@@ -42,14 +42,35 @@
     (throw (Exception. "You need to call init-model! function firstly.")))
   (try
     (let [results (py/call-attr @nm-module "query" @model-map relations source-id)
-          topkpd (py/call-attr @nm-module "relation_each" @model-map results :topk topk)
-          topkpd-ave (py/call-attr @nm-module "relation_ave" @model-map results :topk topk)]
+          topkpd (py/call-attr @nm-module "relation_each" @model-map results true topk)
+          topkpd-ave (py/call-attr @nm-module "relation_ave" @model-map results true topk)]
       {:topkpd (format-topkpd (py/call-attr topkpd "to_numpy"))
        :topkpd_ave (format-topkpd-ave (py/call-attr topkpd-ave "to_numpy"))})
     (catch Exception e
       (println "Error while predicting:" (.getMessage e))
       {:topkpd []
        :topkpd_ave []})))
+
+(defn format-similarity-topkpd
+  [topkpd]
+  ;; The order of the items in topkpd is [distance, target_id, target], please refer to the source code of pydl.nm
+  (pmap (fn [item] (let [item (py/->jvm item)]
+                     {:score (first item)
+                      :target_id (nth item 1)
+                      :target (nth item 2)})) topkpd))
+
+(defn find-neighbors
+  [source-type source-id & {:keys [topk]
+                            :or {topk 100}}]
+  (when (not @model-map)
+    (throw (Exception. "You need to call init-model! function firstly.")))
+  (try
+    (log/info (format "Finding neighbors for %s::%s with topk %s" source-type source-id topk))
+    (let [topkpd (py/call-attr @nm-module "find_nearest_neighbor" @model-map (format "%s::%s" source-type source-id) topk)]
+      {:topkpd (format-similarity-topkpd (py/call-attr topkpd "to_numpy"))})
+    (catch Exception e
+      (println "Error while finding neighbors:" (.getMessage e))
+      {:topkpd []})))
 
 (comment
   (def source-id "MESH:D015673")

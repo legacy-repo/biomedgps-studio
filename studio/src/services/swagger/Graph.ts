@@ -90,6 +90,21 @@ export async function getRelationships(
   );
 }
 
+/** Get the nearest neighbor nodes. Get the nearest neighbor nodes. POST /api/v1/similarity */
+export async function postSimilarity(
+  body: { source_id?: string; topk?: number; source_type?: string },
+  options?: { [key: string]: any },
+) {
+  return request<{ nodes: any; edges: any }>('/api/v1/similarity', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** Get node & relationship statistics data. Get node & relationship statistics data. GET /api/v1/statistics */
 export async function getStatistics(options?: { [key: string]: any }) {
   return request<{

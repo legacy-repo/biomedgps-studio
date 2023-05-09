@@ -28,6 +28,18 @@
                           "DRUGBANK::treats::Compound:Disease"]
     :reason              "Not valid relation types"}))
 
+(s/def ::source_type
+  (st/spec
+   {:spec                string?
+    :description         "Node Type."
+    :swagger/default     "Disease, Gene, etc."
+    :swagger/type        "string"
+    :reason              "Not a valid node type."}))
+
 (def query-relations-spec
   (s/keys :req-un [::source_id ::relation_types]
+          :opt-un [::topk]))
+
+(def query-similarity-spec
+  (s/keys :req-un [::source_id ::source_type]
           :opt-un [::topk]))

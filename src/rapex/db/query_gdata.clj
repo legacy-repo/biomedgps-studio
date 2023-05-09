@@ -246,6 +246,15 @@
         {:node_id (get-node-id-from-gnn (:target rel))
          :node_type (get-node-type-from-gnn (:target rel))}))
 
+(defn- get-neighbor-nodes
+  "Get all nodes from found nearest neighbors"
+  [topk-neighbors]
+  (pmap (fn [item]
+          {:node_id (get-node-id-from-gnn (:target item))
+           :node_type (get-node-type-from-gnn (:target item))
+           :degree (:score item)})
+        topk-neighbors))
+
 (defn format-relationship
   [relationship]
   (when relationship
@@ -395,6 +404,19 @@
         rels (map (fn [rel] (format-predicted-relationship rel id-query-map)) predicted-relationships)]
     {:nodes nodes :edges rels}))
 
+(defn format-neighbor-nodes
+  [tx neighbor-nodes]
+  (let [nodes-with-degree (get-neighbor-nodes neighbor-nodes)
+        nodes-from-neo4j (get-nodes-from-db tx nodes-with-degree)
+        find-node (fn [node] (let [matched-node (first (filter #(= (:id (:data node))
+                                                                   (:node_id %))
+                                                               nodes-with-degree))]
+                               (if matched-node
+                                 (assoc node :degree (:degree matched-node))
+                                 node)))
+        updated-nodes (pmap #(find-node %) nodes-from-neo4j)]
+    {:nodes updated-nodes :edges []}))
+
 (db/defquery q-node-relationships
   "Match (n:Gene)-[r]-(m) RETURN n, r, m LIMIT $limit")
 
@@ -446,6 +468,12 @@
        (distinct)
        (group-by :category)
        (merge {:nodes [] :edges []})))
+
+(defn find-nearest-neighbors
+  [source-type source-id topk]
+  (let [neighbor-nodes (:topkpd (gnn/find-neighbors source-type source-id :topk topk))]
+    (with-open [session (db/get-session @gdb-conn)]
+      (format-neighbor-nodes session neighbor-nodes))))
 
 (defn query&predict
   [query-map predicted-payload]

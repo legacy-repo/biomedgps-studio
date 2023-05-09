@@ -89,6 +89,13 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       }
     }
 
+    if (!props.searchObject?.topk) {
+      fields = {
+        ...fields,
+        topk: 10
+      }
+    }
+
     if (!props.searchObject?.nsteps) {
       fields = {
         ...fields,
@@ -305,6 +312,10 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       })
   }
 
+  const isNodeMode = mode == "node";
+  const isBatchIdsMode = mode == "batchIds";
+  const isSimilarityMode = mode == "similarity";
+
   return (
     <Form className="query-form" layout={"horizontal"}
       form={form} labelCol={{ span: 7 }} wrapperCol={{ span: 17 }}>
@@ -312,6 +323,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         <Radio.Group>
           <Radio value="node">Relationship</Radio>
           <Radio value="batchIds">Node</Radio>
+          <Radio value="similarity">Similarity Nodes</Radio>
         </Radio.Group>
       </Form.Item>
       <Form.Item label="Node Type" name="node_type"
@@ -327,8 +339,8 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         />
       </Form.Item>
       <Form.Item label="Which Nodes" name="node_ids"
-        hidden={mode == "node"}
-        rules={[{ required: mode == "node" ? false : true, message: 'Please enter your expected nodes.' }]}>
+        hidden={!isBatchIdsMode}
+        rules={[{ required: isBatchIdsMode ? true : false, message: 'Please enter your expected nodes.' }]}>
         <Select
           showSearch
           allowClear
@@ -347,8 +359,8 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
         </Select>
       </Form.Item>
       <Form.Item label="Which Node" name="node_id"
-        hidden={mode == "batchIds"}
-        rules={[{ required: mode == "batchIds" ? false : true, message: 'Please enter your expected node.' }]}>
+        hidden={isBatchIdsMode}
+        rules={[{ required: isBatchIdsMode ? false : true, message: 'Please enter your expected node.' }]}>
         <Select
           showSearch
           allowClear
@@ -368,7 +380,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="relation_types"
         label="Relation Types"
-        hidden={mode == "batchIds"}
+        hidden={(isBatchIdsMode || isSimilarityMode)}
         validateStatus={helpWarning ? "warning" : ""} help={helpWarning}
         rules={[{ required: false, message: 'Please select your expected relation types!', type: 'array' }]}
       >
@@ -385,7 +397,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="nsteps"
         label="Num of Steps"
-        hidden={mode == "batchIds"}
+        hidden={(isBatchIdsMode || isSimilarityMode)}
         rules={[{ required: false, message: 'Please select your expected nsteps', type: 'number' }]}
       >
         <Select placeholder="Please select nsteps" options={nStepsOptions}>
@@ -394,15 +406,23 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="limit"
         label="Max Num of Nodes"
-        hidden={mode == "batchIds"}
+        hidden={(isBatchIdsMode || isSimilarityMode)}
         rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
       >
         <InputNumber min={1} max={1000} />
       </Form.Item>
       <Form.Item label="Enable Prediction" name="enable_prediction"
-        hidden={mode == "batchIds"}
+        hidden={(isBatchIdsMode || isSimilarityMode)}
         valuePropName="checked">
         <Switch />
+      </Form.Item>
+      <Form.Item
+        name="topk"
+        label="Top K"
+        hidden={isBatchIdsMode}
+        rules={[{ required: false, message: 'Please input your expected value', type: 'number' }]}
+      >
+        <InputNumber min={1} max={100} />
       </Form.Item>
       <Form.Item label="Merging Mode" name="merge_mode">
         <Select
