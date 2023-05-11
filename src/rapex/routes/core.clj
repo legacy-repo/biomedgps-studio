@@ -23,6 +23,7 @@
             [rapex.routes.graph :as gdb-route]
             [rapex.routes.model :as model-route]
             [remote-fs.route :as fs-route]
+            [rapex.routes.graphstore :as graphstore-route]
             [rapex.version :as v]
             [rapex.db.core :as db]))
 
@@ -143,4 +144,5 @@
     fs-route/routes
     gdb-route/routes
     plugins-route/routes
+    graphstore-route/routes
     model-route/routes]])

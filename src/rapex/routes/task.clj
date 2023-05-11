@@ -39,12 +39,13 @@
                                                           (or page_size 10))))))}
 
      :post {:summary    "Create an task."
-            :parameters {:body specs/task-body}
-            :responses  {201 {:body {:message specs/task-id}}}
+            :parameters {:body nil}
+            :responses  {201 {:body specs/task-id}}
             :handler    (fn [{{:keys [body]} :parameters}]
                           (log/info "Create an task: " body)
-                          (created (str "/tasks/" (:id body))
-                                   {:message (db-handler/create-task! body)}))}}]
+                          (let [id (db-handler/create-task! body)]
+                            (created (str "/tasks/" id)
+                                     {:id id})))}}]
 
    ["/tasks/:id"
     {:get    {:summary    "Get a task by id."

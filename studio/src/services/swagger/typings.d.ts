@@ -74,6 +74,11 @@ declare namespace API {
     description: string;
   };
 
+  type deleteGraphsIdParams = {
+    /** Graph ID */
+    id: string;
+  };
+
   type deleteTasksIdParams = {
     /** Task ID */
     id: string;
@@ -147,6 +152,24 @@ declare namespace API {
   type getDownloadParams = {
     /** A file link which prefix starts with oss://, minio:// or file://. */
     filelink: string;
+  };
+
+  type getGraphsIdParams = {
+    /** Graph ID */
+    id: string;
+  };
+
+  type getGraphsParams = {
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+    /** Owner name that you want to query. */
+    owner?: string;
+    /** Filter tasks by plugin_type field. */
+    db_version?: string;
+    /** Filter results by status field. */
+    version?: string;
   };
 
   type getLabelsParams = {
@@ -275,6 +298,24 @@ declare namespace API {
     page: number;
     page_size: number;
     data: RapexGeneData[];
+  };
+
+  type RapexGraph = {
+    description: string;
+    payload: Record<string, any>;
+    name: string;
+    id: string;
+    created_time: number;
+    db_version: string;
+    version: string;
+    owner: any;
+  };
+
+  type RapexGraphResponse = {
+    total: number;
+    page: number;
+    page_size: number;
+    data: RapexGraph[];
   };
 
   type RapexPathwayData = {

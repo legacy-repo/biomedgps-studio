@@ -14,7 +14,8 @@ type AdvancedSearchProps = {
   onOk?: (searchObj: SearchObject) => void;
   onCancel?: () => void;
   searchObject?: SearchObject;
-  edgeStat: EdgeStat[]
+  edgeStat: EdgeStat[],
+  parent?: HTMLElement;
 }
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
@@ -44,7 +45,8 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
 
   return (
     <Modal className="advanced-search" title="Advanced Search" onCancel={props.onCancel}
-      visible={props.visible} destroyOnClose={true} footer={null}>
+      visible={props.visible} destroyOnClose={true} footer={null}
+      getContainer={props.parent ? props.parent : document.body}>
       <Tabs
         defaultActiveKey="single"
         activeKey={activeKey}

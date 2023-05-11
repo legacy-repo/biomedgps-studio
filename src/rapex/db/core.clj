@@ -21,7 +21,8 @@
 
 (conman/bind-connection *db*
                         "sql/tag.sql"
-                        "sql/task.sql")
+                        "sql/task.sql"
+                        "sql/graph.sql")
 
 (defn get-db-version []
   (let [db-version (jdbc/execute! (:datasource *db*)

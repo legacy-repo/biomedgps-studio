@@ -5,7 +5,8 @@
    [clojure.test :refer [function?]]
    [rapex.db.core :as db]
    [clojure.tools.logging :as log]
-   [rapex.util :as util]))
+   [rapex.util :as util]
+   [rapex.version :as v]))
 
 ;; -------------------------------- Spec --------------------------------
 ;; Where Map
@@ -141,12 +142,6 @@
            :id      id})))
 
 ;; --------------------- Task Record ---------------------
-(def search-tasks
-  (partial
-   search-entities
-   {:query-func db/search-tasks
-    :count-func db/count-tasks}))
-
 (defn convert-record
   [record]
   (-> record
@@ -156,6 +151,12 @@
 (defn convert-records
   [results]
   (assoc results :data (map convert-record (:data results))))
+
+(def search-tasks
+  (partial
+   search-entities
+   {:query-func db/search-tasks
+    :count-func db/count-tasks}))
 
 (def search-task
   (partial
@@ -216,4 +217,61 @@
                     :finished_time finished-time
                     :status status
                     :percentage percentage})
+  id)
+
+;; --------------------- Graph Record ---------------------
+(def search-graphs
+  (partial
+   search-entities
+   {:query-func db/search-graphs
+    :count-func db/count-graphs}))
+
+(def search-graph
+  (partial
+   search-entity
+   {:query-func db/search-graphs
+    :count-func db/count-graphs}))
+
+(defn get-graph-count
+  [where-map]
+  (db/count-graphs (make-query-map where-map)))
+
+(defn update-graph!
+  [record]
+  {:pre [(s/valid? map? record)]}
+  (update-entity! db/update-graph! (:id record) (dissoc record :id)))
+
+(defn delete-graph!
+  [id]
+  {:pre [(s/valid? ::id id)]}
+  (db/delete-graph! {:id id}))
+
+(defn create-graph!
+  [{:keys [name
+           payload
+           id
+           description
+           owner
+           db_version
+           version
+           created_time]
+    :or {id (util/uuid)
+         description ""
+         owner "admin"
+         created_time (util/time->int (util/now))
+         version (v/get-version "com.github.rapex-lab" "rapex")
+         db_version (-> (db/get-db-version)
+                        last
+                        :id
+                        str)}
+    :as graph}]
+  (println "Create Graph: %s" graph)
+  (db/create-graph! {:id id
+                     :name name
+                     :description description
+                     :payload (json/write-str payload)
+                     :owner owner
+                     :db_version db_version
+                     :created_time created_time
+                     :version version})
   id)

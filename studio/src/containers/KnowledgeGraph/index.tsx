@@ -1,9 +1,12 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty } from 'antd';
+import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty, Tooltip } from 'antd';
 import type { TableColumnType } from 'antd';
-import { DeleteFilled, DownloadOutlined, FullscreenExitOutlined, FullscreenOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+  CloudDownloadOutlined, FullscreenExitOutlined, FullscreenOutlined,
+  SettingOutlined, CloudUploadOutlined, SettingFilled
+} from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
 import Toolbar from './Toolbar';
 import { uniqBy, uniq } from 'lodash';
@@ -20,14 +23,18 @@ import {
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
+import GraphTable from './GraphStore/GraphTable';
+import GraphForm from './GraphStore/GraphForm';
 import type { Graph } from '@antv/graphin';
-import { getStatistics } from '@/services/swagger/Graph';
+import type { Graph as GraphItem } from './GraphStore/typings';
+import { getStatistics, getGraphs, postGraphs, deleteGraphsId } from '@/services/swagger/Graph';
 import {
   SearchObject, GraphData, GraphEdge, GraphNode,
   NodeStat, EdgeStat, EdgeInfo
 } from './typings';
 
 import './index.less';
+import { doc } from 'prettier';
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
@@ -45,7 +52,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     edges: []
   });
 
-  const [internalStoreId, setInternalStoreId] = useState<string>(props.storeId || "graphData")
+  const graphRef = React.useRef(undefined);
   const [statistics, setStatistics] = useState<[ReactNode, string | number][]>([]);
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
@@ -76,6 +83,12 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   // You must have a oldLayout to make the layout work before user select a layout from the menu
   const [layout, setLayout] = React.useState<any>(defaultLayout);
+
+  // Graph store
+  const [graphs, setGraphs] = useState<GraphItem[]>([]);
+  const [graphTableVisible, setGraphTableVisible] = useState<boolean>(false);
+  const [graphFormVisible, setGraphFormVisible] = useState<boolean>(false);
+  const [graphFormPayload, setGraphFormPayload] = useState<Record<string, any>>({});
 
   const checkAndSetData = (data: GraphData) => {
     const nodeIds = new Set(data.nodes.map(node => node.id));
@@ -128,16 +141,38 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     ])
   }, [data, edgeStat, nodeStat])
 
-  useEffect(() => {
-    let graphData = localStorage.getItem(internalStoreId)
-    graphData = graphData ? JSON.parse(graphData) : null
-    if (graphData) {
-      // Don't worry about it
-      checkAndSetData(graphData.data)
-      setLayout(graphData.layout)
-      setToolbarVisible(graphData.toolbarVisible)
-    }
+  const loadGraphs = () => {
+    getGraphs({ page: 1, page_size: 100 }).then(response => {
+      setGraphs(response.data)
+    }).catch(error => {
+      console.log(error)
+      message.error("Failed to get graphs, please check the network connection.")
+    })
+  }
 
+  const onLoadGraph = (graph: GraphItem) => {
+    const payload = graph.payload;
+    if (payload) {
+      checkAndSetData(payload.data)
+      setLayout(payload.layout)
+      setToolbarVisible(payload.toolbarVisible)
+      setGraphTableVisible(false)
+    }
+  }
+
+  const onDeleteGraph = (graph: GraphItem) => {
+    deleteGraphsId({ id: graph.id }).then(response => {
+      message.success("Graph deleted successfully.")
+      loadGraphs()
+      setGraphTableVisible(false)
+    }).catch(error => {
+      console.log(error)
+      setGraphTableVisible(false)
+      message.error("Failed to delete graph, please check the network connection.")
+    })
+  }
+
+  useEffect(() => {
     getStatistics()
       .then(response => {
         setNodeStat(response.node_stat as NodeStat[])
@@ -147,6 +182,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         console.log(error)
         message.error("Failed to get statistics, please check the network connection.")
       })
+
+    loadGraphs()
   }, [])
 
   useEffect(() => {
@@ -352,22 +389,16 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }
 
   const saveGraphData = () => {
-    localStorage.setItem(internalStoreId, JSON.stringify({
+    setGraphFormVisible(true)
+    setGraphFormPayload({
       data: data,
       layout: layout,
       toolbarVisible: toolbarVisible
-    }))
-    message.success("Graph data saved.")
+    })
   }
 
   const onChangeToolbarVisible = () => {
     setToolbarVisible(!toolbarVisible)
-  }
-
-  const clearGraphData = () => {
-    localStorage.removeItem(internalStoreId)
-    message.success("Graph data cleared.")
-    checkAndSetData({ nodes: [], edges: [] })
   }
 
   const onClickNode = (nodeId: string, node: GraphNode): void => {
@@ -378,7 +409,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       setClickedNode(node)
     }
   }
-
 
   const onClickEdge = (
     edgeId: string, startNode: GraphNode,
@@ -414,22 +444,51 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   return (
     <FullScreen handle={enterFullScreenHandler}>
-      <Row className='knowledge-graph-container'>
+      <Row className='knowledge-graph-container' id='knowledge-graph-container'>
         <Spin spinning={loading}>
+          <GraphTable visible={graphTableVisible} graphs={graphs}
+            onLoad={onLoadGraph} onDelete={onDeleteGraph}
+            parent={document.getElementById('knowledge-graph-container') as HTMLElement}
+            onClose={() => { setGraphTableVisible(false) }}>
+          </GraphTable>
+          <GraphForm visible={graphFormVisible}
+            payload={graphFormPayload}
+            parent={document.getElementById('knowledge-graph-container') as HTMLElement}
+            onClose={() => { setGraphFormVisible(false) }}
+            onSubmit={(data) => {
+              setGraphFormVisible(false)
+              postGraphs(data).then(response => {
+                message.success("Graph data saved.")
+                loadGraphs()
+              }).catch(error => {
+                message.error("Graph save failed.")
+              })
+            }}></GraphForm>
           <Row className='left-toolbar'>
-            <Button className='full-screen-button'
-              onClick={enterFullScreenHandler.active ? enterFullScreenHandler.exit : enterFullScreenHandler.enter} shape="circle"
-              icon={enterFullScreenHandler.active ? <FullscreenExitOutlined /> : <FullscreenOutlined />} />
-            <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle" icon={<SettingOutlined />} />
-            <Button className='save-button' onClick={saveGraphData}
-              shape="circle" icon={<DownloadOutlined />} />
-            <Button className='clear-button' onClick={clearGraphData}
-              shape="circle" icon={<DeleteFilled />} />
+            <Tooltip title={enterFullScreenHandler.active ? 'Exit Full Screen' : 'Enter Full Screen'}
+              placement='right'>
+              <Button className='full-screen-button'
+                onClick={enterFullScreenHandler.active ? enterFullScreenHandler.exit : enterFullScreenHandler.enter} shape="circle"
+                icon={enterFullScreenHandler.active ? <FullscreenExitOutlined /> : <FullscreenOutlined />} />
+            </Tooltip>
+            <Tooltip title={toolbarVisible ? 'Hide Toolbar' : 'Show Toolbar'} placement='right'>
+              <Button className='toolbar-button' onClick={onChangeToolbarVisible} shape="circle"
+                icon={toolbarVisible ? <SettingOutlined /> : <SettingFilled />} />
+            </Tooltip>
+            <Tooltip title='Save Graph Data' placement='right'>
+              <Button className='save-button' onClick={saveGraphData} shape="circle"
+                icon={<CloudUploadOutlined />} />
+            </Tooltip>
+            <Tooltip title='Load Graph Data' placement='right'>
+              <Button className='clear-button' onClick={() => { setGraphTableVisible(true) }}
+                shape="circle" icon={<CloudDownloadOutlined />} />
+            </Tooltip>
           </Row>
           <Row className='top-toolbar'>
             <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
             <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
               onCancel={disableAdvancedSearch} searchObject={searchObject} edgeStat={edgeStat}
+              parent={document.getElementById('knowledge-graph-container') as HTMLElement}
               key={searchObject.node_id}>
             </AdvancedSearch>
           </Row>

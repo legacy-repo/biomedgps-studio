@@ -2,6 +2,78 @@
 /* eslint-disable */
 import { request } from 'umi';
 
+/** Get graphs Get tasks. GET /api/v1/graphs */
+export async function getGraphs(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getGraphsParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.RapexGraphResponse>('/api/v1/graphs', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Create a graph Create an graph POST /api/v1/graphs */
+export async function postGraphs(
+  body: {
+    /** Owner name that you want to query. */
+    owner?: string;
+    /** Started time of the record */
+    created_time?: number;
+    /** Filter tasks by plugin_type field. */
+    db_version?: string;
+    /** The name of the plugin */
+    name: string;
+    /** Payload of the task */
+    payload: Record<string, any>;
+    /** Description of the task */
+    description?: string;
+    version?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request<{ message: { id?: string } }>('/api/v1/graphs', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** Get a graph by id Get a graph by id. GET /api/v1/graphs/${param0} */
+export async function getGraphsId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getGraphsIdParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RapexGraph>(`/api/v1/graphs/${param0}`, {
+    method: 'GET',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
+/** Delete a graph Delete a graph DELETE /api/v1/graphs/${param0} */
+export async function deleteGraphsId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteGraphsIdParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<any>(`/api/v1/graphs/${param0}`, {
+    method: 'DELETE',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
 /** Get labels. Get labels GET /api/v1/labels */
 export async function getLabels(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

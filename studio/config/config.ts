@@ -10,6 +10,9 @@ const isStatic = isDev ? true : (process.env.UMI_APP_IS_STATIC ? process.env.UMI
 
 export default defineConfig({
   hash: true,
+  history: {
+    type: 'hash',
+  },
   antd: {},
   dva: {
     hmr: true,

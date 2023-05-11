@@ -13,10 +13,13 @@
 (def library-name "apga")
 
 (defn setup-ocpu-api-service
+  "Setup the ocpu api service url, such as http://localhost:5656.
+   The url should not end with a slash."
   [^String api-service]
   (reset! ocpu-api-service (clj-str/replace api-service #"/$" "")))
 
 (defn- check-status
+  "Check the status of the response, if the status is not 200, then throw an exception."
   [resp]
   (let [status (:status resp)]
     (cond
@@ -28,6 +31,7 @@
       :else resp)))
 
 (defn service-ok?
+  "Check the status of the service, if the service is ok, then return true, else return false."
   []
   (try
     (check-status (ocpu/session @ocpu-api-service "/ocpu/info" ""))
@@ -37,12 +41,15 @@
       false)))
 
 (defn format-params
+  "Format the parameters which is a map, the value of the map can be a number, a boolean or a map.
+   If the value is a map, then convert it to a json string."
   [^IPersistentMap params]
   (->> (map (fn [key] (let [value (get params key)
                             formated-value (cond (number? value) value
                                                  (boolean? value) value
                                                  :else (json/write-str value))]
-                        [key formated-value])) (keys params))
+                        [key formated-value]))
+            (keys params))
        (into (hash-map))))
 
 (defn check-params
@@ -66,11 +73,14 @@
     (ocpu/object @ocpu-api-service :library library-name :R plot-name params)))
 
 (defn- download-file!
+  "Download a file from the ocpu server."
   [filelink filepath]
   (io/copy (:body (client/get filelink {:as :stream}))
            (java.io.File. filepath)))
 
 (defn- read-output
+  "Get the output file from the ocpu server, the output file maybe a log file, a plot file or a pdf file.
+   If the as-file? is true, then download the file to the filepath, else return the file content."
   [resp pattern & {:keys [as-file? filepath] :or {as-file? false}}]
   (try
     (let [result (check-status resp)
@@ -88,18 +98,22 @@
       (throw e))))
 
 (defn read-log!
+  "Wrapper of read-output, read the log file from the ocpu server."
   [resp]
   (read-output resp #"/ocpu/tmp/.*/console" :as-file? false))
 
 (defn read-plot!
+  "Wrapper of read-output, read the plot file from the ocpu server."
   [resp filepath]
   (read-output resp #"/ocpu/tmp/.*/files/plotly.json" :filepath filepath :as-file? true))
 
 (defn read-pdf!
+  "Wrapper of read-output, read the pdf file from the ocpu server."
   [resp filepath]
   (read-output resp #"/ocpu/tmp/.*/files/plotly.pdf" :filepath filepath :as-file? true))
 
 (defn read-png!
+  "Wrapper of read-output, read the png file from the ocpu server."
   [resp filepath]
   (read-output resp #"/ocpu/tmp/.*/files/plotly.png" :filepath filepath :as-file? true))
 
