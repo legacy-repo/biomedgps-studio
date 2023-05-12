@@ -551,3 +551,8 @@ export const layouts = [
     workerEnabled: false, // 可选，开启 web-worker
   }
 ];
+
+export const isUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return uuidRegex.test(str)
+}

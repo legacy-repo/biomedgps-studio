@@ -33,10 +33,11 @@ export async function postGraphs(
     /** Description of the task */
     description?: string;
     version?: string;
+    parent?: string;
   },
   options?: { [key: string]: any },
 ) {
-  return request<{ message: { id?: string } }>('/api/v1/graphs', {
+  return request<{ id: { id?: string } }>('/api/v1/graphs', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

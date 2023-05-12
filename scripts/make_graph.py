@@ -322,8 +322,9 @@ def database():
               type=click.Path(exists=True, dir_okay=True, file_okay=False),
               help="The directory which saved the relationship files.")
 @click.option('--output-file', '-o', required=False, default="graph_metadata.json",
-              help="The output file name.")
-@click.option('--format', '-f', required=False, default="csv", type=click.Choice(["csv", "tsv"]))
+              help="The output file name, json format. default: graph_metadata.json")
+@click.option('--format', '-f', required=False, default="csv", type=click.Choice(["csv", "tsv"],),
+              help="The file format of entity and relationship files. default: csv")
 def graph_metadata(entity_dir, relationship_dir, output_file, format):
     entity_files = [os.path.join(entity_dir, f)
                     for f in os.listdir(entity_dir) if f.endswith(format)]
@@ -332,7 +333,7 @@ def graph_metadata(entity_dir, relationship_dir, output_file, format):
 
     graph_labels = {}
     print("Entity files:", len(entity_files))
-    expected_columns = ['ID', ':LABEL', 'name']
+    expected_columns = ['ID', ':LABEL', 'name', 'resource']
     for f in entity_files:
         df = pd.read_csv(f, sep="\t" if format == "tsv" else ",", header=0)
         actual_columns = list(df.columns)
@@ -479,15 +480,13 @@ def graph_labels(graph_metadata_file, output_dir, db):
                     # Use the first part of the filename as the source field which means the data source
                     filename = os.path.basename(file)
                     filename, _ = os.path.splitext(filename)
-                    source = filename.split("_")[0].upper()
-                    df["source"] = source
                     df_list.append(df)
 
                     if key != "relationships":
                         print("Node DataFrame:", df.columns)
 
                         graph_node_metadata.append({
-                            "source": source,
+                            "source": df["resource"][0],
                             # Each table should only have one node type
                             "node_type": df[":LABEL"][0],
                             "node_count": df.shape[0],

@@ -7,6 +7,7 @@ type OnSubmitPayload = {
   payload: Record<string, unknown>;
   name: string;
   description?: string;
+  parent?: string;
 }
 
 type GraphFormProps = {

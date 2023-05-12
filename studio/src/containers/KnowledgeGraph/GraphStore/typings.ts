@@ -7,6 +7,7 @@ export type Graph = {
   db_version: string;
   version: string;
   owner: any;
+  parent: string;
 };
 
 export type GraphResponse = {

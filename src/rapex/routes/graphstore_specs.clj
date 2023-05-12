@@ -84,6 +84,14 @@
     :swagger/default     ""
     :reason              "Not a valid created_time"}))
 
+(s/def ::parent
+  (st/spec
+   {:spec                #(some? (re-matches #"[a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8}" %))
+    :description         "Parent graph ID"
+    :swagger/default     ""
+    :swagger/type        "string"
+    :reason              "Not valid a graph id"}))
+
 (def graph-id
   (s/keys :req-un [::id]
           :opt-un []))
@@ -96,4 +104,4 @@
 (def graph-body
   "A spec for the task body."
   (s/keys :req-un [::name]
-          :opt-un [::description ::payload ::owner ::created_time ::db_version ::version]))
+          :opt-un [::description ::payload ::owner ::created_time ::db_version ::version ::parent]))

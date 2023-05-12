@@ -16,7 +16,8 @@ import {
     AimOutlined,
     InfoCircleFilled,
     ForkOutlined,
-    FullscreenOutlined
+    FullscreenOutlined,
+    DeleteOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -38,7 +39,7 @@ const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
 const {
     ZoomCanvas, ActivateRelations, ClickSelect, Hoverable,
-    FitView, DragNodeWithForce, DragNode
+    FitView, DragNodeWithForce, DragNode, LassoSelect, BrushSelect,
 } = Behaviors;
 
 const { Menu } = ContextMenu;
@@ -244,6 +245,7 @@ const NodeMenu = (props: NodeMenuProps) => {
 type CanvasMenuProps = {
     onCanvasClick?: OnCanvasMenuClickFn,
     handleOpenFishEye?: () => void,
+    onClearGraph?: () => void,
 }
 
 const CanvasMenu = (props: CanvasMenuProps) => {
@@ -263,11 +265,17 @@ const CanvasMenu = (props: CanvasMenuProps) => {
         }
     };
 
-    // const handleClear = () => {
-    //     message.info(`Clear canvas successfully`);
-    //     graph.clear();
-    //     context.handleClose();
-    // };
+    const handleClear = () => {
+        // TODO: It doesn't work well. why?
+        // graph.clear();
+        if (props.onClearGraph) {
+            props.onClearGraph();
+            message.info(`Clear canvas successfully`);
+        } else {
+            message.warn(`Cannot clear canvas`);
+        }
+        context.handleClose();
+    };
 
     // const handleStopLayout = () => {
     //     message.info(`Stop layout successfully`);
@@ -289,10 +297,10 @@ const CanvasMenu = (props: CanvasMenuProps) => {
             <Menu.Item onClick={handleOpenFishEye}>
                 <EyeOutlined /> Enable FishEye
             </Menu.Item>
-            {/* <Menu.Item onClick={handleClear}>
+            <Menu.Item onClick={handleClear}>
                 <DeleteOutlined /> Clear Canvas
             </Menu.Item>
-            <Menu.Item onClick={handleStopLayout}>
+            {/* <Menu.Item onClick={handleStopLayout}>
                 <CloseCircleOutlined /> Stop Layout
             </Menu.Item> */}
             <Menu.Item onClick={handleDownload}>
@@ -541,6 +549,7 @@ export type GraphinProps = {
     toolbarVisible?: boolean;
     onClickNode?: OnClickNodeFn;
     onClickEdge?: OnClickEdgeFn;
+    onClearGraph?: () => void;
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
@@ -557,6 +566,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const [nodeTooltipEnabled, setNodeTooltipEnabled] = useState(true);
     const [edgeTooltipEnabled, setEdgeTooltipEnabled] = useState(false);
     const [selectedNodeEnabled, setSelectedNodeEnabled] = useState(true);
+    const [selectionMode, setSelectionMode] = useState("brush-select");
     const [focusNodeEnabled, setFocusNodeEnabled] = useState(false);
     const [miniMapEnabled, setMiniMapEnabled] = useState(true);
     const [snapLineEnabled, setSnapLineEnabled] = useState(true);
@@ -647,21 +657,43 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             {/* TODO: Cannot work. To expect all linked nodes follow the draged node. */}
             <DragNode />
             <ZoomCanvas />
+            {
+                selectionMode == "lasso-select" ?
+                    <LassoSelect />
+                    : null
+            }
+            {
+                selectionMode == "brush-select" ?
+                    <BrushSelect />
+                    : null
+            }
             <NodeLabelVisible visible={nodeLabelVisible} />
             {/* BUG: Cannot restore the label of edges */}
             <EdgeLabelVisible visible={edgeLabelVisible} />
             <FishEye options={{}} visible={fishEyeVisible} handleEscListener={onCloseFishEye} />
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
-            <CustomHoverable bindType="node" disabled={selectedNodeEnabled} />
-            <CustomHoverable bindType="edge" disabled={selectedNodeEnabled} />
-            <ActivateRelations disabled={!selectedNodeEnabled} />
+            {
+                !selectedNodeEnabled ?
+                    <CustomHoverable bindType="node" />
+                    : null
+            }
+            {
+                !selectedNodeEnabled ?
+                    <CustomHoverable bindType="edge" />
+                    : null
+            }
+            {
+                !selectedNodeEnabled ?
+                    <ActivateRelations disabled={selectedNodeEnabled} />
+                    : null
+            }
             <ContextMenu style={{ width: '160px' }}>
                 <NodeMenu chatbotVisible={props.chatbotVisible}
                     item={currentNode} onChange={onNodeMenuClick} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye}
-                    onCanvasClick={onCanvasMenuClick} />
+                    onCanvasClick={onCanvasMenuClick} onClearGraph={props.onClearGraph} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
                 <EdgeMenu item={currentEdge} chatbotVisible={props.chatbotVisible}
@@ -682,12 +714,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     <Toolbar.Item>
                         <Select style={{ width: '100%' }} allowClear
                             defaultValue={layout.type}
+                            value={layout.type}
                             onChange={(value) => {
                                 // TODO: Need to notice the user that the layout is changed, but it's not working when the previous layout is not finished.
                                 if (value == 'auto') {
                                     GraphLayoutPredict.predict(data).then((layout) => {
                                         console.log("Predicted layout: ", layout)
                                         const l = layouts.find(item => item.type === layout.predictLayout);
+                                        message.info(`Predicted layout: ${layout.predictLayout}`);
                                         setLayout(l);
                                     })
                                 } else {
@@ -711,9 +745,42 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         </Select>
                     </Toolbar.Item>
                     <Toolbar.Item>
+                        <Select style={{ width: '100%' }} allowClear
+                            defaultValue={"brush-select"}
+                            disabled={!selectedNodeEnabled}
+                            onChange={(value) => {
+                                setSelectionMode(value)
+                            }}
+                            placeholder="Select a selection mode">
+                            {
+                                ["brush-select", "lasso-select"].map(item => {
+                                    return (
+                                        <Select.Option key={item} value={item}>
+                                            <ForkOutlined />
+                                            &nbsp;
+                                            {voca.titleCase(item)}
+                                        </Select.Option>
+                                    );
+                                })
+                            }
+                        </Select>
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setSelectedNodeEnabled(checked)
+                        }} checked={selectedNodeEnabled} />
+                        Select Mode
+                    </Toolbar.Item>
+                    <Toolbar.Item>
+                        <Switch onChange={(checked) => {
+                            setFocusNodeEnabled(checked)
+                        }} checked={focusNodeEnabled} />
+                        Focus Mode
+                    </Toolbar.Item>
+                    <Toolbar.Item>
                         <Switch onChange={(checked) => {
                             setAutoPin(checked)
-                        }} checked={autoPin} />
+                        }} checked={autoPin} disabled />
                         Auto Pin
                     </Toolbar.Item>
                     <Toolbar.Item>
@@ -739,18 +806,6 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                             setEdgeTooltipEnabled(checked)
                         }} checked={edgeTooltipEnabled} />
                         Edge Tooltip
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSelectedNodeEnabled(checked)
-                        }} checked={selectedNodeEnabled} />
-                        Select Mode
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setFocusNodeEnabled(checked)
-                        }} checked={focusNodeEnabled} />
-                        Focus Mode
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {

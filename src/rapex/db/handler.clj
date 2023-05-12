@@ -254,7 +254,8 @@
            owner
            db_version
            version
-           created_time]
+           created_time
+           parent]
     :or {id (util/uuid)
          description ""
          owner "admin"
@@ -266,12 +267,14 @@
                         str)}
     :as graph}]
   (println "Create Graph: %s" graph)
-  (db/create-graph! {:id id
-                     :name name
-                     :description description
-                     :payload (json/write-str payload)
-                     :owner owner
-                     :db_version db_version
-                     :created_time created_time
-                     :version version})
-  id)
+  (let [parent (or parent id)]
+    (db/create-graph! {:id id
+                       :parent parent
+                       :name name
+                       :description description
+                       :payload (json/write-str payload)
+                       :owner owner
+                       :db_version db_version
+                       :created_time created_time
+                       :version version})
+    id))

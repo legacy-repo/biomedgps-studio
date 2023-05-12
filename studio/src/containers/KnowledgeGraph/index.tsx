@@ -19,7 +19,7 @@ import StatisticsChart from './Chart/StatisticsChart';
 import {
   makeColumns, makeDataSources, autoConnectNodes,
   makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds,
-  isValidSearchObject
+  isValidSearchObject, isUUID
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
@@ -34,7 +34,6 @@ import {
 } from './typings';
 
 import './index.less';
-import { doc } from 'prettier';
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
@@ -52,7 +51,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     edges: []
   });
 
-  const graphRef = React.useRef(undefined);
   const [statistics, setStatistics] = useState<[ReactNode, string | number][]>([]);
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
@@ -85,6 +83,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [layout, setLayout] = React.useState<any>(defaultLayout);
 
   // Graph store
+  const [parentGraphUUID, setParentGraphUUID] = useState<string>("");
   const [graphs, setGraphs] = useState<GraphItem[]>([]);
   const [graphTableVisible, setGraphTableVisible] = useState<boolean>(false);
   const [graphFormVisible, setGraphFormVisible] = useState<boolean>(false);
@@ -117,6 +116,14 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       nodes: data.nodes,
       edges: edges
     })
+  }
+
+  const onClearGraph = () => {
+    setData({
+      nodes: [],
+      edges: []
+    })
+    setParentGraphUUID("");
   }
 
   useEffect(() => {
@@ -153,6 +160,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const onLoadGraph = (graph: GraphItem) => {
     const payload = graph.payload;
     if (payload) {
+      setParentGraphUUID(graph.id)
       checkAndSetData(payload.data)
       setLayout(payload.layout)
       setToolbarVisible(payload.toolbarVisible)
@@ -161,6 +169,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }
 
   const onDeleteGraph = (graph: GraphItem) => {
+    // TODO: add confirm dialog, it will delete the graph cascade.
     deleteGraphsId({ id: graph.id }).then(response => {
       message.success("Graph deleted successfully.")
       loadGraphs()
@@ -345,6 +354,12 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       ).map(
         node => node.getModel() as GraphNode
       );
+
+      // If no nodes are selected, use the right clicked node
+      if (nodes.length == 0 && node) {
+        nodes.push(node)
+      }
+
       enableAdvancedSearch();
       setSearchObject({
         nodes: nodes,
@@ -447,7 +462,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       <Row className='knowledge-graph-container' id='knowledge-graph-container'>
         <Spin spinning={loading}>
           <GraphTable visible={graphTableVisible} graphs={graphs}
-            onLoad={onLoadGraph} onDelete={onDeleteGraph}
+            onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
             parent={document.getElementById('knowledge-graph-container') as HTMLElement}
             onClose={() => { setGraphTableVisible(false) }}>
           </GraphTable>
@@ -457,10 +472,15 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             onClose={() => { setGraphFormVisible(false) }}
             onSubmit={(data) => {
               setGraphFormVisible(false)
+              if (parentGraphUUID && isUUID(parentGraphUUID)) {
+                data = { ...data, parent: parentGraphUUID }
+              }
+
               postGraphs(data).then(response => {
                 message.success("Graph data saved.")
                 loadGraphs()
               }).catch(error => {
+                console.log("Post Graphs Error: ", error)
                 message.error("Graph save failed.")
               })
             }}></GraphForm>
@@ -545,7 +565,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             </Toolbar>
             <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
-              statistics={statistics} toolbarVisible={toolbarVisible}
+              statistics={statistics} toolbarVisible={toolbarVisible} onClearGraph={onClearGraph}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
               onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
             </GraphinWrapper>

@@ -309,6 +309,7 @@ declare namespace API {
     db_version: string;
     version: string;
     owner: any;
+    parent: string;
   };
 
   type RapexGraphResponse = {

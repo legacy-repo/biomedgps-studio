@@ -23,13 +23,14 @@
     | :db_version        | string  | true      | Which plugin version.
     | :created_time      | bigint  | true      | Created time
     | :version           | string  | true      | Version of the rapex instance.
+    | :parent            | uuid    | false     | The parent graph id.
   Description:
     Create a new graph record and then return the number of affected rows.
   Examples: 
     Clojure: (create-graph! {})
 */
-INSERT INTO rapex_graph (id, name, description, payload, owner, db_version, created_time, version)
-VALUES (:id, :name, :description, :payload, :owner, :db_version, :created_time, :version)
+INSERT INTO rapex_graph (id, name, description, payload, owner, db_version, created_time, version, parent)
+VALUES (:id, :name, :description, :payload, :owner, :db_version, :created_time, :version, :parent)
 
 
 -- :name update-graph!

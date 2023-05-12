@@ -128,9 +128,9 @@
       properties)))
 
 ;; (def colors ["red" "green" "blue" "orange" "purple" "yellow" "pink" "brown" "grey" "black" "white" "cyan" "magenta"])
-;; More details on https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=9
+;; More details on https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=12
 (def colors ["#a6cee3", "#1f78b4", "#b2df8a", "#33a02c",
-             "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6"])
+             "#fb9a99", "#e31a1c", "#fdbf6f", "#ff7f00", "#cab2d6", "#6a3d9a", "#ffff99", "#b15928"])
 (def degrees [0 10 20 30 40 50 60 70 80 90 100])
 
 (defn- format-nlabel
