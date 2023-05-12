@@ -14,7 +14,7 @@ const SangerCosmic: React.FC<SangerCosmicProps> = (props) => {
 
   useEffect(() => {
     if (props.geneSymbol) {
-      setSrc(`http://localhost:3000/fetch/sanger_cosmic?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
+      setSrc(`https://omics-data.3steps.cn/fetch/sanger_cosmic?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
     }
   }, [props.geneSymbol]);
 

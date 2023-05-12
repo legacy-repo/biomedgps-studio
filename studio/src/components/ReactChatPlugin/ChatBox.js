@@ -50,12 +50,16 @@ class ChatBox extends React.Component {
       activeAuthor,
       onSendKey,
       title,
+      dislikeHandler,
+      likeHandler,
     } = this.props;
 
     const messageList = messages.map((message, idx) => {
       return (
         <MessageBox
           key={idx}
+          dislikeHandler={dislikeHandler}
+          likeHandler={likeHandler}
           left={message.author && message.author.id !== userId}
           timestampFormat={timestampFormat}
           {...message}

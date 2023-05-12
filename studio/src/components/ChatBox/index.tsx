@@ -68,19 +68,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: message,
       timestamp: +new Date(),
-      type: textType,
-      buttons: [
-        {
-          type: 'URL',
-          title: 'Yes',
-          payload: 'yes',
-        },
-        {
-          type: 'URL',
-          title: 'No',
-          payload: 'no',
-        },
-      ]
+      type: textType
     };
     return [...messages, newMessage];
   };
@@ -108,19 +96,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: 'Sorry, error occurred, please try again later.',
       timestamp: +new Date(),
-      type: textType,
-      buttons: [
-        {
-          type: 'URL',
-          title: 'Yes',
-          payload: 'yes',
-        },
-        {
-          type: 'URL',
-          title: 'No',
-          payload: 'no',
-        },
-      ]
+      type: textType
     };
     return [...messages, newMessage];
   }
@@ -159,7 +135,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     let prompt = '\n\nDo you know the above question? please output it as the following format?  {     "entity_type": "xxx",  // One of Gene, Drug or Protein  "entity_name": "xxx", "which_relationships": "xxx", // One of All, Gene-Drug, Gene-Gene, Gene-Protein, Drug-Protein "gene_name": "xxx", "entrez_id": "xxx", "taxid": "xxx",  "which_task": "xxx", // One of KnowledgeGraph, sgRNAs  "which_species": "xxx" // one of rat, mouse and human }'
     fetch(aiAPI, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic c2FtbXk6USlZS3V4RlU4IVkjbihCWg==' },
       body: JSON.stringify({
         // data: [messagesStr + `\n${prompt}`, '', 0.1, 0.75, 40, 4, maxTokens],
         data: [messagesStr],

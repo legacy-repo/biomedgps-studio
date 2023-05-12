@@ -395,7 +395,8 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       // How to keep consistency with the format of node_id in the deep learning model?
       postSimilarity({
         source_type: node_type,
-        source_id: node_id,
+        // node_id may be a integer, but the backend only support string
+        source_id: `${node_id}`,
         topk: topk ? topk : 10
       }).then(res => {
         console.log("Find similar nodes: ", res)

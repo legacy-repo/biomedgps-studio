@@ -14,7 +14,7 @@ const ExpressionAtlas: React.FC<ExpressionAtlasProps> = (props) => {
 
   useEffect(() => {
     if (props.geneSymbol) {
-      setSrc(`http://localhost:3000/fetch/expression_atlas?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
+      setSrc(`https://omics-data.3steps.cn/fetch/expression_atlas?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
     }
   }, [props.geneSymbol]);
 

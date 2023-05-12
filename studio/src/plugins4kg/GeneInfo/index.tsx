@@ -14,7 +14,7 @@ const GeneInfo: React.FC<GeneInfoProps> = (props) => {
 
   useEffect(() => {
     if (props.geneSymbol) {
-      setSrc(`http://localhost:3000/fetch/gene_cards?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
+      setSrc(`https://omics-data.3steps.cn/fetch/gene_cards?geneSymbol=${props.geneSymbol}&taxId=${props.taxId || 9606}`)
     }
   }, [props.geneSymbol]);
 

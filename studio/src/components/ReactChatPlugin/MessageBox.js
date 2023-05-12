@@ -3,6 +3,8 @@ import moment from 'moment';
 import { getLocale } from 'umi';
 import ErrorIcon from './error-icon.svg';
 import avatar from './placeholder.png';
+import { DislikeOutlined, LikeOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeToc from 'rehype-toc';
@@ -21,6 +23,8 @@ function MessageBox(props) {
     author,
     hasError,
     text,
+    likeHandler,
+    dislikeHandler,
   } = props;
 
   const locale = getLocale();
@@ -113,7 +117,23 @@ function MessageBox(props) {
               />
             )}
           </div>
-          <div className="react-chat-additional">{time !== null && time}</div>
+          <div className="react-chat-additional">
+            {time !== null && time}
+            <span className='react-chat-message-like'>
+              <Tooltip title="Like">
+                <LikeOutlined onClick={(props) => {
+                  if (likeHandler) likeHandler(props)
+                }} />
+              </Tooltip>
+              <Tooltip title="Dislike">
+                <DislikeOutlined onClick={
+                  (props) => {
+                    if (dislikeHandler) dislikeHandler(props)
+                  }
+                } />
+              </Tooltip>
+            </span>
+          </div>
         </div>
       </div>
     );
