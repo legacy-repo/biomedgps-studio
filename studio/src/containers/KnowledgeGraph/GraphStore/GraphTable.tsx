@@ -15,6 +15,7 @@ type GraphTableProps = {
   onClose: () => void;
   parent?: HTMLElement;
   treeFormat?: boolean;
+  selectedGraphId?: string;
 };
 
 type TreeGraph = Graph & {
@@ -139,8 +140,9 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
       width: 150,
       render: (_, record) => (
         <Space size="small">
-          <Button size="small" type="link" onClick={(e) => props.onLoad(record)}>
-            Load
+          <Button size="small" type="link" disabled={props.selectedGraphId === record.id}
+            onClick={(e) => props.onLoad(record)}>
+            Load{props.selectedGraphId === record.id ? 'ed' : ''}
           </Button>
           <Button size="small" type="link" danger onClick={(e) => props.onDelete(record)}>
             Delete

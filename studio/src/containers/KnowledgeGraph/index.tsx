@@ -40,7 +40,6 @@ const style = {
 }
 
 type KnowledgeGraphProps = {
-  storeId?: string
   postMessage?: (message: any) => void
 }
 
@@ -96,6 +95,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
     if (nonexistentEdges.length > 0) {
       message.warn(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`);
+      console.log(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`)
       const ids = nonexistentEdges.map(edge => parseInt(edge.source)).concat(nonexistentEdges.map(edge => parseInt(edge.target)));
       makeGraphQueryStrWithIds(uniq(ids))
         .then(response => {
@@ -464,7 +464,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
           <GraphTable visible={graphTableVisible} graphs={graphs}
             onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
             parent={document.getElementById('knowledge-graph-container') as HTMLElement}
-            onClose={() => { setGraphTableVisible(false) }}>
+            onClose={() => { setGraphTableVisible(false) }}
+            selectedGraphId={parentGraphUUID}>
           </GraphTable>
           <GraphForm visible={graphFormVisible}
             payload={graphFormPayload}

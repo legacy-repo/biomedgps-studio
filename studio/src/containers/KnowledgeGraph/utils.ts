@@ -120,9 +120,11 @@ export function makeGraphQueryStr(
 }
 
 export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
+  // Remove all undefined and null values
+  const filterIds = ids.filter(item => item);
   let query_map = {
     "match": "(n)",
-    "where": `ID(n) in [${ids}]`,
+    "where": `ID(n) in [${filterIds}]`,
     "return": "n"
   };
   return new Promise((resolve, reject) => {
@@ -309,7 +311,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 
           // It will cause performance issue if we enable prediction for all relation types
           // So we need to filter out the relation types that are not related to the node type or warn the user that he/she should pick up at least one relation type
-          const allRelationTypes = all_relation_types ? all_relation_types.filter(item => item.match(node_type)) : [];
+          const allRelationTypes = all_relation_types ? all_relation_types.filter(item => item.match(node_type || "")) : [];
           const relationshipMaps = makeRelationMaps(allRelationTypes);
           const relationTypes = relationshipMaps.map(item => `'${item.relationshipType}'`)
           payload = {
@@ -360,7 +362,8 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       }
 
       if (isValidBatchIdsMode(searchObject)) {
-        query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(node_ids)}`, "n", limit)
+        const nodeIds = node_ids?.filter(id => id);
+        query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(nodeIds)}`, "n", limit)
       }
 
       if (isValidBatchNodesMode(searchObject)) {
@@ -471,6 +474,7 @@ export const defaultLayout = {
   },
 }
 
+// Mode details on https://antv-g6.gitee.io/en/examples/net/radialLayout#sortRadial
 export const layouts = [
   {
     type: 'auto',
@@ -508,7 +512,7 @@ export const layouts = [
     center: [200, 200], // 可选，默认为图的中心
     linkDistance: 50, // 可选，边长
     maxIteration: 1000, // 可选
-    focusNode: 'node11', // 可选
+    sortBy: 'degree', // 可选
     unitRadius: 100, // 可选
     preventOverlap: true, // 可选，必须配合 nodeSize
     nodeSize: 30, // 可选
@@ -516,39 +520,18 @@ export const layouts = [
     workerEnabled: false, // 可选，开启 web-worker
   },
   {
-    type: 'force',
-    preventOverlap: true,
-    // center: [200, 200], // 可选，默认为图的中心
-    nodeStrength: 30, // 可选
-    edgeStrength: 0.8, // 可选
-    collideStrength: 0.8, // 可选
-    nodeSize: 30, // 可选
-    nodeClusterBy: 'nlabel', // 节点聚类的映射字段
-    alpha: 0.9, // 可选
-    alphaDecay: 0.3, // 可选
-    alphaMin: 0.01, // 可选
-    forceSimulation: null, // 可选
-    onTick: () => {
-      // 可选
-      console.log('ticking');
-    },
-    onLayoutEnd: () => {
-      // 可选
-      console.log('force layout done');
-    },
-  },
-  {
     type: 'concentric',
     center: [0, 0], // 可选，
     preventOverlap: true, // 可选，必须配合 nodeSize
-    nodeSize: 1, // 可选
-    // sweep: 10, // 可选
-    minNodeSpacing: 50, // 可选
+    nodeSize: 30, // 可选
+    sweep: 10, // 可选
+    minNodeSpacing: 5, // 可选
     equidistant: true, // 可选
     startAngle: 0, // 可选
-    clockwise: false, // 可选
-    maxLevelDiff: 50, // 可选
-    sortBy: 'degree', // 可选
+    clockwise: true, // 可选
+    maxLevelDiff: 0.5, // 可选
+    sortBy: 'degree',
+    // TODO: Cannot enable worker when using concentric layout
     workerEnabled: false, // 可选，开启 web-worker
   }
 ];

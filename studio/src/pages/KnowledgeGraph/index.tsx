@@ -6,7 +6,7 @@ import './index.less';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 
 const kgFullSpan = 24;
-const kgThreeQuartersSpan = 18;
+const kgThreeQuartersSpan = 16;
 
 const ChatAI: React.FC = () => {
   const [message, setMessage] = useState<string>('')
@@ -36,8 +36,7 @@ const ChatAI: React.FC = () => {
       <KnowledgeGraph
         postMessage={(message) => {
           setMessage(message)
-        }}
-        storeId='chatAiGraphData'>
+        }}>
       </KnowledgeGraph>
     </Col>
   </Row>;

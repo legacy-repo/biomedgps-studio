@@ -65,7 +65,7 @@
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
     "@ant-design/pro-components": "1.1.1",
-    "@antv/graphin": "^2.7.13",
+    "@antv/graphin": "^2.7.14",
     "@antv/graphin-components": "^2.4.0",
     "@antv/graphin-icons": "^1.0.0",
     "@antv/vis-predict-engine": "^0.1.1",
