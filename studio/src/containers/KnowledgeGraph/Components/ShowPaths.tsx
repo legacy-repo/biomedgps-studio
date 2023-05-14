@@ -1,8 +1,11 @@
 import { GraphinContext } from '@antv/graphin';
-import { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { GraphNode, GraphEdge, AdjacencyList } from '../typings';
-import { message } from 'antd';
-import { ClearOutlined } from '@ant-design/icons';
+import { message, Button, Table, Row, Space, notification } from 'antd';
+import Moveable from "react-moveable";
+import { ClearOutlined, TableOutlined } from '@ant-design/icons';
+import type { ColumnsType } from 'antd/es/table';
+import { sortBy, uniqBy } from 'lodash';
 
 import './ShowPaths.less';
 
@@ -10,9 +13,17 @@ type ShowPathProps = {
   selectedNodes: GraphNode[];
   nodes: GraphNode[];
   edges: GraphEdge[];
+  algorithm: "bfs" | "dfs"; // algorithm to use for finding paths, either bfs or dfs. Recommended bfs if there are many paths, such as in a graph which is more than 150 edges.
   adjacencyList: AdjacencyList; // adjacency list
   onClosePathsFinder: () => void;
 };
+
+type PathItem = {
+  key: string;
+  index: number;
+  nsteps: number;
+  path: string;
+}
 
 function findAllPathsBFS(
   startNodeId: string, endNodeId: string,
@@ -139,7 +150,8 @@ function findAllPathsDFS(
     } else {
       const n = adjacencyList.get(currentNodeId) || [];
       for (const neighborId of n) {
-        if (!currentPath.includes(neighborId)) {
+        // TODO: hard coded to 3 steps for now, if more than 3 steps, don't add to path
+        if (!currentPath.includes(neighborId) && currentPath.length <= 3) {
           dfs(neighborId);
         }
       }
@@ -155,9 +167,13 @@ function findAllPathsDFS(
 type Path = { nodes: string[]; edges: string[] }
 
 const ShowPaths = (props: ShowPathProps) => {
+  const pathTableRef = React.useRef<HTMLDivElement>(null);
   const { graph } = useContext(GraphinContext);
   const [paths, setPaths] = useState<Record<string, Path[]>>({});
   const [algorithm, setAlgorithm] = useState<Record<string, 'bfs' | 'dfs'>>({});
+
+  const [pathTableVisible, setPathTableVisible] = useState<boolean>(false);
+  const [pathTableData, setPathTableData] = useState<PathItem[]>([]);
 
   useEffect(() => {
     if (props.selectedNodes.length <= 1) {
@@ -170,7 +186,8 @@ const ShowPaths = (props: ShowPathProps) => {
       if (!paths[ids_key]) {
         // Use BFS if graph is large, DFS otherwise
         // TODO: faster way to find paths?
-        const findAllPaths = props.edges.length < 100 ? findAllPathsDFS : findAllPathsBFS;
+        const findAllPaths = props.algorithm == "bfs" ? findAllPathsBFS : findAllPathsDFS;
+        // const findAllPaths = props.edges.length < 100 ? findAllPathsDFS : findAllPathsBFS;
 
         const npaths = findAllPaths(
           props.selectedNodes[0].id,
@@ -190,14 +207,40 @@ const ShowPaths = (props: ShowPathProps) => {
         setAlgorithm((prev) => {
           return {
             ...prev,
-            [ids_key]: props.edges.length < 100 ? 'dfs' : 'bfs',
+            [ids_key]: props.algorithm,
           };
         })
       }
     }
   }, [props.selectedNodes]);
 
+  useEffect(() => {
+    const data: PathItem[] = [];
+    for (const pathKey of Object.keys(paths)) {
+      for (let i = 0; i < paths[pathKey].length; i++) {
+        data.push({
+          key: pathKey,
+          index: i,
+          path: paths[pathKey][i].nodes.map(nodeId => {
+            const node = props.nodes.find(node => node.id === nodeId);
+            if (node) {
+              return node.data.name;
+            } else {
+              // Never happens
+              return "Unknown";
+            }
+          }).join(' -> '),
+          nsteps: paths[pathKey][i].edges.length,
+        });
+      }
+    }
+
+    setPathTableData(uniqBy(sortBy(data, ['nsteps']), 'path'));
+  }, [paths]);
+
   function handleShowPath(paths: Path[]) {
+    clearStatus();
+
     const anyPaths = paths.some(path => path.nodes.length > 0);
     if (paths.length === 0 || !anyPaths) {
       message.warning('No path found');
@@ -211,6 +254,8 @@ const ShowPaths = (props: ShowPathProps) => {
       const model = node.getModel() as GraphNode;
       if (model.id && !allNodes.includes(model.id)) {
         graph.setItemState(node, 'inactive', true);
+      } else {
+        graph.setItemState(node, 'active', true);
       }
     });
 
@@ -225,6 +270,18 @@ const ShowPaths = (props: ShowPathProps) => {
     });
   }
 
+  function clearStatus() {
+    const nodes = graph.getNodes();
+    nodes.forEach(node => {
+      graph.setItemState(node, 'inactive', false);
+    });
+
+    const edges = graph.getEdges();
+    edges.forEach(edge => {
+      graph.setItemState(edge, 'inactive', false);
+    });
+  }
+
   function handleClear(paths: Path[]) {
     const allNodes = [...new Set(paths.flatMap(path => path.nodes))];
     const allEdges = [...new Set(paths.flatMap(path => path.edges))];
@@ -235,6 +292,8 @@ const ShowPaths = (props: ShowPathProps) => {
       const model = node.getModel();
       if (model.id && !allNodes.includes(model.id)) {
         graph.setItemState(node, 'inactive', false);
+      } else {
+        graph.setItemState(node, 'active', false);
       }
     });
 
@@ -253,6 +312,10 @@ const ShowPaths = (props: ShowPathProps) => {
   const onClosePathsFinder = () => {
     setPaths({});
     props.onClosePathsFinder();
+  }
+
+  const onShowPathsInTable = (currentStatus: boolean) => {
+    setPathTableVisible(!currentStatus);
   }
 
   const ItemList = () => {
@@ -280,17 +343,97 @@ const ShowPaths = (props: ShowPathProps) => {
     })
   }
 
+  const columns: ColumnsType<PathItem> = [
+    {
+      title: 'Path',
+      key: 'path',
+      align: 'center',
+      dataIndex: 'path',
+      width: 330,
+    },
+    {
+      title: 'Num of Steps',
+      dataIndex: 'nsteps',
+      key: 'nsteps',
+      align: 'center',
+      width: 120,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      align: 'center',
+      fixed: 'right',
+      width: 150,
+      render: (_, record, index) => (
+        <Space>
+          <Button size="small" type="link"
+            onClick={(e) => {
+              const pathKey = record.key;
+              const pathIndex = record.index;
+              // Which path to show, maybe multiple paths in paths variable for each key
+              const path = [paths[pathKey][pathIndex]];
+              // TODO: more efficient way to handle this?
+              handleShowPath(path);
+            }}>
+            Show
+          </Button>
+          <Button size="small" type="link"
+            onClick={(e) => {
+              notification.open({
+                type: 'info',
+                message: 'Explain the Current Path',
+                description: 'Not implemented yet (We will try to train a LLM with knowledge graph to explain why the path would be believable)',
+                duration: 10,
+              });
+            }}>
+            Explain
+          </Button>
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div className='show-paths-panel'>
       <div className='title'>
         <h3>Paths Finder</h3>
-        <ClearOutlined onClick={onClosePathsFinder} />
+        <span>
+          <TableOutlined onClick={() => onShowPathsInTable(pathTableVisible)} />
+          <ClearOutlined onClick={onClosePathsFinder} />
+        </span>
       </div>
       <ul className="status-ul body">
         {
           ItemList()
         }
       </ul>
+      {pathTableVisible ?
+        <Row className='path-table'>
+          <Table rowKey={'key'} columns={columns} dataSource={pathTableData} ref={pathTableRef}
+            pagination={false} scroll={{ y: 200 }} size='small' />
+          <Moveable
+            target={pathTableRef}
+            draggable={true}
+            throttleDrag={1}
+            edgeDraggable={false}
+            startDragRotate={0}
+            throttleDragRotate={0}
+            onDrag={e => {
+              e.target.style.transform = e.transform;
+            }}
+            resizable={false}
+            keepRatio={false}
+            throttleResize={1}
+            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
+            onResize={e => {
+              e.target.style.width = `${e.width}px`;
+              e.target.style.height = `${e.height}px`;
+              e.target.style.transform = e.drag.transform;
+            }}
+          />
+        </Row>
+        : null
+      }
     </div>
   );
 };

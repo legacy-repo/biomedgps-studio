@@ -81,4 +81,44 @@
         bottom: 5px;
         width: 240px;
     }
+
+    .explanation-panel {
+        width: 200px;
+        // Don't show the explanation panel by default
+        height: 0;
+        position: absolute;
+
+        .explanation-content {
+            border: 1px solid #5a5a5a;
+            border-radius: 5px;
+            background-color: #ffffff;
+
+            .explanation-title {
+                padding: 10px;
+                display: flex;
+                justify-content: space-between;
+                height: 40px;
+                align-items: center;
+                border-bottom: 1px solid #5a5a5a;
+
+                .anticon {
+                    font-size: 1.2rem;
+                    cursor: pointer;
+                }
+            }
+
+            .explanation-info {
+                min-width: 200px;
+                min-height: 200px;
+                width: 100%;
+                height: 100%;
+                padding: 10px;
+                overflow: scroll;
+            }
+        }
+
+        .moveable-control-box {
+            --moveable-color: unset;
+        }
+    }
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
 import { INode, NodeConfig, IEdge } from '@antv/g6';
+import Moveable from "react-moveable";
 import { ContextMenu, FishEye, Toolbar } from '@antv/graphin-components';
 import {
     BoxPlotOutlined,
@@ -19,12 +20,14 @@ import {
     FullscreenOutlined,
     DeleteOutlined,
     CloseCircleOutlined,
-    RedditOutlined
+    RedditOutlined,
+    ShareAltOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
 import {
-    message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu
+    message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu,
+    Row, Col
 } from 'antd';
 import { makeDataSource, layouts } from './utils';
 import type {
@@ -36,6 +39,7 @@ import ShowPaths from './Components/ShowPaths';
 import { GraphLayoutPredict } from '@antv/vis-predict-engine';
 import voca from 'voca';
 import './GraphinWrapper.less';
+import Icon from "@ant-design/icons/lib/components/Icon";
 
 const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
@@ -56,12 +60,13 @@ const snapLineOptions = {
 type EdgeMenuProps = {
     onChange?: OnEdgeMenuClickFn,
     chatbotVisible?: boolean,
+    onExplainRelationship?: OnEdgeMenuClickFn,
     item?: IG6GraphEvent['item'];
 }
 
 const EdgeMenu = (props: EdgeMenuProps) => {
     const { graph, apis } = useContext(GraphinContext);
-    const { item, chatbotVisible } = props;
+    const { item, chatbotVisible, onExplainRelationship } = props;
 
     const [visible, setVisible] = useState<boolean>(false);
     const [sourceNode, setSourceNode] = useState<GraphNode | undefined>(undefined);
@@ -155,9 +160,9 @@ const EdgeMenu = (props: EdgeMenuProps) => {
         })
     }
 
-    const onChange = function (item: any) {
+    const onChange = function (menuItem: any) {
         if (props.onChange && sourceNode && targetNode && edge && graph && apis) {
-            props.onChange(item, sourceNode, targetNode, edge, graph, apis)
+            props.onChange(menuItem, sourceNode, targetNode, edge, graph, apis)
             setVisible(false);
         } else {
             message.warn("Cannot catch the changes.")
@@ -213,6 +218,11 @@ const NodeMenu = (props: NodeMenuProps) => {
             key: 'reverse-selected-nodes',
             icon: <CloseCircleOutlined />,
             label: 'Reverse Selected Nodes',
+        },
+        {
+            key: 'expand-all-paths',
+            icon: <ShareAltOutlined />,
+            label: 'Expand Paths (Within 3 Steps)',
         },
         // {
         //     key: 'tag',
@@ -584,35 +594,58 @@ export type GraphinProps = {
     children?: React.ReactNode;
 }
 
+type GraphinSettings = {
+    autoPin: boolean;
+    nodeLabelVisible: boolean;
+    edgeLabelVisible: boolean;
+    nodeTooltipEnabled: boolean;
+    edgeTooltipEnabled: boolean;
+    selectedNodeEnabled: boolean;
+    selectionMode: string;
+    focusNodeEnabled: boolean;
+    miniMapEnabled: boolean;
+    snapLineEnabled: boolean;
+    infoPanelEnabled: boolean;
+}
+
+const defaultSettings: GraphinSettings = {
+    autoPin: false,
+    nodeLabelVisible: true,
+    edgeLabelVisible: true,
+    nodeTooltipEnabled: true,
+    edgeTooltipEnabled: false,
+    selectedNodeEnabled: true,
+    selectionMode: "brush-select",
+    focusNodeEnabled: false,
+    miniMapEnabled: true,
+    snapLineEnabled: true,
+    infoPanelEnabled: true,
+}
+
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
+    const explanationPanelRef = React.useRef<HTMLDivElement>(null);
     const {
         data, style, onNodeMenuClick,
         onEdgeMenuClick, selectedNode, onCanvasMenuClick
     } = props
     const [fishEyeVisible, setFishEyeVisible] = useState(false);
+    const [explanationPanelVisible, setExplanationPanelVisible] = useState(false);
 
     const [layout, setLayout] = useState(props.layout);
-    const [autoPin, setAutoPin] = useState(false);
-    const [nodeLabelVisible, setNodeLabelVisible] = useState(true);
-    const [edgeLabelVisible, setEdgeLabelVisible] = useState(true);
-    const [nodeTooltipEnabled, setNodeTooltipEnabled] = useState(true);
-    const [edgeTooltipEnabled, setEdgeTooltipEnabled] = useState(false);
-    const [selectedNodeEnabled, setSelectedNodeEnabled] = useState(true);
-    const [selectionMode, setSelectionMode] = useState("brush-select");
-    const [focusNodeEnabled, setFocusNodeEnabled] = useState(false);
-    const [miniMapEnabled, setMiniMapEnabled] = useState(true);
-    const [snapLineEnabled, setSnapLineEnabled] = useState(true);
-    const [infoPanelEnabled, setInfoPanelEnabled] = useState(true);
+    const [settings, setSettings] = useState<GraphinSettings>({} as GraphinSettings);
 
     const [currentEdge, setCurrentEdge] = useState<any>(null);
     const [currentNode, setCurrentNode] = useState<any>(null);
     const [focusedNodes, setFocusedNodes] = useState<GraphNode[]>([]);
-    const [adjacencyList, setAdjacencyList] = useState<AdjacencyList>({}); // Adjacency list for the current graph
+    const [adjacencyList, setAdjacencyList] = useState<AdjacencyList>({} as AdjacencyList); // Adjacency list for the current graph
 
     const ref = React.useRef(null);
 
+    // All initializations
     // Save the node or edge when the context menu is clicked.
     useEffect(() => {
+        loadSettings();
+
         if (ref && ref.current && ref.current.graph) {
             ref.current.graph.on("edge:contextmenu", e => {
                 setCurrentEdge(e.item)
@@ -622,6 +655,19 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             })
         }
     }, [])
+
+    useEffect(() => {
+        // create a map to hold the adjacency list
+        const adjacencyList = new Map();
+        for (const node of data.nodes) {
+            adjacencyList.set(node.id, []);
+        }
+        for (const edge of data.edges) {
+            adjacencyList.get(edge.source).push(edge.target);
+            adjacencyList.get(edge.target).push(edge.source);
+        }
+        setAdjacencyList(adjacencyList);
+    }, [data]);
 
     const handleOpenFishEye = () => {
         setFishEyeVisible(true);
@@ -668,55 +714,52 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
         console.log(checkedValue, options);
     };
 
-    useEffect(() => {
-        // create a map to hold the adjacency list
-        const adjacencyList = new Map();
-        for (const node of data.nodes) {
-            adjacencyList.set(node.id, []);
+    const loadSettings = (settingId: string = 'graphin-settings') => {
+        const settings = JSON.parse(localStorage.getItem(settingId) || '{}')
+        if (Object.keys(settings).length === 0) {
+            setSettings(defaultSettings)
+        } else {
+            setSettings(settings)
+            message.success('Settings loaded')
         }
-        for (const edge of data.edges) {
-            adjacencyList.get(edge.source).push(edge.target);
-            adjacencyList.get(edge.target).push(edge.source);
-        }
-        setAdjacencyList(adjacencyList);
-    }, [data]);
+    }
 
     return (
         data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
             <FitView></FitView>
             {/* BUG?: This seems like it doesn't work. Maybe we need a new layout algorithm. */}
-            <DragNodeWithForce autoPin={autoPin} />
+            <DragNodeWithForce autoPin={settings.autoPin} />
             {/* TODO: Cannot work. To expect all linked nodes follow the draged node. */}
             <DragNode />
             <ZoomCanvas />
             {
-                selectionMode == "lasso-select" ?
+                settings.selectionMode == "lasso-select" ?
                     <LassoSelect />
                     : null
             }
             {
-                selectionMode == "brush-select" ?
+                settings.selectionMode == "brush-select" ?
                     <BrushSelect />
                     : null
             }
-            <NodeLabelVisible visible={nodeLabelVisible} />
+            <NodeLabelVisible visible={settings.nodeLabelVisible} />
             {/* BUG: Cannot restore the label of edges */}
-            <EdgeLabelVisible visible={edgeLabelVisible} />
+            <EdgeLabelVisible visible={settings.edgeLabelVisible} />
             <FishEye options={{}} visible={fishEyeVisible} handleEscListener={onCloseFishEye} />
             <HighlightNode selectedNode={selectedNode}></HighlightNode>
             {
-                !selectedNodeEnabled ?
+                !settings.selectedNodeEnabled ?
                     <CustomHoverable bindType="node" />
                     : null
             }
             {
-                !selectedNodeEnabled ?
+                !settings.selectedNodeEnabled ?
                     <CustomHoverable bindType="edge" />
                     : null
             }
             {
-                !selectedNodeEnabled ?
-                    <ActivateRelations disabled={selectedNodeEnabled} />
+                !settings.selectedNodeEnabled ?
+                    <ActivateRelations disabled={settings.selectedNodeEnabled} />
                     : null
             }
             <ContextMenu style={{ width: '160px' }}>
@@ -729,7 +772,16 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
                 <EdgeMenu item={currentEdge} chatbotVisible={props.chatbotVisible}
-                    onChange={onEdgeMenuClick} />
+                    onChange={(item, source, target, edge, graph, apis) => {
+                        // TODO: How to generate explanation report for the edge?
+                        if (item.key == 'explain-relationship') {
+                            setExplanationPanelVisible(true)
+                        }
+
+                        if (onEdgeMenuClick) {
+                            onEdgeMenuClick(item, source, target, edge, graph, apis)
+                        }
+                    }} />
             </ContextMenu>
             <Legend bindType="node" sortKey="nlabel">
                 {(renderProps: LegendChildrenProps) => {
@@ -782,9 +834,9 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     <Toolbar.Item>
                         <Select style={{ width: '100%' }} allowClear
                             defaultValue={"brush-select"}
-                            disabled={!selectedNodeEnabled}
+                            disabled={!settings.selectedNodeEnabled}
                             onChange={(value) => {
-                                setSelectionMode(value)
+                                setSettings({ ...settings, selectionMode: value })
                             }}
                             placeholder="Select a selection mode">
                             {
@@ -802,89 +854,73 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setSelectedNodeEnabled(checked)
-                        }} checked={selectedNodeEnabled} />
+                            setSettings({ ...settings, selectedNodeEnabled: checked })
+                        }} checked={settings.selectedNodeEnabled} />
                         Select Mode
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setFocusNodeEnabled(checked)
-                        }} checked={focusNodeEnabled} />
+                            setSettings({ ...settings, focusNodeEnabled: checked })
+                        }} checked={settings.focusNodeEnabled} />
                         Focus Mode
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setAutoPin(checked)
-                        }} checked={autoPin} disabled />
+                            setSettings({ ...settings, autoPin: checked })
+                        }} checked={settings.autoPin} disabled />
                         Auto Pin
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setNodeLabelVisible(checked)
-                        }} checked={nodeLabelVisible} />
+                            setSettings({ ...settings, nodeLabelVisible: checked })
+                        }} checked={settings.nodeLabelVisible} />
                         Node Label
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setEdgeLabelVisible(checked)
-                        }} checked={edgeLabelVisible} />
+                            setSettings({ ...settings, edgeLabelVisible: checked })
+                        }} checked={settings.edgeLabelVisible} />
                         Edge Label
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setNodeTooltipEnabled(checked)
-                        }} checked={nodeTooltipEnabled} />
+                            setSettings({ ...settings, nodeTooltipEnabled: checked })
+                        }} checked={settings.nodeTooltipEnabled} />
                         Node Tooltip
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setEdgeTooltipEnabled(checked)
-                        }} checked={edgeTooltipEnabled} />
+                            setSettings({ ...settings, edgeTooltipEnabled: checked })
+                        }} checked={settings.edgeTooltipEnabled} />
                         Edge Tooltip
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setMiniMapEnabled(checked)
-                        }} checked={miniMapEnabled} />
+                            setSettings({ ...settings, miniMapEnabled: checked })
+                        }} checked={settings.miniMapEnabled} />
                         MiniMap
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setSnapLineEnabled(checked)
-                        }} checked={snapLineEnabled} />
+                            setSettings({ ...settings, snapLineEnabled: checked })
+                        }} checked={settings.snapLineEnabled} />
                         SnapLine
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Switch onChange={(checked) => {
-                            setInfoPanelEnabled(checked)
-                        }} checked={infoPanelEnabled} />
+                            setSettings({ ...settings, infoPanelEnabled: checked })
+                        }} checked={settings.infoPanelEnabled} />
                         Info Panel
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Button type="primary" size="small" style={{ width: '100%' }} onClick={() => {
-                            localStorage.setItem('graphin-settings', JSON.stringify({
-                                autoPin, nodeLabelVisible, edgeLabelVisible,
-                                nodeTooltipEnabled, edgeTooltipEnabled,
-                                selectedNodeEnabled, focusNodeEnabled,
-                                miniMapEnabled, snapLineEnabled, infoPanelEnabled
-                            }))
+                            localStorage.setItem('graphin-settings', JSON.stringify(settings))
                             message.success('Settings saved')
                         }}>Save Settings</Button>
                     </Toolbar.Item>
                     <Toolbar.Item>
                         <Button danger size="small" style={{ width: '100%' }} onClick={() => {
-                            const settings = JSON.parse(localStorage.getItem('graphin-settings') || '{}')
-                            setAutoPin(settings.autoPin)
-                            setNodeLabelVisible(settings.nodeLabelVisible)
-                            setEdgeLabelVisible(settings.edgeLabelVisible)
-                            setNodeTooltipEnabled(settings.nodeTooltipEnabled)
-                            setEdgeTooltipEnabled(settings.edgeTooltipEnabled)
-                            setSelectedNodeEnabled(settings.selectedNodeEnabled)
-                            setFocusNodeEnabled(settings.focusNodeEnabled)
-                            setMiniMapEnabled(settings.miniMapEnabled)
-                            setSnapLineEnabled(settings.snapLineEnabled)
-                            setInfoPanelEnabled(settings.infoPanelEnabled)
-                            message.success('Settings loaded')
+                            loadSettings()
                         }}>Load Settings</Button>
                     </Toolbar.Item>
                 </Toolbar>
@@ -893,27 +929,87 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
             <NodeSearcher></NodeSearcher>
 
-            {focusNodeEnabled ?
+            {settings.focusNodeEnabled ?
                 <>
                     <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode} />
                     <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
-                        onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList} />
+                        onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList}
+                        // TODO: hard code here, need to be fixed
+                        algorithm={data.edges.length > 500 ? 'bfs' : 'dfs'} />
                 </>
                 : null
             }
-            {(selectedNodeEnabled && !focusNodeEnabled) ?
+            {
+                // TODO: generate explanations for the current edge
+                // 1. Get the current edge, the source node and target node
+                // 2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information
+                // 3. Send the markdown to the backend and get the filled markdown
+                // 4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method
+                // 5. Show the filled markdown in the explanation panel
+                (currentEdge && explanationPanelVisible) ?
+                    <div className='explanation-panel'
+                        style={{
+                            top: '200px',
+                            right: '200px'
+                        }}>
+                        <div ref={explanationPanelRef} style={{
+                            position: "absolute",
+                            width: "400px",
+                            maxWidth: "auto",
+                            maxHeight: "auto",
+                        }} className="explanation-content">
+                            <div className="explanation-title">
+                                <h3>Explanation</h3>
+                                <CloseCircleOutlined className="explanation-close" onClick={() => {
+                                    setExplanationPanelVisible(false)
+                                }} />
+                            </div>
+                            <div className='explanation-info'>
+                                TODO: generate explanations for the current edge<br />
+                                1. Get the current edge, the source node and target node<br />
+                                2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information<br />
+                                3. Send the markdown to the backend and get the filled markdown<br />
+                                4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method<br />
+                                5. Show the filled markdown in the explanation panel<br />
+                            </div>
+                        </div>
+                        {/* More details on https://daybrush.com/moveable/storybook/index.html?path=/story/basic--basic-resizable */}
+                        <Moveable
+                            target={explanationPanelRef}
+                            draggable={true}
+                            throttleDrag={1}
+                            edgeDraggable={false}
+                            startDragRotate={0}
+                            throttleDragRotate={0}
+                            onDrag={e => {
+                                e.target.style.transform = e.transform;
+                            }}
+                            resizable={true}
+                            keepRatio={false}
+                            throttleResize={1}
+                            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
+                            onResize={e => {
+                                e.target.style.width = `${e.width}px`;
+                                e.target.style.height = `${e.height}px`;
+                                e.target.style.transform = e.drag.transform;
+                            }}
+                        />
+                    </div>
+                    : null
+            }
+            {(settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
                 <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
                 : null
             }
-            {(!selectedNodeEnabled && !focusNodeEnabled) ?
+            {(!settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
                 <NodeClickBehavior onClick={props.onClickNode}></NodeClickBehavior>
                 : null
             }
-            {(!selectedNodeEnabled && !focusNodeEnabled) ?
+            {(!settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
                 <EdgeClickBehavior onClick={props.onClickEdge}></EdgeClickBehavior>
                 : null
             }
-            {nodeTooltipEnabled ?
+            {settings.nodeTooltipEnabled ?
                 <Tooltip bindType="node" hasArrow placement="bottom" style={{ opacity: 0.9 }}>
                     {(value: TooltipValue) => {
                         if (value.model) {
@@ -926,7 +1022,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     }}
                 </Tooltip>
                 : null}
-            {edgeTooltipEnabled ?
+            {settings.edgeTooltipEnabled ?
                 <Tooltip bindType="edge" hasArrow placement="bottom" style={{ opacity: 0.9 }}>
                     {(value: TooltipValue) => {
                         if (value.model) {
@@ -939,9 +1035,9 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     }}
                 </Tooltip>
                 : null}
-            {miniMapEnabled ? <MiniMap /> : null}
-            {snapLineEnabled ? <SnapLine options={snapLineOptions} visible /> : null}
-            {infoPanelEnabled ?
+            {settings.miniMapEnabled ? <MiniMap /> : null}
+            {settings.snapLineEnabled ? <SnapLine options={snapLineOptions} visible /> : null}
+            {settings.infoPanelEnabled ?
                 <DataArea data={props.statistics}
                     style={{
                         position: 'absolute', top: '0px',

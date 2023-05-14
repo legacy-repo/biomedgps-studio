@@ -22,10 +22,10 @@ export type SearchObject = {
   enable_prediction?: boolean;
   nsteps?: number;
   limit?: number;
-  mode?: "node" | "batchIds" | "similarity" | "batchNodes";
+  mode?: "node" | "batchIds" | "similarity" | "batchNodes" | "path";
   topk?: number; // Only used for mode "similarity"
   node_ids?: string[]; // Only used for mode "batchIds"
-  nodes?: GraphNode[]; // Only used for mode "batchNodes"
+  nodes?: GraphNode[]; // Only used for mode "batchNodes" or "path"
 }
 
 export type GraphNode = {

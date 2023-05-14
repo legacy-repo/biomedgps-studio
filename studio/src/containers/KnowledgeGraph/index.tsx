@@ -1,7 +1,6 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import Moveable from "react-moveable";
 import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty, Tooltip, Modal } from 'antd';
 import type { TableColumnType } from 'antd';
 import {
@@ -45,8 +44,6 @@ type KnowledgeGraphProps = {
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
-  const explanationPanelRef = React.useRef<HTMLDivElement>(null);
-
   const [modal, contextHolder] = Modal.useModal();
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
   const [data, setData] = useState<GraphData>({
@@ -71,8 +68,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [clickedEdge, setClickedEdge] = useState<EdgeInfo | undefined>(undefined);
 
   const [currentNode, setCurrentNode] = useState<string>("");
-  // TODO: For explanation panel
-  const [currentEdge, setCurrentEdge] = useState<string>("Test Edge");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
   const [advancedSearchPanelActive, setAdvancedSearchPanelActive] = useState<boolean>(false);
   const [searchObject, setSearchObject] = useState<SearchObject>({
@@ -400,6 +395,19 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         node_id: node.data.id,
         merge_mode: "append"
       })
+    } else if (menuItem.key == 'expand-all-paths') {
+      const selectedNodes = getSelectedNodes(graph);
+      if (selectedNodes.length == 0) {
+        message.info("Please select one or more nodes to expand.")
+        return
+      } else {
+        setSearchObject({
+          nodes: selectedNodes,
+          merge_mode: "append",
+          mode: "path",
+          limit: 50,
+        })
+      }
     } else if (menuItem.key == 'expand-selected-nodes') {
       const nodes = getSelectedNodes(graph);
 
@@ -617,55 +625,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
               statistics={statistics} toolbarVisible={toolbarVisible} onClearGraph={onClearGraph}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
               onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
-              {
-                // TODO: generate explanations for the current edge
-                // 1. Get the current edge, the source node and target node
-                // 2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information
-                // 3. Send the markdown to the backend and get the filled markdown
-                // 4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method
-                // 5. Show the filled markdown in the explanation panel
-                currentEdge ?
-                  <div className='explanation-panel' style={{
-                    top: '200px',
-                    right: '200px'
-                  }}>
-                    <div ref={explanationPanelRef} className='explanation-info' style={{
-                      position: "absolute",
-                      width: "400px",
-                      maxWidth: "auto",
-                      maxHeight: "auto",
-                    }}>
-                      TODO: generate explanations for the current edge<br />
-                      1. Get the current edge, the source node and target node<br />
-                      2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information<br />
-                      3. Send the markdown to the backend and get the filled markdown<br />
-                      4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method<br />
-                      5. Show the filled markdown in the explanation panel<br />
-                    </div>
-                    {/* More details on https://daybrush.com/moveable/storybook/index.html?path=/story/basic--basic-resizable */}
-                    <Moveable
-                      target={explanationPanelRef}
-                      draggable={true}
-                      throttleDrag={1}
-                      edgeDraggable={false}
-                      startDragRotate={0}
-                      throttleDragRotate={0}
-                      onDrag={e => {
-                        e.target.style.transform = e.transform;
-                      }}
-                      resizable={true}
-                      keepRatio={false}
-                      throttleResize={1}
-                      renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
-                      onResize={e => {
-                        e.target.style.width = `${e.width}px`;
-                        e.target.style.height = `${e.height}px`;
-                        e.target.style.transform = e.drag.transform;
-                      }}
-                    />
-                  </div>
-                  : null
-              }
             </GraphinWrapper>
             {contextHolder}
           </Col>

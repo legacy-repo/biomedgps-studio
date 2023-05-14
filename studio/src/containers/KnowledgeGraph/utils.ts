@@ -273,12 +273,22 @@ export const isValidBatchNodesMode = (searchObject: SearchObject): boolean => {
   }
 }
 
+export const isValidPathMode = (searchObject: SearchObject): boolean => {
+  const { mode, nodes } = searchObject;
+  if (mode == "path" && nodes && nodes.length > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export const isValidSearchObject = (searchObject: SearchObject): boolean => {
   if (
     isValidNodeMode(searchObject) ||
     isValidBatchIdsMode(searchObject) ||
     isValidSimilarityMode(searchObject) ||
-    isValidBatchNodesMode(searchObject)
+    isValidBatchNodesMode(searchObject) ||
+    isValidPathMode(searchObject)
   ) {
     return true;
   } else {
@@ -296,17 +306,19 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
     let payload = {}
     let query_str = {}
 
-    if (mode == "node" || mode == "batchIds" || mode == "batchNodes") {
+    let defaultLimit = limit ? limit : 50;
+
+    if (mode == "node" || mode == "batchIds" || mode == "batchNodes" || mode == "path") {
       if (isValidNodeMode(searchObject)) {
-        query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+        query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, defaultLimit)
 
         if (!relation_types || relation_types?.length == 0) {
           if (searchObject.nsteps && searchObject.nsteps <= 1) {
-            query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, limit)
+            query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`, `n.id = '${node_id}'`, undefined, defaultLimit)
           } else {
             // This is a bug in the backend, if we use *1..${searchObject.nsteps} it will not return the correct result
             // But it will not be ran into this case, since we will not have nsteps > 1 in the frontend
-            query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,r,m", limit)
+            query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m)`, `n.id = '${node_id}'`, "n,r,m", defaultLimit)
           }
 
           // It will cause performance issue if we enable prediction for all relation types
@@ -346,10 +358,10 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
           const whereNodeClause = `${labels_clause} ${resources_clause} ${whereRelClause}`;
           if (searchObject.nsteps && searchObject.nsteps <= 1) {
             query_str = makeGraphQueryStr(`(n:${node_type})-[r]-(m)`,
-              `n.id = '${node_id}' and ${whereNodeClause}`, undefined, limit)
+              `n.id = '${node_id}' and ${whereNodeClause}`, undefined, defaultLimit)
           } else {
             query_str = makeGraphQueryStr(`(n:${node_type})-[r*1..${searchObject.nsteps}]-(m)`,
-              `n.id = '${node_id}' and ${whereNodeClause}`, undefined, limit)
+              `n.id = '${node_id}' and ${whereNodeClause}`, undefined, defaultLimit)
           }
 
           payload = {
@@ -363,7 +375,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 
       if (isValidBatchIdsMode(searchObject)) {
         const nodeIds = node_ids?.filter(id => id);
-        query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(nodeIds)}`, "n", limit)
+        query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(nodeIds)}`, "n", defaultLimit)
       }
 
       if (isValidBatchNodesMode(searchObject)) {
@@ -373,7 +385,21 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
           `(n)-[r]-(m:${node_type})`,
           whereClause,
           "n,r,m",
-          limit
+          defaultLimit
+        )
+      }
+
+      if (isValidPathMode(searchObject)) {
+        const { nodes } = searchObject;
+        const nWhereClause = uniq(nodes?.map(item => `(n.id = '${item.data.id}' and n:${item.nlabel})`)).join(" or ");
+        const mWhereClause = uniq(nodes?.map(item => `(m.id = '${item.data.id}' and m:${item.nlabel})`)).join(" or ");
+        const whereClause = `${nWhereClause} or ${mWhereClause}`;
+        query_str = makeGraphQueryStr(
+          `(n)-[r*1..3]-(m)`,
+          whereClause,
+          "n,r,m",
+          // TODO: We need to allow user to specify the limit
+          defaultLimit
         )
       }
 

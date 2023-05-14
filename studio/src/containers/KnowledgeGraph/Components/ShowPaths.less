@@ -13,6 +13,12 @@
     h3 {
       margin: 0;
     }
+
+    span {
+      .anticon {
+        margin-left: 8px;
+      }
+    }
   }
 
   .status-ul {
@@ -50,4 +56,26 @@
   // .status-ul>li:not(:first-child) {
   //   list-style-type: circle;
   // }
+
+  .path-table {
+    position: fixed;
+    bottom: 250px;
+    right: 10px;
+    width: 600px;
+    height: 0px;
+
+    .ant-table-wrapper {
+      max-height: 250px;
+      width: 600px;
+      border: 1px solid #4af;
+    }
+
+    .moveable-control-box {
+      --moveable-color: unset;
+
+      .moveable-line {
+        background-color: unset;
+      }
+    }
+  }
 }
