@@ -69,6 +69,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       .catch(error => {
         console.log('requestNodes Error: ', error);
         message.error("Get types of nodes error, please refresh the page");
+        setLabelOptions([]);
       });
   }, [])
 

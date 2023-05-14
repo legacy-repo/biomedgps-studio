@@ -425,6 +425,8 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
         } else {
           reject(res)
         }
+      }).catch((err) => {
+        reject(err)
       })
     } else {
       resolve({

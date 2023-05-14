@@ -58,6 +58,9 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
         setInfo(info);
 
         setItems(getItems4GenePanel(info, filter(checkItems, (item) => !item.checked)));
+      }).catch((error) => {
+        console.log('getGeneInfo Error: ', error);
+        setInfo(undefined);
       });
     }
   }, [node, checkItems]);

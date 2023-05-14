@@ -11,7 +11,7 @@ const DataArea: React.FC<{ data: [ReactNode, string | number][], style?: any }> 
   })
   return (
     items.length > 0 ?
-      (<Descriptions size={"small"} column={1} title={null}
+      (<Descriptions size={"small"} column={2} title={null}
         labelStyle={{ backgroundColor: 'transparent' }}
         bordered style={{ ...style }}>
         {items}

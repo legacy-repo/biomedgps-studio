@@ -17,7 +17,9 @@ import {
     InfoCircleFilled,
     ForkOutlined,
     FullscreenOutlined,
-    DeleteOutlined
+    DeleteOutlined,
+    CloseCircleOutlined,
+    RedditOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -86,6 +88,11 @@ const EdgeMenu = (props: EdgeMenuProps) => {
             key: 'show-edge-details',
             icon: <InfoCircleFilled />,
             label: 'Show Edge Details',
+        },
+        {
+            key: 'explain-relationship',
+            icon: <RedditOutlined />,
+            label: 'Explain Relationship (Experimental)',
         },
         {
             key: 'analyze-with-clinical-data',
@@ -202,15 +209,20 @@ const NodeMenu = (props: NodeMenuProps) => {
             icon: <FullscreenOutlined />,
             label: 'Expand Selected Nodes',
         },
+        {
+            key: 'reverse-selected-nodes',
+            icon: <CloseCircleOutlined />,
+            label: 'Reverse Selected Nodes',
+        },
         // {
         //     key: 'tag',
         //     icon: <TagFilled />,
         //     name: 'Tag Node',
         // },
         {
-            key: 'delete-node',
+            key: 'delete-nodes',
             icon: <DeleteFilled />,
-            label: 'Delete Node',
+            label: 'Delete Selected Node(s)',
             danger: true,
         },
     ];
@@ -230,12 +242,30 @@ const NodeMenu = (props: NodeMenuProps) => {
         })
     }
 
-    const onChange = function (item: any) {
-        if (props.onChange && node && graph && apis) {
-            props.onChange(item, node, graph, apis)
+    const onChange = function (menuItem: any) {
+        // Only need to change the status of the nodes, so no need to call the onChange function.
+        if (menuItem.key === 'reverse-selected-nodes') {
+            graph.getNodes().forEach(node => {
+                if (node.hasState('selected')) {
+                    graph.setItemState(node, 'selected', false);
+                } else {
+                    graph.setItemState(node, 'selected', true);
+                }
+            })
+
+            if (node) {
+                // Reset the status of the current node to unselected, even if it is not selected.
+                graph.setItemState(node.id, 'selected', false);
+            }
+
             setVisible(false);
         } else {
-            message.warn("Cannot catch the changes.")
+            if (props.onChange && node && graph && apis) {
+                props.onChange(menuItem, node, graph, apis)
+                setVisible(false);
+            } else {
+                message.warn("Cannot catch the changes.")
+            }
         }
     }
 
@@ -538,7 +568,7 @@ export type GraphinProps = {
     selectedNode?: string;
     data: any;
     layout: any;
-    style: any;
+    style: React.CSSProperties;
     containerId?: string;
     onNodeMenuClick?: OnNodeMenuClickFn;
     onEdgeMenuClick?: OnEdgeMenuClickFn;
@@ -550,6 +580,8 @@ export type GraphinProps = {
     onClickNode?: OnClickNodeFn;
     onClickEdge?: OnClickEdgeFn;
     onClearGraph?: () => void;
+    className?: string;
+    children?: React.ReactNode;
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
@@ -723,6 +755,9 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                                         const l = layouts.find(item => item.type === layout.predictLayout);
                                         message.info(`Predicted layout: ${layout.predictLayout}`);
                                         setLayout(l);
+                                    }).catch((err) => {
+                                        console.log(err)
+                                        message.error(`Failed to predict layout: ${err.message}`);
                                     })
                                 } else {
                                     const l = layouts.find(item => item.type === value);
@@ -906,10 +941,16 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 : null}
             {miniMapEnabled ? <MiniMap /> : null}
             {snapLineEnabled ? <SnapLine options={snapLineOptions} visible /> : null}
-            {infoPanelEnabled ? <DataArea data={props.statistics}
-                style={{ position: 'absolute', top: '0px', left: '0px', zIndex: 1 }}></DataArea>
+            {infoPanelEnabled ?
+                <DataArea data={props.statistics}
+                    style={{
+                        position: 'absolute', top: '0px',
+                        left: '0px', zIndex: 1
+                    }}>
+                </DataArea>
                 : null
             }
+            {props.children ? props.children : null}
         </Graphin>
     );
 }

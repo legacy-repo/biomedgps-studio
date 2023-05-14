@@ -10,7 +10,7 @@ const { DirectoryTree } = Tree;
 type GraphTableProps = {
   graphs: Graph[];
   visible: boolean;
-  onLoad: (graph: Graph) => void;
+  onLoad: (graph: Graph, latestChild: Graph) => void;
   onDelete: (graph: Graph) => void;
   onClose: () => void;
   parent?: HTMLElement;
@@ -138,10 +138,20 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
       align: 'center',
       fixed: 'right',
       width: 150,
-      render: (_, record) => (
+      render: (_, record, index) => (
         <Space size="small">
           <Button size="small" type="link" disabled={props.selectedGraphId === record.id}
-            onClick={(e) => props.onLoad(record)}>
+            onClick={(e) => {
+              if (tableData) {
+                const latestChild = tableData[index];
+                if (latestChild) {
+                  props.onLoad(record, latestChild);
+                }
+              } else {
+                console.log("GraphTable load: something wrong.", tableData, index, record)
+                props.onLoad(record, record)
+              }
+            }}>
             Load{props.selectedGraphId === record.id ? 'ed' : ''}
           </Button>
           <Button size="small" type="link" danger onClick={(e) => props.onDelete(record)}>

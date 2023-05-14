@@ -1,11 +1,12 @@
 /* eslint-disable no-undef */
 import React, { ReactNode, useEffect, useState } from 'react';
 import { FullScreen, useFullScreenHandle } from "react-full-screen";
-import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty, Tooltip } from 'antd';
+import Moveable from "react-moveable";
+import { Row, Col, Tag, Tabs, Table, message, Button, Spin, Empty, Tooltip, Modal } from 'antd';
 import type { TableColumnType } from 'antd';
 import {
   CloudDownloadOutlined, FullscreenExitOutlined, FullscreenOutlined,
-  SettingOutlined, CloudUploadOutlined, SettingFilled
+  SettingOutlined, CloudUploadOutlined, SettingFilled, ExclamationCircleOutlined
 } from '@ant-design/icons';
 // import { Utils } from '@antv/graphin';
 import Toolbar from './Toolbar';
@@ -44,13 +45,16 @@ type KnowledgeGraphProps = {
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
+  const explanationPanelRef = React.useRef<HTMLDivElement>(null);
+
+  const [modal, contextHolder] = Modal.useModal();
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
   const [data, setData] = useState<GraphData>({
     nodes: [],
     edges: []
   });
 
-  const [statistics, setStatistics] = useState<[ReactNode, string | number][]>([]);
+  const [statistics, setStatistics] = useState<[ReactNode, string | number | ReactNode][]>([]);
   const [nodeColumns, setNodeColumns] = useState<TableColumnType<any>[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<Array<Record<string, any>>>([]);
   const [edgeColumns, setEdgeColumns] = useState<TableColumnType<any>[]>([]);
@@ -67,6 +71,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [clickedEdge, setClickedEdge] = useState<EdgeInfo | undefined>(undefined);
 
   const [currentNode, setCurrentNode] = useState<string>("");
+  // TODO: For explanation panel
+  const [currentEdge, setCurrentEdge] = useState<string>("Test Edge");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
   const [advancedSearchPanelActive, setAdvancedSearchPanelActive] = useState<boolean>(false);
   const [searchObject, setSearchObject] = useState<SearchObject>({
@@ -82,7 +88,11 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [layout, setLayout] = React.useState<any>(defaultLayout);
 
   // Graph store
-  const [parentGraphUUID, setParentGraphUUID] = useState<string>("");
+  // Why we need a parentGraphUUID and a currentGraphUUID? Because the platform don't support multiple branches for each history chain. So we always use the latest graph as the parent graph, and the current graph is the graph that user is editing.
+  const [parentGraphUUID, setParentGraphUUID] = useState<string>("New Graph");
+  const [currentGraphUUID, setCurrentGraphUUID] = useState<string>("New Graph");
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+
   const [graphs, setGraphs] = useState<GraphItem[]>([]);
   const [graphTableVisible, setGraphTableVisible] = useState<boolean>(false);
   const [graphFormVisible, setGraphFormVisible] = useState<boolean>(false);
@@ -112,6 +122,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         })
     }
 
+    setIsDirty(true);
     setData({
       nodes: data.nodes,
       edges: edges
@@ -124,6 +135,11 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       edges: []
     })
     setParentGraphUUID("");
+    setCurrentGraphUUID("");
+  }
+
+  const DirtyStatus = (status: boolean) => {
+    return status ? <Tag color="#f50">dirty</Tag> : <Tag color="#87d068">cleaned</Tag>
   }
 
   useEffect(() => {
@@ -141,12 +157,13 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     console.log("Node & Edge Columns: ", nodeColumns, edgeColumns);
 
     setStatistics([
-      [<span>Entities <Tag color="#2db7f5">canvas</Tag></span>, data.nodes.length],
-      [<span>Relationships <Tag color="#2db7f5">canvas</Tag></span>, data.edges.length],
-      [<span>Entities <Tag color="#108ee9">graph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
-      [<span>Relationships <Tag color="#108ee9">graph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
+      [<span>Nodes <Tag color="#2db7f5">Canvas</Tag></span>, data.nodes.length],
+      [<span>Edges <Tag color="#2db7f5">Canvas</Tag></span>, data.edges.length],
+      [<span>Nodes <Tag color="#108ee9">Kgraph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
+      [<span>Edges <Tag color="#108ee9">Kgraph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
+      [<span>Status <Tag color="#2db7f5">Canvas</Tag></span>, DirtyStatus(isDirty)],
     ])
-  }, [data, edgeStat, nodeStat])
+  }, [data, edgeStat, nodeStat, currentGraphUUID])
 
   const loadGraphs = () => {
     getGraphs({ page: 1, page_size: 100 }).then(response => {
@@ -157,14 +174,39 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     })
   }
 
-  const onLoadGraph = (graph: GraphItem) => {
+  const loadGraph = (graph: GraphItem, latestChild: GraphItem) => {
     const payload = graph.payload;
     if (payload) {
-      setParentGraphUUID(graph.id)
-      checkAndSetData(payload.data)
-      setLayout(payload.layout)
-      setToolbarVisible(payload.toolbarVisible)
-      setGraphTableVisible(false)
+      setIsDirty(false);
+      // Only support one level of graph hierarchy, so the parent graph is always the latest child graph.
+      setParentGraphUUID(latestChild.id);
+      setCurrentGraphUUID(graph.id);
+      checkAndSetData(payload.data);
+      setLayout(payload.layout);
+      setToolbarVisible(payload.toolbarVisible);
+      setGraphTableVisible(false);
+    }
+  }
+
+  const onLoadGraph = (graph: GraphItem, latestChild: GraphItem) => {
+    console.log("Load graph: ", graph, latestChild);
+    if (isDirty) {
+      modal.confirm({
+        title: "You have unsaved changes",
+        icon: <ExclamationCircleOutlined />,
+        content: "Are you sure to load another graph?",
+        okText: "Load",
+        cancelText: "Cancel",
+        onOk() {
+          setIsDirty(false);
+          loadGraph(graph, latestChild)
+        },
+        onCancel() {
+          // TODO: anything else?
+        }
+      })
+    } else {
+      loadGraph(graph, latestChild)
     }
   }
 
@@ -328,17 +370,27 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     }
   }
 
+  const getSelectedNodes = (graph: Graph) => {
+    const selectedNodes = graph.getNodes().filter((node: any) => node.hasState('selected'));
+    return selectedNodes.map((node: any) => node.getModel() as GraphNode);
+  }
+
   const onNodeMenuClick = (menuItem: any, node: GraphNode, graph: Graph, graphin: any) => {
     console.log(`onNodeMenuClick [${menuItem.key}]: `, menuItem, node);
-    if (menuItem.key == 'delete-node') {
-      const id = node.id;
-      const item = graph.findById(id);
-
-      if (item) {
-        graph.removeItem(item);
+    if (menuItem.key == 'delete-nodes') {
+      const nodes = getSelectedNodes(graph);
+      const ids = [...nodes.map(node => node.id)]
+      if (nodes.length == 0) {
+        message.info("Please select one or more nodes to delete.")
+        return
+      } else {
+        message.info(`Deleting ${nodes.length} nodes, please wait...`)
+        nodes.forEach(node => {
+          graph.removeItem(node.id)
+        })
         checkAndSetData({
-          nodes: data.nodes.filter(node => node.id != id),
-          edges: data.edges.filter(edge => edge.source != id && edge.target != id)
+          nodes: data.nodes.filter(node => !ids.includes(node.id)),
+          edges: data.edges.filter(edge => !ids.includes(edge.source) && !ids.includes(edge.target))
         });
       }
     } else if (menuItem.key == 'expand-one-level') {
@@ -349,11 +401,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         merge_mode: "append"
       })
     } else if (menuItem.key == 'expand-selected-nodes') {
-      const nodes = graph.getNodes().filter(
-        (node) => node.hasState('selected')
-      ).map(
-        node => node.getModel() as GraphNode
-      );
+      const nodes = getSelectedNodes(graph);
 
       // If no nodes are selected, use the right clicked node
       if (nodes.length == 0 && node) {
@@ -465,7 +513,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
             parent={document.getElementById('knowledge-graph-container') as HTMLElement}
             onClose={() => { setGraphTableVisible(false) }}
-            selectedGraphId={parentGraphUUID}>
+            selectedGraphId={currentGraphUUID}>
           </GraphTable>
           <GraphForm visible={graphFormVisible}
             payload={graphFormPayload}
@@ -569,7 +617,57 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
               statistics={statistics} toolbarVisible={toolbarVisible} onClearGraph={onClearGraph}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
               onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
+              {
+                // TODO: generate explanations for the current edge
+                // 1. Get the current edge, the source node and target node
+                // 2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information
+                // 3. Send the markdown to the backend and get the filled markdown
+                // 4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method
+                // 5. Show the filled markdown in the explanation panel
+                currentEdge ?
+                  <div className='explanation-panel' style={{
+                    top: '200px',
+                    right: '200px'
+                  }}>
+                    <div ref={explanationPanelRef} className='explanation-info' style={{
+                      position: "absolute",
+                      width: "400px",
+                      maxWidth: "auto",
+                      maxHeight: "auto",
+                    }}>
+                      TODO: generate explanations for the current edge<br />
+                      1. Get the current edge, the source node and target node<br />
+                      2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information<br />
+                      3. Send the markdown to the backend and get the filled markdown<br />
+                      4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method<br />
+                      5. Show the filled markdown in the explanation panel<br />
+                    </div>
+                    {/* More details on https://daybrush.com/moveable/storybook/index.html?path=/story/basic--basic-resizable */}
+                    <Moveable
+                      target={explanationPanelRef}
+                      draggable={true}
+                      throttleDrag={1}
+                      edgeDraggable={false}
+                      startDragRotate={0}
+                      throttleDragRotate={0}
+                      onDrag={e => {
+                        e.target.style.transform = e.transform;
+                      }}
+                      resizable={true}
+                      keepRatio={false}
+                      throttleResize={1}
+                      renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
+                      onResize={e => {
+                        e.target.style.width = `${e.width}px`;
+                        e.target.style.height = `${e.height}px`;
+                        e.target.style.transform = e.drag.transform;
+                      }}
+                    />
+                  </div>
+                  : null
+              }
             </GraphinWrapper>
+            {contextHolder}
           </Col>
         </Spin>
       </Row >

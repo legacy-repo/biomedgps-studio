@@ -86,6 +86,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
                 if (response.node_types) {
                     response.node_types.forEach((element: string) => {
                         o.push({
+                            order: 0,
                             label: element,
                             value: element
                         })
@@ -94,6 +95,9 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
                 } else {
                     setLabelOptions([]);
                 }
+            }).catch(error => {
+                console.log("Get types of nodes error: ", error)
+                setLabelOptions([]);
             })
     }, [])
 
