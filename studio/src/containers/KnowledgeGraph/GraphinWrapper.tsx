@@ -656,7 +656,6 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     const [fishEyeVisible, setFishEyeVisible] = useState(false);
     const [explanationPanelVisible, setExplanationPanelVisible] = useState(false);
 
-    const [layout, setLayout] = useState(props.layout);
     const [settings, setSettings] = useState<GraphinSettings>({} as GraphinSettings);
 
     const [currentEdge, setCurrentEdge] = useState<any>(null);
@@ -682,14 +681,11 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     }, [])
 
     useEffect(() => {
-        // Update the layout when the layout prop changes
-        if (props.layout !== layout) {
-            setLayout(props.layout);
-
-            // Force update the layout
-            if (ref.current && ref.current.graph) {
-                ref.current.graph.updateLayout(props.layout);
-            }
+        // TODO: how to force update the layout, the following code doesn't work.
+        if (ref.current && ref.current.graph) {
+            console.log("Updating layout: ", props.layout);
+            ref.current.graph.updateLayout(props.layout);
+            ref.current.graph.refreshPositions();
         }
     }, [props.layout])
 
@@ -762,7 +758,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     }
 
     return (
-        data && <Graphin ref={ref} layoutCache options={options} data={data} layout={layout} style={style}>
+        data && <Graphin ref={ref} layoutCache options={options} data={data} layout={props.layout} style={style}>
             <FitView></FitView>
             {/* BUG?: This seems like it doesn't work. Maybe we need a new layout algorithm. */}
             <DragNodeWithForce autoPin={settings.autoPin} />
@@ -846,8 +842,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 }}>
                     <Toolbar.Item>
                         <Select style={{ width: '100%' }} allowClear
-                            defaultValue={layout.type}
-                            value={layout.type}
+                            defaultValue={props.layout.type}
                             onChange={(value) => {
                                 // TODO: Need to notice the user that the layout is changed, but it's not working when the previous layout is not finished.
                                 if (value == 'auto') {
@@ -855,7 +850,6 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                                         console.log("Predicted layout: ", layout)
                                         const l = layouts.find(item => item.type === layout.predictLayout);
                                         message.info(`Predicted layout: ${layout.predictLayout}`);
-                                        setLayout(l);
                                         if (props.changeLayout) {
                                             props.changeLayout(l);
                                         }
@@ -863,9 +857,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                                         console.log(err)
                                         message.error(`Failed to predict layout: ${err.message}`);
                                     })
+                                } else if (value == 'graphin-force') {
+                                    message.warn(`The layout '${value}' may not work well with the device which doesn't support GPU.`);
+                                    const l = layouts.find(item => item.type === value);
+                                    if (props.changeLayout) {
+                                        props.changeLayout(l);
+                                    }
                                 } else {
                                     const l = layouts.find(item => item.type === value);
-                                    setLayout(l);
                                     if (props.changeLayout) {
                                         props.changeLayout(l);
                                     }

@@ -465,18 +465,18 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
 }
 
 export const defaultLayout = {
-  type: 'grid',
+  type: 'grid'
 }
 
 // TODO: The platform cannot stop the layout animation, then we cannot update the layout
 // So we need to use the auto layout before we can fix this issue
 export const legacyDefaultLayout = {
   type: 'graphin-force',
-  workerEnabled: true, // 可选，开启 web-worker
-  gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
+  workerEnabled: false, // 可选，开启 web-worker
+  gpuEnabled: false, // 可选，开启 GPU 并行计算，G6 4.0 支持
   animation: true,
   preset: {
-    type: 'grid', // 力导的前置布局
+    type: 'force', // 力导的前置布局
   },
   clustering: true,
   leafCluster: true,
@@ -515,20 +515,7 @@ export const layouts = [
     type: 'auto',
   },
   {
-    type: 'graphin-force',
-    workerEnabled: true, // 可选，开启 web-worker
-    gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持
-    animation: true,
-    preset: {
-      type: 'grid', // 力导的前置布局
-    },
-    clustering: true,
-    leafCluster: true,
-    preventOverlap: true,
-    nodeClusterBy: 'nlabel', // 节点聚类的映射字段
-    clusterNodeStrength: 40, // 节点聚类作用力
-    minNodeSpacing: 20,
-    nodeSize: 40,
+    ...legacyDefaultLayout
   },
   {
     type: 'grid',
@@ -556,7 +543,7 @@ export const layouts = [
   },
   {
     type: 'concentric',
-    center: [0, 0], // 可选，
+    center: [200, 200], // 可选，
     preventOverlap: true, // 可选，必须配合 nodeSize
     nodeSize: 30, // 可选
     sweep: 10, // 可选
