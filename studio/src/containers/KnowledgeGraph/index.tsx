@@ -395,7 +395,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         node_id: node.data.id,
         merge_mode: "append"
       })
-    } else if (menuItem.key == 'expand-all-paths') {
+    } else if (['expand-all-paths-1', 'expand-all-paths-2', 'expand-all-paths-3'].includes(menuItem.key)) {
+      console.log("Expand All Paths: ", menuItem.key);
       const selectedNodes = getSelectedNodes(graph);
       if (selectedNodes.length == 0) {
         message.info("Please select one or more nodes to expand.")
@@ -405,6 +406,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
           nodes: selectedNodes,
           merge_mode: "append",
           mode: "path",
+          nsteps: parseInt(menuItem.key.split('-').pop() || '1'),
           limit: 50,
         })
       }
@@ -461,6 +463,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   const saveGraphData = () => {
     setGraphFormVisible(true)
+    // TODO: Can we save the position of all nodes and edges and more configurations?
     setGraphFormPayload({
       data: data,
       layout: layout,
@@ -625,7 +628,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
               statistics={statistics} toolbarVisible={toolbarVisible} onClearGraph={onClearGraph}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
-              onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}>
+              onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}
+              changeLayout={(layout) => { setLayout(layout) }}>
             </GraphinWrapper>
             {contextHolder}
           </Col>

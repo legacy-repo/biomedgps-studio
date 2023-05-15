@@ -59,15 +59,36 @@
 
   .path-table {
     position: fixed;
-    bottom: 250px;
+    bottom: 300px;
     right: 10px;
     width: 600px;
     height: 0px;
 
     .ant-table-wrapper {
-      max-height: 250px;
       width: 600px;
       border: 1px solid #4af;
+
+      .ant-table-title {
+        div {
+          display: flex;
+          align-items: center;
+        }
+
+        h4 {
+          margin-bottom: 0;
+          margin-right: 5px;
+        }
+      }
+
+      .ant-pagination {
+        margin: 0px;
+        padding: 5px;
+        background-color: #ffffff;
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1;
+      }
     }
 
     .moveable-control-box {

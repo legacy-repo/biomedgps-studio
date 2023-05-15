@@ -39,7 +39,6 @@ import ShowPaths from './Components/ShowPaths';
 import { GraphLayoutPredict } from '@antv/vis-predict-engine';
 import voca from 'voca';
 import './GraphinWrapper.less';
-import { set } from "lodash";
 
 const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
@@ -231,6 +230,23 @@ const NodeMenu = (props: NodeMenuProps) => {
             key: 'expand-all-paths',
             icon: <ShareAltOutlined />,
             label: 'Expand Paths (Within 3 Steps)',
+            children: [
+                {
+                    key: 'expand-all-paths-1',
+                    icon: <ShareAltOutlined />,
+                    label: 'Within 1 Step',
+                },
+                {
+                    key: 'expand-all-paths-2',
+                    icon: <ShareAltOutlined />,
+                    label: 'Within 2 Step',
+                },
+                {
+                    key: 'expand-all-paths-3',
+                    icon: <ShareAltOutlined />,
+                    label: 'Within 3 Step',
+                },
+            ]
         },
         // {
         //     key: 'tag',
@@ -588,6 +604,7 @@ export type GraphinProps = {
     layout: any;
     style: React.CSSProperties;
     containerId?: string;
+    changeLayout?: (layout: any) => void;
     onNodeMenuClick?: OnNodeMenuClickFn;
     onEdgeMenuClick?: OnEdgeMenuClickFn;
     onCanvasMenuClick?: OnCanvasMenuClickFn;
@@ -663,6 +680,18 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             })
         }
     }, [])
+
+    useEffect(() => {
+        // Update the layout when the layout prop changes
+        if (props.layout !== layout) {
+            setLayout(props.layout);
+
+            // Force update the layout
+            if (ref.current && ref.current.graph) {
+                ref.current.graph.updateLayout(props.layout);
+            }
+        }
+    }, [props.layout])
 
     useEffect(() => {
         // create a map to hold the adjacency list
@@ -827,13 +856,19 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                                         const l = layouts.find(item => item.type === layout.predictLayout);
                                         message.info(`Predicted layout: ${layout.predictLayout}`);
                                         setLayout(l);
+                                        if (props.changeLayout) {
+                                            props.changeLayout(l);
+                                        }
                                     }).catch((err) => {
                                         console.log(err)
                                         message.error(`Failed to predict layout: ${err.message}`);
                                     })
                                 } else {
                                     const l = layouts.find(item => item.type === value);
-                                    setLayout(l)
+                                    setLayout(l);
+                                    if (props.changeLayout) {
+                                        props.changeLayout(l);
+                                    }
                                 }
                             }}
                             placeholder="Select a layout">

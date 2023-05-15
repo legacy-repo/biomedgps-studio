@@ -390,12 +390,13 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       }
 
       if (isValidPathMode(searchObject)) {
-        const { nodes } = searchObject;
+        const { nodes, nsteps } = searchObject;
         const nWhereClause = uniq(nodes?.map(item => `(n.id = '${item.data.id}' and n:${item.nlabel})`)).join(" or ");
         const mWhereClause = uniq(nodes?.map(item => `(m.id = '${item.data.id}' and m:${item.nlabel})`)).join(" or ");
-        const whereClause = `${nWhereClause} or ${mWhereClause}`;
+        // When to use and when to use or?
+        const whereClause = `(${nWhereClause}) ${(nsteps && nsteps == 1) ? 'and' : 'or'} (${mWhereClause})`;
         query_str = makeGraphQueryStr(
-          `(n)-[r*1..3]-(m)`,
+          `(n)-[r*1..${nsteps ? nsteps : 3}]-(m)`,
           whereClause,
           "n,r,m",
           // TODO: We need to allow user to specify the limit
@@ -464,6 +465,12 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
 }
 
 export const defaultLayout = {
+  type: 'grid',
+}
+
+// TODO: The platform cannot stop the layout animation, then we cannot update the layout
+// So we need to use the auto layout before we can fix this issue
+export const legacyDefaultLayout = {
   type: 'graphin-force',
   workerEnabled: true, // 可选，开启 web-worker
   gpuEnabled: true, // 可选，开启 GPU 并行计算，G6 4.0 支持

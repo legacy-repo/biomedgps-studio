@@ -1,10 +1,13 @@
 import { GraphinContext } from '@antv/graphin';
 import React, { useContext, useEffect, useState } from 'react';
 import { GraphNode, GraphEdge, AdjacencyList } from '../typings';
-import { message, Button, Table, Row, Space, notification } from 'antd';
+import { message, Button, Table, Row, Space, notification, Input } from 'antd';
 import Moveable from "react-moveable";
-import { ClearOutlined, TableOutlined } from '@ant-design/icons';
-import type { ColumnsType } from 'antd/es/table';
+import type { InputRef } from 'antd';
+import type { FilterConfirmProps } from 'antd/es/table/interface';
+import Highlighter from 'react-highlight-words';
+import { ClearOutlined, TableOutlined, SearchOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import type { ColumnsType, ColumnType } from 'antd/es/table';
 import { sortBy, uniqBy } from 'lodash';
 
 import './ShowPaths.less';
@@ -167,11 +170,16 @@ function findAllPathsDFS(
 type Path = { nodes: string[]; edges: string[] }
 
 const ShowPaths = (props: ShowPathProps) => {
+  const [searchText, setSearchText] = useState('');
+  const [searchedColumn, setSearchedColumn] = useState('');
+  const searchInput = React.useRef<InputRef>(null);
+
   const pathTableRef = React.useRef<HTMLDivElement>(null);
   const { graph } = useContext(GraphinContext);
   const [paths, setPaths] = useState<Record<string, Path[]>>({});
   const [algorithm, setAlgorithm] = useState<Record<string, 'bfs' | 'dfs'>>({});
 
+  const [currentPath, setCurrentPath] = useState<string | null>(null);
   const [pathTableVisible, setPathTableVisible] = useState<boolean>(false);
   const [pathTableData, setPathTableData] = useState<PathItem[]>([]);
 
@@ -343,20 +351,117 @@ const ShowPaths = (props: ShowPathProps) => {
     })
   }
 
+  type DataIndex = keyof PathItem;
+
+  const handleSearch = (
+    selectedKeys: string[],
+    confirm: (param?: FilterConfirmProps) => void,
+    dataIndex: DataIndex,
+  ) => {
+    confirm();
+    setSearchText(selectedKeys[0]);
+    setSearchedColumn(dataIndex);
+  };
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters();
+    setSearchText('');
+  };
+
+  const getColumnSearchProps = (dataIndex: DataIndex): ColumnType<PathItem> => ({
+    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
+        <Input
+          ref={searchInput}
+          placeholder={`Search ${dataIndex}`}
+          value={selectedKeys[0]}
+          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+          onPressEnter={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+          style={{ marginBottom: 8, display: 'block' }}
+        />
+        <Space>
+          <Button
+            type="primary"
+            onClick={() => handleSearch(selectedKeys as string[], confirm, dataIndex)}
+            icon={<SearchOutlined />}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Search
+          </Button>
+          <Button
+            onClick={() => clearFilters && handleReset(clearFilters)}
+            size="small"
+            style={{ width: 90 }}
+          >
+            Reset
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              confirm({ closeDropdown: false });
+              setSearchText((selectedKeys as string[])[0]);
+              setSearchedColumn(dataIndex);
+            }}
+          >
+            Filter
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              close();
+            }}
+          >
+            close
+          </Button>
+        </Space>
+      </div>
+    ),
+    filterIcon: (filtered: boolean) => (
+      <SearchOutlined style={{ color: filtered ? '#1890ff' : undefined }} />
+    ),
+    onFilter: (value, record) =>
+      record[dataIndex]
+        .toString()
+        .toLowerCase()
+        .includes((value as string).toLowerCase()),
+    onFilterDropdownOpenChange: (visible) => {
+      if (visible) {
+        setTimeout(() => searchInput.current?.select(), 100);
+      }
+    },
+    render: (text) =>
+      searchedColumn === dataIndex ? (
+        <Highlighter
+          highlightStyle={{ backgroundColor: '#ffc069', padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ''}
+        />
+      ) : (
+        text
+      ),
+  });
+
   const columns: ColumnsType<PathItem> = [
     {
       title: 'Path',
       key: 'path',
       align: 'center',
       dataIndex: 'path',
-      width: 330,
+      width: 300,
+      ...getColumnSearchProps('path'),
     },
     {
       title: 'Num of Steps',
       dataIndex: 'nsteps',
       key: 'nsteps',
       align: 'center',
-      width: 120,
+      width: 150,
+      sorter: (a, b) => a.nsteps - b.nsteps,
+      sortDirections: ['descend', 'ascend'],
     },
     {
       title: 'Action',
@@ -366,7 +471,7 @@ const ShowPaths = (props: ShowPathProps) => {
       width: 150,
       render: (_, record, index) => (
         <Space>
-          <Button size="small" type="link"
+          <Button size="small" type="link" disabled={record.path === currentPath}
             onClick={(e) => {
               const pathKey = record.key;
               const pathIndex = record.index;
@@ -374,6 +479,7 @@ const ShowPaths = (props: ShowPathProps) => {
               const path = [paths[pathKey][pathIndex]];
               // TODO: more efficient way to handle this?
               handleShowPath(path);
+              setCurrentPath(record.path);
             }}>
             Show
           </Button>
@@ -409,8 +515,29 @@ const ShowPaths = (props: ShowPathProps) => {
       </ul>
       {pathTableVisible ?
         <Row className='path-table'>
-          <Table rowKey={'key'} columns={columns} dataSource={pathTableData} ref={pathTableRef}
-            pagination={false} scroll={{ y: 200 }} size='small' />
+          <Table rowKey={'path'} columns={columns} dataSource={pathTableData}
+            ref={pathTableRef} scroll={{ y: 200 }} size='small' title={
+              () => {
+                return <div>
+                  <h4>Paths Table</h4>
+                  <Button type="primary" size='small' icon={<CloseCircleOutlined />}
+                    onClick={() => {
+                      setCurrentPath(null);
+                      onShowPathsInTable(pathTableVisible);
+                    }}>
+                    {pathTableVisible ? 'Hide' : 'Show'}
+                  </Button>
+                </div>
+              }
+            }
+            pagination={{
+              simple: true,
+              defaultPageSize: 1000,
+              position: ['topLeft'],
+              showTotal: (total) => {
+                return `Total ${total} items`;
+              }
+            }} />
           <Moveable
             target={pathTableRef}
             draggable={true}
