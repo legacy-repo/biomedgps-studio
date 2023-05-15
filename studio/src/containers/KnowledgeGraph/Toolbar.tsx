@@ -112,7 +112,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 title={props.title ? props.title : false} getContainer={false}
                 style={{ position: 'absolute' }} closable={props.closable ? props.closable : false}
                 mask={props.maskVisible ? props.maskVisible : false}
-                placement={position} onClose={switchDrawer} visible={drawerActive}>
+                placement={position} onClose={switchDrawer} open={drawerActive}>
                 {drawerActive ? props.children : null}
             </Drawer>
         </div>

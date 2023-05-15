@@ -615,7 +615,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                 }
                 {
                   nodeColumns.length > 0 ?
-                    <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"} dataSource={edgeDataSources} columns={edgeColumns} pagination={false} />
+                    <Table size={"small"} scroll={{ y: 200 }} rowKey={"id"}
+                      dataSource={edgeDataSources} columns={edgeColumns} pagination={false} />
                     : null
                 }
               </TableTabs>

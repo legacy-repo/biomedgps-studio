@@ -45,7 +45,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
 
   return (
     <Modal className="advanced-search" title="Advanced Search" onCancel={props.onCancel}
-      visible={props.visible} destroyOnClose={true} footer={null}
+      open={props.visible} destroyOnClose={true} footer={null}
       getContainer={props.parent ? props.parent : document.body}>
       <Tabs
         defaultActiveKey="single"

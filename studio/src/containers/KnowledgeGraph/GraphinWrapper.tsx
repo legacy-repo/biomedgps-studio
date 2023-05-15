@@ -21,13 +21,13 @@ import {
     DeleteOutlined,
     CloseCircleOutlined,
     RedditOutlined,
-    ShareAltOutlined
+    ShareAltOutlined,
+    CloseOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
 import {
     message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu,
-    Row, Col
 } from 'antd';
 import { makeDataSource, layouts } from './utils';
 import type {
@@ -39,7 +39,7 @@ import ShowPaths from './Components/ShowPaths';
 import { GraphLayoutPredict } from '@antv/vis-predict-engine';
 import voca from 'voca';
 import './GraphinWrapper.less';
-import Icon from "@ant-design/icons/lib/components/Icon";
+import { set } from "lodash";
 
 const { MiniMap, SnapLine, Tooltip, Legend } = Components;
 
@@ -85,8 +85,13 @@ const EdgeMenu = (props: EdgeMenuProps) => {
                 setEdge(edge)
                 setVisible(true)
             }
+        } else {
+            setVisible(false)
+            setSourceNode(undefined);
+            setTargetNode(undefined)
+            setEdge(undefined)
         }
-    }, [item])
+    }, [])
 
     const options = [
         {
@@ -195,8 +200,11 @@ const NodeMenu = (props: NodeMenuProps) => {
             // Don't worry about the type of nodeModel.
             setNode(nodeModel)
             setVisible(true)
+        } else {
+            setVisible(false)
+            setNode(undefined)
         }
-    }, [item])
+    }, [])
 
     const options: any[] = [
         {
@@ -764,22 +772,34 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             }
             <ContextMenu style={{ width: '160px' }}>
                 <NodeMenu chatbotVisible={props.chatbotVisible}
-                    item={currentNode} onChange={onNodeMenuClick} />
+                    item={currentNode} onChange={(menuItem, data, graph, graphin) => {
+                        // Clear the current node when the context menu is closed, elsewise the node menu cannot be opened again.
+                        setCurrentNode(null);
+                        onNodeMenuClick && onNodeMenuClick(menuItem, data, graph, graphin);
+                    }} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="canvas">
                 <CanvasMenu handleOpenFishEye={handleOpenFishEye}
-                    onCanvasClick={onCanvasMenuClick} onClearGraph={props.onClearGraph} />
+                    onCanvasClick={(menuItem, graph, graphin) => {
+                        // Clear the current node & edge when the context menu is closed
+                        setCurrentNode(null);
+                        setCurrentEdge(null);
+                        onCanvasMenuClick && onCanvasMenuClick(menuItem, graph, graphin);
+                    }} onClearGraph={props.onClearGraph} />
             </ContextMenu>
             <ContextMenu style={{ width: '160px' }} bindType="edge">
                 <EdgeMenu item={currentEdge} chatbotVisible={props.chatbotVisible}
-                    onChange={(item, source, target, edge, graph, apis) => {
+                    onChange={(menuItem, source, target, edge, graph, apis) => {
+                        // Clear the current edge when the context menu is closed, elsewise the edge menu cannot be opened again.
+                        setCurrentEdge(null);
+
                         // TODO: How to generate explanation report for the edge?
-                        if (item.key == 'explain-relationship') {
+                        if (menuItem.key == 'explain-relationship') {
                             setExplanationPanelVisible(true)
                         }
 
                         if (onEdgeMenuClick) {
-                            onEdgeMenuClick(item, source, target, edge, graph, apis)
+                            onEdgeMenuClick(menuItem, source, target, edge, graph, apis)
                         }
                     }} />
             </ContextMenu>
@@ -960,7 +980,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                         }} className="explanation-content">
                             <div className="explanation-title">
                                 <h3>Explanation</h3>
-                                <CloseCircleOutlined className="explanation-close" onClick={() => {
+                                <CloseOutlined className="explanation-close" onClick={() => {
                                     setExplanationPanelVisible(false)
                                 }} />
                             </div>
