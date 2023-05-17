@@ -193,6 +193,25 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
   console.log("initialState: ", initialState);
 
   return {
+    menu: {
+      // Re-execute request whenever initialState?.currentUser?.userid is modified
+      params: {
+        defaultDataset: initialState?.customSettings?.defaultDataset,
+        mode: initialState?.customSettings?.mode,
+      },
+      request: async (params: any, defaultMenuData: any) => {
+        console.log("request MenuData and params: ", params, defaultMenuData)
+        if (params.defaultDataset) {
+          return defaultMenuData;
+        } else {
+          const welcome = defaultMenuData.filter((route: any) => route.path === '/welcome')[0];
+          // Change the redirect route to knowledge-graph, if the default dataset is not set.
+          welcome.redirect = '/knowledge-graph';
+          welcome.component = null;
+          return defaultMenuData.filter((route: any) => !route.category || route.category !== 'omics-data')
+        }
+      },
+    },
     // TODO: Improve the interface for getDatasets.
     rightContentRender: () => <Header getDatasets={getDatasets} />,
     disableContentMargin: false,

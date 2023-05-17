@@ -116,7 +116,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
   return (
     <Space className={`${className} right-content`}>
       <Menu onClick={onClick} selectedKeys={[current]} theme="dark" mode="inline" items={items} />
-      <Row style={{ display: 'block' }}>
+      <Row style={{ display: defaultDataset ? 'block' : 'none' }}>
         <Dropdown.Button overlay={<></>}
           onClick={showModal}
           className="dataset-selector-btn"
@@ -129,7 +129,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
           {defaultDataset}
         </Dropdown.Button>
         <Modal className="dataset-selector" width={'80%'} onCancel={handleCancel}
-          title="Select Dataset" visible={isModalOpen} footer={null}>
+          title="Select Dataset" open={isModalOpen} footer={null}>
           <DatasetList selectDataset={handleOk} getDatasets={props.getDatasets}></DatasetList>
         </Modal>
       </Row>

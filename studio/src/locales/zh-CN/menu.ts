@@ -3,6 +3,7 @@ export default {
   'menu.quick-start': '快速分析',
   'menu.omics-analyzer': 'Omics分析器',
   'menu.knowledge-graph': '知识图谱',
+  'menu.knowledge-graph-editor': '知识编辑器',
   'menu.datasets': '数据集',
   'menu.help': '帮助',
   'menu.about': '关于',

@@ -3,6 +3,7 @@ export default {
   'menu.quick-start': 'Quick Start',
   'menu.omics-analyzer': 'Omics Analyzer',
   'menu.knowledge-graph': 'Knowledge Graph',
+  'menu.knowledge-graph-editor': 'Knowledge Graph Editor',
   'menu.datasets': 'Datasets',
   'menu.help': 'Help',
   'menu.about': 'About',

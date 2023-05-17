@@ -3,7 +3,7 @@ import { defineConfig } from 'umi';
 
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
-import routes from './routes';
+import { routes as defaultRoutes } from './routes';
 
 const isDev = process.env.NODE_ENV === 'development';
 const isStatic = isDev ? true : (process.env.UMI_APP_IS_STATIC ? process.env.UMI_APP_IS_STATIC : false);
@@ -47,7 +47,8 @@ export default defineConfig({
     ie: 11,
   },
   // umi routes: https://umijs.org/docs/routing
-  routes,
+  // We load routes dynamically from the config file.
+  routes: defaultRoutes,
   access: {},
   // Theme for antd: https://ant.design/docs/react/customize-theme-cn
   theme: {

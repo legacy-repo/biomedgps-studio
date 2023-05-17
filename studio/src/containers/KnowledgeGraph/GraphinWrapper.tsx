@@ -686,6 +686,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             console.log("Updating layout: ", props.layout);
             ref.current.graph.updateLayout(props.layout);
             ref.current.graph.refreshPositions();
+            ref.current.graph.fitView();
         }
     }, [props.layout])
 
