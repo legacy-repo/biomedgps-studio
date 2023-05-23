@@ -2,6 +2,28 @@
 /* eslint-disable */
 import { request } from 'umi';
 
+/** Get the reducted dimension for embedding vector. Get the nearest neighbor nodes. POST /api/v1/dimension */
+export async function postDimension(
+  body: {
+    source_id?: string;
+    source_type?: string;
+    target_ids?: string[];
+    target_types?: string[];
+  },
+  options?: { [key: string]: any },
+) {
+  return request<{
+    data: { x?: number; y?: number; node_id?: string; raw_id?: string; node_type?: string }[];
+  }>('/api/v1/dimension', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** Get graphs Get tasks. GET /api/v1/graphs */
 export async function getGraphs(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -165,7 +187,13 @@ export async function getRelationships(
 
 /** Get the nearest neighbor nodes. Get the nearest neighbor nodes. POST /api/v1/similarity */
 export async function postSimilarity(
-  body: { source_id?: string; topk?: number; source_type?: string },
+  body: {
+    source_id?: string;
+    topk?: number;
+    source_type?: string;
+    target_ids?: string[];
+    target_types?: string[];
+  },
   options?: { [key: string]: any },
 ) {
   return request<{ nodes: any; edges: any }>('/api/v1/similarity', {

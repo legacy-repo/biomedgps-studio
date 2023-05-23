@@ -154,8 +154,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     setStatistics([
       [<span>Nodes <Tag color="#2db7f5">Canvas</Tag></span>, data.nodes.length],
       [<span>Edges <Tag color="#2db7f5">Canvas</Tag></span>, data.edges.length],
-      [<span>Nodes <Tag color="#108ee9">Kgraph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
-      [<span>Edges <Tag color="#108ee9">Kgraph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
+      [<span>Nodes <Tag color="#108ee9">KGraph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
+      [<span>Edges <Tag color="#108ee9">KGraph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
       [<span>Status <Tag color="#2db7f5">Canvas</Tag></span>, DirtyStatus(isDirty)],
     ])
   }, [data, edgeStat, nodeStat, currentGraphUUID])

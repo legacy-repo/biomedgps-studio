@@ -72,6 +72,68 @@
       (println "Error while finding neighbors:" (.getMessage e))
       {:topkpd []})))
 
+(defn zipper
+  [a b]
+  (map vector a b))
+
+(defn eval-similarities
+  "Evaluate the similarities between source and targets.
+   
+    source-type: the type of source entity, e.g., Disease
+    source-id: the id of source entity, e.g., MESH:D015673
+    target-types: a list of target types, e.g., [Compound Disease]
+    target-ids: a list of target ids, e.g., [DB00843 MESH:D015673]
+  "
+  [source-type source-id target-types target-ids]
+  (when (not @model-map)
+    (throw (Exception. "You need to call init-model! function firstly.")))
+  (try
+    (log/info (format "Evaluating similarity for %s::%s and %s::%s" source-type source-id target-types target-ids))
+    (let [targets (pmap (fn [[target-type target-id]] (format "%s::%s" target-type target-id))
+                        (zipper target-types target-ids))
+          similarity (py/call-attr @nm-module "eval_similarities" @model-map
+                                   (format "%s::%s" source-type source-id) targets)]
+      {:topkpd (format-similarity-topkpd (py/call-attr similarity "to_numpy"))})
+    (catch Exception e
+      (println "Error while evaluating similarity:" (.getMessage e))
+      {:topkpd []})))
+
+(defn format-dimensional-reduction-data
+  [data]
+  ;; The order of the items in data is [x, y, node_id, node_type, raw_node_id], please refer to the source code of pydl.nm
+  (pmap (fn [item] (let [item (py/->jvm item)]
+                     {:x (first item)
+                      :y (nth item 1)
+                      :node_type (nth item 2)
+                      :node_id (nth item 3)
+                      :raw_node_id (nth item 4)})) data))
+
+(defn dim-reduction
+  "Evaluate the similarities between source and targets.
+   
+   Arguments:
+    source-type: the type of source entity, e.g., Disease
+    source-id: the id of source entity, e.g., MESH:D015673
+    target-types: a list of target types, e.g., [Compound Disease]
+    target-ids: a list of target ids, e.g., [DB00843 MESH:D015673]
+   
+   Return: 
+    a list of vectors
+  "
+  [source-type source-id target-types target-ids]
+  (when (not @model-map)
+    (throw (Exception. "You need to call init-model! function firstly.")))
+  (try
+    (let [targets (pmap (fn [[target-type target-id]] (format "%s::%s" target-type target-id))
+                        (zipper target-types target-ids))
+          df (py/call-attr @nm-module "dim_reduction" @model-map
+                           (format "%s::%s" source-type source-id) targets)]
+      (log/info (format "Dim reduction for %s::%s and %s" source-type source-id targets))
+      {:data (format-dimensional-reduction-data (py/call-attr df "to_numpy"))})
+    (catch Exception e
+      (println "Error while evaluating similarity:" (.getMessage e))
+      {:data []})))
+
 (comment
   (def source-id "MESH:D015673")
   (def relations ["Hetionet::CtD::Compound:Disease",

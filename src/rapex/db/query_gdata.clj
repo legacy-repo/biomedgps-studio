@@ -475,6 +475,12 @@
     (with-open [session (db/get-session @gdb-conn)]
       (format-neighbor-nodes session neighbor-nodes))))
 
+(defn evaluate-similarities
+  [source-type source-id target-types target-ids]
+  (let [nodes (:topkpd (gnn/eval-similarities source-type source-id target-types target-ids))]
+    (with-open [session (db/get-session @gdb-conn)]
+      (format-neighbor-nodes session nodes))))
+
 (defn query&predict
   [query-map predicted-payload]
   (let [relation-types (:relation_types predicted-payload)
