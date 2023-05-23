@@ -16,6 +16,7 @@ export type PlotlyViewerProps = {
   plotlyData: PlotlyChartType | null,
   handleUpdate?: (state: PlotlyEditorState) => void;
   mode?: string;
+  onClick?: (event: any) => void;
 };
 
 const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
@@ -113,6 +114,7 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
       data={data}
       layout={{ ...layout, autosize: true }}
       config={config}
+      onClick={props.onClick}
       frames={frames}
     />
   ) : (
@@ -125,6 +127,7 @@ const PlotlyViewer: React.FC<PlotlyViewerProps> = (props) => {
         config={config}
         frames={frames}
         plotly={plotly}
+        onClick={props.onClick}
         onUpdate={onUpdate}
         onRender={onRender}
         useResizeHandler

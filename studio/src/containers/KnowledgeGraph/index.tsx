@@ -19,7 +19,7 @@ import StatisticsChart from './Chart/StatisticsChart';
 import {
   makeColumns, makeDataSources, autoConnectNodes,
   makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds,
-  isValidSearchObject, isUUID
+  isValidSearchObject, isUUID, getDimensions, getNodes, getSelectedNodes
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
@@ -30,10 +30,12 @@ import type { Graph as GraphItem } from './GraphStore/typings';
 import { getStatistics, getGraphs, postGraphs, deleteGraphsId } from '@/services/swagger/Graph';
 import {
   SearchObject, GraphData, GraphEdge, GraphNode,
-  NodeStat, EdgeStat, EdgeInfo
+  NodeStat, EdgeStat, EdgeInfo, DimensionArray
 } from './typings';
 
 import './index.less';
+import SimilarityChart from './Chart/SimilarityChart';
+import Movable from './Components/Movable';
 
 const style = {
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
@@ -66,6 +68,10 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [clickedNode, setClickedNode] = useState<GraphNode | undefined>(undefined);
   const [edgeInfoPanelVisible, setEdgeInfoPanelVisible] = useState<boolean>(false);
   const [clickedEdge, setClickedEdge] = useState<EdgeInfo | undefined>(undefined);
+
+  const [similarityChartVisible, setSimilarityChartVisible] = useState<boolean>(false);
+  const [similarityArray, setSimilarityArray] = useState<GraphNode[]>([]);
+  const [hightlightMode, setHightlightMode] = useState<'activate' | 'focus'>('activate');
 
   const [currentNode, setCurrentNode] = useState<string>("");
   const [selectedRowKeys, setSelectedRowKeys] = useState<Array<string>>([]);
@@ -287,7 +293,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
           setLoading(false)
         })
     } else {
-      console.log("Advanced Search Panel is active or search object is invalid.")
+      console.log("Advanced Search Panel is active or search object is invalid: ", advancedSearchPanelActive, searchObject);
     }
   }, [searchObject])
 
@@ -307,6 +313,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   const searchLabel = (label: string, value: string | undefined) => {
     setSearchObject({
+      mode: 'node',
       node_type: label,
       node_id: value,
       merge_mode: "replace",
@@ -363,11 +370,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       })
       // TODO: Get edge details and show in the info panel
     }
-  }
-
-  const getSelectedNodes = (graph: Graph) => {
-    const selectedNodes = graph.getNodes().filter((node: any) => node.hasState('selected'));
-    return selectedNodes.map((node: any) => node.getModel() as GraphNode);
   }
 
   const onNodeMenuClick = (menuItem: any, node: GraphNode, graph: Graph, graphin: any) => {
@@ -430,6 +432,35 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       if (props.postMessage) {
         props.postMessage(`what is the ${node.data.name}?`)
       }
+    } else if (menuItem.key == 'visulize-similarities') {
+      const nodes = getNodes(graph);
+      const sourceType = node.nlabel;
+      const sourceId = node.data.id;
+      const filteredNodes = nodes.filter(node => node.data.id != sourceId);
+      const targetTypes = filteredNodes.map(node => node.nlabel);
+      const targetIds = filteredNodes.map(node => node.data.id);
+      getDimensions(sourceId, sourceType, targetIds, targetTypes).then((response: DimensionArray) => {
+        console.log("Get Dimensions Response: ", response, targetIds, targetTypes, sourceId, sourceType);
+        const graphData = response.map(item => {
+          const filteredNodes = nodes.filter(node => node.data.id == item.node_id && node.nlabel == item.node_type)
+          if (filteredNodes.length > 0) {
+            return {
+              ...filteredNodes[0],
+              x: item.x,
+              y: item.y,
+            }
+          } else {
+            return {}
+          }
+        }).filter(item => Object.keys(item).length > 0) as GraphNode[];
+        setSimilarityArray(graphData);
+        setSimilarityChartVisible(true);
+      }).catch((error: any) => {
+        console.log("Get Dimensions Error: ", error);
+        setSimilarityArray([]);
+        setSimilarityChartVisible(false);
+        message.error("Failed to get similarities, please check the network connection.")
+      })
     } else if (menuItem.key == 'show-node-details') {
       setNodeInfoPanelVisible(true)
       setClickedNode(node)
@@ -624,12 +655,28 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                 }
               </TableTabs>
             </Toolbar>
-            <GraphinWrapper selectedNode={currentNode} onNodeMenuClick={onNodeMenuClick}
+            <GraphinWrapper selectedNode={currentNode} highlightMode={hightlightMode}
               data={data} layout={layout} style={style} queriedId={searchObject.node_id}
               statistics={statistics} toolbarVisible={toolbarVisible} onClearGraph={onClearGraph}
               onEdgeMenuClick={onEdgeMenuClick} chatbotVisible={props.postMessage ? true : false}
               onClickNode={onClickNode} onClickEdge={onClickEdge} onCanvasMenuClick={onCanvasMenuClick}
-              changeLayout={(layout) => { setLayout(layout) }}>
+              changeLayout={(layout) => { setLayout(layout) }} onNodeMenuClick={onNodeMenuClick}>
+              {
+                similarityChartVisible ?
+                  <Movable onClose={() => {
+                    setSimilarityChartVisible(false)
+                    setHightlightMode('activate')
+                  }} width='600px'
+                    title='Node Similarity'>
+                    <SimilarityChart data={similarityArray}
+                      description='If you expect to highlight nodes on the chart, you need to enable the "Focus" and "Select" mode.'
+                      onClick={(node: GraphNode) => {
+                        setCurrentNode(node.id)
+                        setHightlightMode('focus')
+                      }}>
+                    </SimilarityChart>
+                  </Movable> : null
+              }
             </GraphinWrapper>
             {contextHolder}
           </Col>

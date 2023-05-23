@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import Graphin, { Components, Behaviors, GraphinContext, IG6GraphEvent } from '@antv/graphin';
+import { CustomGraphinContext } from "./Context/CustomGraphinContext";
 import { INode, NodeConfig, IEdge } from '@antv/g6';
-import Moveable from "react-moveable";
+import Moveable from "./Components/Movable";
 import { ContextMenu, FishEye, Toolbar } from '@antv/graphin-components';
 import {
     BoxPlotOutlined,
@@ -29,7 +30,7 @@ import DataArea from './DataArea';
 import {
     message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu,
 } from 'antd';
-import { makeDataSource, layouts } from './utils';
+import { makeDataSource, layouts, getSelectedNodes } from './utils';
 import type {
     OnNodeMenuClickFn, OnEdgeMenuClickFn, GraphNode,
     OnClickEdgeFn, OnClickNodeFn, GraphEdge, OnCanvasMenuClickFn,
@@ -225,6 +226,11 @@ const NodeMenu = (props: NodeMenuProps) => {
             key: 'reverse-selected-nodes',
             icon: <CloseCircleOutlined />,
             label: 'Reverse Selected Nodes',
+        },
+        {
+            key: 'visulize-similarities',
+            icon: <DotChartOutlined />,
+            label: 'Visualize Similarities',
         },
         {
             key: 'expand-all-paths',
@@ -436,7 +442,7 @@ const EdgeLabelVisible = (props: {
     return null;
 };
 
-const HighlightNode = (props: { selectedNode?: string }) => {
+const HighlightNode = (props: { selectedNode?: string, mode?: 'activate' | 'focus' }) => {
     if (props.selectedNode) {
         // More details on https://graphin.antv.vision/graphin/quick-start/interface
         const { graph } = useContext(GraphinContext);
@@ -444,41 +450,52 @@ const HighlightNode = (props: { selectedNode?: string }) => {
         const edges = graph.getEdges();
         // More details on https://graphin.antv.vision/graphin/render/status
 
-        // Clear all status
-        nodes.forEach(node => {
-            graph.setItemState(node, 'inactive', false);
-            graph.setItemState(node, 'active', false);
-        });
+        if (props.mode == 'activate') {
+            // Clear all status
+            nodes.forEach(node => {
+                graph.setItemState(node, 'inactive', false);
+                graph.setItemState(node, 'active', false);
+            });
 
-        // Highlight the selected node.
-        nodes.forEach(node => {
-            const model = node.getModel();
+            // Highlight the selected node.
+            nodes.forEach(node => {
+                const model = node.getModel();
 
-            if (props.selectedNode && props.selectedNode !== model.id) {
-                console.log("UnSelected Node: ", props.selectedNode, model.id)
-                graph.setItemState(node, 'inactive', true);
-            } else {
-                console.log("Selected Node: ", props.selectedNode, model.id)
-                graph.setItemState(node, 'active', true);
-            }
-        });
+                if (props.selectedNode && props.selectedNode !== model.id) {
+                    console.log("UnSelected Node: ", props.selectedNode, model.id)
+                    graph.setItemState(node, 'inactive', true);
+                } else {
+                    console.log("Selected Node: ", props.selectedNode, model.id)
+                    graph.setItemState(node, 'active', true);
+                }
+            });
+        } else {
+            graph.focusItem(props.selectedNode, true);
+        }
     }
     return null;
 }
 
-const FocusBehavior = (props: { queriedId?: string, onClickNode?: (nodes: GraphNode) => void }) => {
+const FocusBehavior = (props: {
+    queriedId?: string,
+    onClickNode?: (nodes: GraphNode) => void,
+    mode?: 'select' | 'focus'
+}) => {
     const { graph, apis } = useContext(GraphinContext);
 
     useEffect(() => {
         // 初始化聚焦到查询节点
-        if (props.queriedId) {
+        if (props.queriedId && props.mode == 'focus') {
             apis.focusNodeById(props.queriedId);
         }
 
         const handleClick = (evt: IG6GraphEvent) => {
             const node = evt.item as INode;
             const model = node.getModel() as NodeConfig;
-            apis.focusNodeById(model.id);
+
+            if (props.mode == 'focus') {
+                apis.focusNodeById(model.id);
+            }
 
             if (props.onClickNode) {
                 props.onClickNode(node.getModel() as GraphNode);
@@ -600,6 +617,7 @@ const NodeSearcher = () => {
 
 export type GraphinProps = {
     selectedNode?: string;
+    highlightMode?: 'activate' | 'focus';
     data: any;
     layout: any;
     style: React.CSSProperties;
@@ -648,7 +666,6 @@ const defaultSettings: GraphinSettings = {
 }
 
 const GraphinWrapper: React.FC<GraphinProps> = (props) => {
-    const explanationPanelRef = React.useRef<HTMLDivElement>(null);
     const {
         data, style, onNodeMenuClick,
         onEdgeMenuClick, selectedNode, onCanvasMenuClick
@@ -780,7 +797,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             {/* BUG: Cannot restore the label of edges */}
             <EdgeLabelVisible visible={settings.edgeLabelVisible} />
             <FishEye options={{}} visible={fishEyeVisible} handleEscListener={onCloseFishEye} />
-            <HighlightNode selectedNode={selectedNode}></HighlightNode>
+            <HighlightNode selectedNode={selectedNode} mode={props.highlightMode}></HighlightNode>
             {
                 !settings.selectedNodeEnabled ?
                     <CustomHoverable bindType="node" />
@@ -821,11 +838,12 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
                         // TODO: How to generate explanation report for the edge?
                         if (menuItem.key == 'explain-relationship') {
-                            setExplanationPanelVisible(true)
+                            setCurrentEdge(edge);
+                            setExplanationPanelVisible(true);
                         }
 
                         if (onEdgeMenuClick) {
-                            onEdgeMenuClick(menuItem, source, target, edge, graph, apis)
+                            onEdgeMenuClick(menuItem, source, target, edge, graph, apis);
                         }
                     }} />
             </ContextMenu>
@@ -984,13 +1002,19 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
             <NodeSearcher></NodeSearcher>
 
-            {settings.focusNodeEnabled ?
+            {/* Only work at focus mode */}
+            {(settings.focusNodeEnabled) ?
                 <>
-                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode} />
-                    <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
-                        onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList}
-                        // TODO: hard code here, need to be fixed
-                        algorithm={data.edges.length > 500 ? 'bfs' : 'dfs'} />
+                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
+                        mode={!settings.selectedNodeEnabled ? "focus" : "select"} />
+                    {
+                        !settings.selectedNodeEnabled ?
+                            <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
+                                onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList}
+                                // TODO: hard code here, need to be fixed
+                                algorithm={data.edges.length > 500 ? 'bfs' : 'dfs'} />
+                            : null
+                    }
                 </>
                 : null
             }
@@ -1002,54 +1026,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 // 4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method
                 // 5. Show the filled markdown in the explanation panel
                 (currentEdge && explanationPanelVisible) ?
-                    <div className='explanation-panel'
-                        style={{
-                            top: '200px',
-                            right: '200px'
-                        }}>
-                        <div ref={explanationPanelRef} style={{
-                            position: "absolute",
-                            width: "400px",
-                            maxWidth: "auto",
-                            maxHeight: "auto",
-                        }} className="explanation-content">
-                            <div className="explanation-title">
-                                <h3>Explanation</h3>
-                                <CloseOutlined className="explanation-close" onClick={() => {
-                                    setExplanationPanelVisible(false)
-                                }} />
-                            </div>
-                            <div className='explanation-info'>
-                                TODO: generate explanations for the current edge<br />
-                                1. Get the current edge, the source node and target node<br />
-                                2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information<br />
-                                3. Send the markdown to the backend and get the filled markdown<br />
-                                4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method<br />
-                                5. Show the filled markdown in the explanation panel<br />
-                            </div>
-                        </div>
-                        {/* More details on https://daybrush.com/moveable/storybook/index.html?path=/story/basic--basic-resizable */}
-                        <Moveable
-                            target={explanationPanelRef}
-                            draggable={true}
-                            throttleDrag={1}
-                            edgeDraggable={false}
-                            startDragRotate={0}
-                            throttleDragRotate={0}
-                            onDrag={e => {
-                                e.target.style.transform = e.transform;
-                            }}
-                            resizable={true}
-                            keepRatio={false}
-                            throttleResize={1}
-                            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
-                            onResize={e => {
-                                e.target.style.width = `${e.width}px`;
-                                e.target.style.height = `${e.height}px`;
-                                e.target.style.transform = e.drag.transform;
-                            }}
-                        />
-                    </div>
+                    <Moveable onClose={() => { setExplanationPanelVisible(false) }}>
+                        TODO: generate explanations for the current edge<br />
+                        1. Get the current edge, the source node and target node<br />
+                        2. Send the source node and target node to the backend and get the prompt (markdown format) which contains the prompt and api codes for retrieving context information<br />
+                        3. Send the markdown to the backend and get the filled markdown<br />
+                        4. Send the filled markdown to LLM and generate explanations by using `rethinking with retrieval` method<br />
+                        5. Show the filled markdown in the explanation panel<br />
+                    </Moveable>
                     : null
             }
             {(settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
@@ -1101,7 +1085,15 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 </DataArea>
                 : null
             }
-            {props.children ? props.children : null}
+            <CustomGraphinContext.Provider value={
+                {
+                    graph: ref.current?.graph,
+                    apis: ref.current?.apis,
+                    selectedNodes: focusedNodes
+                }
+            }>
+                {props.children ? props.children : null}
+            </CustomGraphinContext.Provider>
         </Graphin>
     );
 }

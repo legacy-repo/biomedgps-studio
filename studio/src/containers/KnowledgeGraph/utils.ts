@@ -1,8 +1,12 @@
 import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
-import { postNodes, postSimilarity } from '@/services/swagger/Graph';
-import { SearchObject, GraphData, GraphNode, Relationship, EdgeStat, OptionType } from './typings';
+import { Graph } from '@antv/g6';
+import { postNodes, postSimilarity, postDimension } from '@/services/swagger/Graph';
+import {
+  SearchObject, GraphData, GraphNode, Relationship,
+  EdgeStat, OptionType, DimensionArray
+} from './typings';
 import voca from 'voca';
 // import { Graph } from '@antv/g6';
 
@@ -464,6 +468,26 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
   })
 }
 
+export const getDimensions = (
+  sourceId: string, sourceType: string,
+  targetIds: string[], targetTypes: string[]
+): Promise<DimensionArray> => {
+  return new Promise((resolve, reject) => {
+    postDimension({
+      source_id: sourceId,
+      source_type: sourceType,
+      target_ids: targetIds,
+      target_types: targetTypes
+    }).then(res => {
+      console.log("Get dimensions: ", res)
+      resolve(res.data as DimensionArray)
+    }).catch(err => {
+      console.log("Error when getting dimensions: ", err)
+      reject([])
+    })
+  })
+}
+
 export const defaultLayout = {
   type: 'grid'
 }
@@ -561,4 +585,22 @@ export const layouts = [
 export const isUUID = (str: string) => {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
   return uuidRegex.test(str)
+}
+
+export const getSelectedNodes = (graph?: Graph) => {
+  if (!graph) {
+    return []
+  }
+
+  const selectedNodes = graph.getNodes().filter((node: any) => node.hasState('selected'));
+  return selectedNodes.map((node: any) => node.getModel() as GraphNode);
+}
+
+export const getNodes = (graph?: Graph) => {
+  if (!graph) {
+    return []
+  }
+
+  const nodes = graph.getNodes();
+  return nodes.map((node: any) => node.getModel() as GraphNode);
 }

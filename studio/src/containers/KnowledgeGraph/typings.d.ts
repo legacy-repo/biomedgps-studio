@@ -93,6 +93,14 @@ export type EdgeInfo = {
   edge: GraphEdge
 }
 
+export type DimensionArray = {
+  x: number;
+  y: number;
+  node_id: string;
+  node_type: string;
+  raw_node_id: string;
+}[];
+
 export type OnClickEdgeFn = (edgeId: string, startNode: GraphNode, endNode: GraphNode, edge: GraphEdge) => void;
 export type OnClickNodeFn = (nodeId: string, node: GraphNode) => void;
 
