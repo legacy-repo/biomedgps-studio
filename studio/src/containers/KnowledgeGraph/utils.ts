@@ -108,19 +108,25 @@ export function makeQueryStr(
 
 
 export function makeGraphQueryStr(
-  match_clause: string,
-  where_clause: string,
-  return_clause?: string,
+  matchClause: string,
+  whereClause: string,
+  returnClause?: string,
   limit?: number
 ): Record<string, any> {
-  let return_clause_str = return_clause ? return_clause : "n,m,r";
-  let _limit = limit ? limit : 10;
-  return {
-    "match": match_clause,
-    "where": where_clause,
-    "limit": _limit,
-    "return": return_clause_str
-  };
+  let returnClauseStr = returnClause ? returnClause : "n,m,r";
+  let queryStr: any = {
+    "match": matchClause,
+    "where": whereClause,
+    "return": returnClauseStr
+  }
+
+  if (limit !== undefined) {
+    queryStr = {
+      ...queryStr,
+      limit: limit ? limit : 50
+    }
+  }
+  return queryStr;
 }
 
 export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
@@ -385,12 +391,40 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       if (isValidBatchNodesMode(searchObject)) {
         const whereClause = uniq(nodes?.map(item => `(n.id = '${item.data.id}' and n:${item.nlabel})`)).join(" or ");
 
-        query_str = makeGraphQueryStr(
-          `(n)-[r]-(m:${node_type})`,
-          whereClause,
-          "n,r,m",
-          defaultLimit
-        )
+        let relationConditions = "";
+        if (searchObject.relation_types && searchObject.relation_types.length > 0) {
+          const relationTypes = uniq(searchObject.relation_types.map(item => `'${item}'`)).join(",");
+          relationConditions = relationTypes ? `type(r) in [${relationTypes}]` : "";
+        }
+
+        if (searchObject.query_mode == "each") {
+          // MATCH (n)-[r]-(:Gene)
+          // WHERE ((n.id = 'DB00005' and n:Compound) or (n.id = 'DB00016' and n:Compound))
+          // CALL {
+          //   WITH n
+          //   MATCH (n)-[r]-(m: Gene)
+          //   WHERE type(r) in ["DRUGBANK::target::Compound:Gene"]
+          //   RETURN m
+          //   LIMIT 3
+          // }
+          // RETURN n,r,m
+          const whereClauses = `(${whereClause}) ${relationConditions ? "and " + relationConditions : ""}`
+          const callClauseRelConditions = relationConditions ? `WHERE ${relationConditions}` : ''
+          const callClause = `CALL { WITH n MATCH (n)-[r]-(m:${node_type}) ${callClauseRelConditions}  RETURN m LIMIT ${defaultLimit} }`
+          // Don't set limit here, otherwise it will not return the correct result
+          query_str = makeGraphQueryStr(
+            `(n)-[r]-(:${node_type})`,
+            `${whereClauses} ${callClause}`,
+            `n,r,m`
+          )
+        } else {
+          query_str = makeGraphQueryStr(
+            `(n)-[r]-(m:${node_type})`,
+            `${whereClause} ${relationConditions}`,
+            "n,r,m",
+            defaultLimit
+          )
+        }
       }
 
       if (isValidPathMode(searchObject)) {
@@ -540,6 +574,45 @@ export const layouts = [
   },
   {
     ...legacyDefaultLayout
+  },
+  {
+    type: 'force',
+    workerEnabled: false, // 可选，开启 web-worker
+    gpuEnabled: false, // 可选，开启 GPU 并行计算，G6 4.0 支持
+    animation: true,
+    preset: {
+      type: 'grid', // 力导的前置布局
+    },
+    clustering: true,
+    leafCluster: true,
+    preventOverlap: true,
+    clusterAttr: 'nlabel',
+    nodeClusterBy: 'nlabel', // 节点聚类的映射字段
+    clusterNodeStrength: 40, // 节点聚类作用力
+    minNodeSpacing: 20,
+    nodeSize: 40,
+    defSpringLen: (_edge, source, target) => {
+      const nodeSize = 40;
+      const Sdegree = source.data.layout?.degree;
+      const Tdegree = target.data.layout?.degree;
+      const minDegree = Math.min(Sdegree, Tdegree);
+      return minDegree === 1 ? nodeSize * 4 : Math.min(minDegree * nodeSize * 1.5, 200);
+    },
+    getId: function getId(d: any) {
+      return d.id;
+    },
+    getHeight: function getHeight() {
+      return 16;
+    },
+    getWidth: function getWidth() {
+      return 16;
+    },
+    getVGap: function getVGap() {
+      return 80;
+    },
+    getHGap: function getHGap() {
+      return 50;
+    },
   },
   {
     type: 'grid',

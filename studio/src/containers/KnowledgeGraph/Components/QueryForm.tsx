@@ -22,6 +22,11 @@ const mergeModeOptions = [
   { label: "Subtract", value: "subtract" },
 ]
 
+const queryModeOptions = [
+  { label: "Query n nodes for each node", value: "each" },
+  { label: "Query n nodes for all nodes", value: "total" },
+]
+
 const nStepsOptions = [
   { label: "1 Step", value: 1 },
   { label: "2 Steps", value: 2 },
@@ -94,6 +99,13 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       fields = {
         ...fields,
         topk: 10
+      }
+    }
+
+    if (!props.searchObject?.query_mode) {
+      fields = {
+        ...fields,
+        query_mode: "each"
       }
     }
 
@@ -393,7 +405,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       <Form.Item
         name="relation_types"
         label="Relation Types"
-        hidden={(isBatchIdsMode || isSimilarityMode || isBatchNodesMode)}
+        hidden={(isBatchIdsMode || isSimilarityMode)}
         validateStatus={helpWarning ? "warning" : ""} help={helpWarning}
         rules={[{ required: false, message: 'Please select your expected relation types!', type: 'array' }]}
       >
@@ -405,6 +417,12 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
           autoClearSearchValue={false}
           placeholder="Please select relation types"
           options={relationTypeOptions}>
+        </Select>
+      </Form.Item>
+      <Form.Item label="Query Mode" name="query_mode" hidden={!isBatchNodesMode}>
+        <Select
+          placeholder="Please select query mode"
+          options={queryModeOptions}>
         </Select>
       </Form.Item>
       <Form.Item

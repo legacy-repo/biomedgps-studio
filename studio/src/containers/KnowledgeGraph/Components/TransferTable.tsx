@@ -7,6 +7,32 @@ import type { SearchObject } from '../typings';
 
 import './TransferTable.less';
 
+const exampleData = [
+  {
+    node_id: 'MESH:D002289',
+    node_type: 'Disease',
+  },
+  {
+    node_id: 'MESH:D015673',
+    node_type: 'Disease',
+  },
+]
+
+const downloadExampleFile = () => {
+  const header = 'node_id,node_type'
+  const data = exampleData.map((item) => {
+    return `${item.node_id},${item.node_type}`
+  })
+  data.unshift(header);
+  const csvContent = "data:text/csv;charset=utf-8," + data.join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", 'example.csv');
+  document.body.appendChild(link); // Required for FF
+  link.click();
+}
+
 export interface DataType {
   key: string;
   node_id: string;
@@ -154,6 +180,7 @@ const TransferTable: React.FC<TransferTableProps> = (props) => {
         rightColumns={rightTableColumns}
       />
       <Row className='button-group'>
+        <Button type="link" onClick={() => { downloadExampleFile() }}>Download Example File</Button>
         <Button onClick={props.onCancel}>Cancel</Button>
         <Button type='primary'
           onClick={submitData}>

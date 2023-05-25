@@ -1,11 +1,11 @@
-import { message, Upload, Button } from 'antd';
+import { message, Upload, Button, notification } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import Papa from 'papaparse';
 import type { UploadProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import type { DataType } from './TransferTable';
 import { getLabels } from '@/services/swagger/Graph';
-import { flatten } from 'lodash';
+import { flatten, uniqBy } from 'lodash';
 
 type UploadNodeProps = {
   onUpload: (data: DataType[]) => void;
@@ -94,7 +94,20 @@ const UploadNode: React.FC<UploadNodeProps> = (props) => {
               })
             }
 
-            console.log('selectedData: ', selectedData)
+            // Deduplicate the selected data
+            const uniqueData = uniqBy(selectedData, (obj) => {
+              return `${obj.node_id}-${obj.node_type}`
+            })
+
+            notification.info({
+              message: 'Found duplicated nodes',
+              description: `The number of nodes is ${selectedData.length}, the number of unique nodes is ${uniqueData.length}`
+            })
+
+            console.log('selectedData: ', selectedData, uniqueData)
+
+            // Remap the selected data
+            selectedData = uniqueData;
             if (selectedData.length > 0) {
               fetch(selectedData).then((res) => {
                 const matchedData = flatten(res.map((data, index) => {

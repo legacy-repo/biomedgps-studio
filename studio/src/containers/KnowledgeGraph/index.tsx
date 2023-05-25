@@ -104,24 +104,25 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     const nonexistentEdges = data.edges.filter(edge => !nodeIds.has(edge.source) || !nodeIds.has(edge.target));
     const edges = data.edges.filter(edge => nodeIds.has(edge.source) && nodeIds.has(edge.target));
 
-    if (nonexistentEdges.length > 0) {
-      message.warn(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`);
-      console.log(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`)
-      const ids = nonexistentEdges.map(edge => parseInt(edge.source)).concat(nonexistentEdges.map(edge => parseInt(edge.target)));
-      makeGraphQueryStrWithIds(uniq(ids))
-        .then(response => {
-          const nodes = response.nodes as GraphNode[];
-          const edges = response.edges as GraphEdge[];
-          checkAndSetData({
-            nodes: data.nodes.concat(nodes),
-            edges: data.edges.concat(edges)
-          })
-        })
-        .catch(error => {
-          message.error("Failed to fetch data from server.");
-          console.error(error);
-        })
-    }
+    // TODO: Why does this happen? The backend have some bugs, so that it will return some edges that connect to nonexistent nodes.
+    // if (nonexistentEdges.length > 0) {
+    //   message.warn(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`);
+    //   console.log(`There are ${nonexistentEdges.length} edges that connect to nonexistent nodes, they will be added soon.`)
+    //   const ids = nonexistentEdges.map(edge => parseInt(edge.source)).concat(nonexistentEdges.map(edge => parseInt(edge.target)));
+    //   makeGraphQueryStrWithIds(uniq(ids))
+    //     .then(response => {
+    //       const nodes = response.nodes as GraphNode[];
+    //       const edges = response.edges as GraphEdge[];
+    //       checkAndSetData({
+    //         nodes: data.nodes.concat(nodes),
+    //         edges: data.edges.concat(edges)
+    //       })
+    //     })
+    //     .catch(error => {
+    //       message.error("Failed to fetch data from server.");
+    //       console.error(error);
+    //     })
+    // }
 
     setIsDirty(true);
     setData({

@@ -73,7 +73,7 @@
     "@handsontable/react": "^12.1.3",
     "@textea/json-viewer": "^2.9.0",
     "@umijs/route-utils": "^2.0.0",
-    "antd": "^4.20.0",
+    "antd": "^4.24.10",
     "antd-schema-form": "^4.5.1",
     "axios": "^1.1.2",
     "biominer-components": "^0.1.5",

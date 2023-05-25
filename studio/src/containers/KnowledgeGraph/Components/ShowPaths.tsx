@@ -515,7 +515,8 @@ const ShowPaths = (props: ShowPathProps) => {
       </ul>
       {pathTableVisible ?
         <Row className='path-table'>
-          <Table rowKey={'path'} columns={columns} dataSource={pathTableData}
+          <Table rowKey={(item) => { return `${item.index}-${item.path}` }} columns={columns}
+            dataSource={pathTableData}
             ref={pathTableRef} scroll={{ y: 200 }} size='small' title={
               () => {
                 return <div>

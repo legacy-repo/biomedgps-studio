@@ -1,21 +1,36 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Button, Popover } from 'antd';
 import Moveable from 'react-moveable';
-import { CloseOutlined } from '@ant-design/icons';
+import { CloseOutlined, QuestionCircleFilled } from '@ant-design/icons';
 import './Movable.less';
 
 type MovableProps = {
   onClose?: () => void
+  closable?: boolean,
   width?: string,
   title?: string,
+  top?: string,
+  right?: string,
+  help?: string | JSX.Element,
 }
 
 const Movable: React.FC<MovableProps> = (props) => {
   const explanationPanelRef = useRef<HTMLDivElement>(null);
+  const [closable, setClosable] = useState<boolean>(props.closable || false);
+
+  useEffect(() => {
+    if (props.closable !== undefined) {
+      setClosable(props.closable);
+    } else {
+      // default to true when user doesn't specify the closable prop
+      setClosable(true);
+    }
+  }, [props.closable]);
 
   return <div className='explanation-panel'
     style={{
-      top: '200px',
-      right: props.width || "400px",
+      top: props.top || '200px',
+      right: props.right || (props.width || "400px"),
     }}>
     <div ref={explanationPanelRef} style={{
       position: "absolute",
@@ -25,9 +40,20 @@ const Movable: React.FC<MovableProps> = (props) => {
     }} className="explanation-content">
       <div className="explanation-title">
         <h3>{props.title || 'Explanation'}</h3>
-        <CloseOutlined className="explanation-close" onClick={() => {
-          props.onClose?.();
-        }} />
+        {
+          props.help ?
+            <Popover content={props.help} title="Help" placement='topRight'>
+              <QuestionCircleFilled />
+            </Popover>
+            : null
+        }
+        {
+          closable ?
+            <CloseOutlined className="explanation-close" onClick={() => {
+              props.onClose?.();
+            }} />
+            : null
+        }
       </div>
       <div className='explanation-info'>
         {props.children}

@@ -18,6 +18,7 @@ export type SearchObject = {
   node_id?: string | undefined;
   merge_mode: "append" | "replace" | "subtract";
   relation_types?: string[];
+  query_mode?: "each" | "all"; // each: querying n nodes for each node, all: querying n nodes for all nodes; Only used for mode "batchNodes"
   all_relation_types?: string[];
   enable_prediction?: boolean;
   nsteps?: number;

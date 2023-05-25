@@ -643,9 +643,8 @@ type GraphinSettings = {
     edgeLabelVisible: boolean;
     nodeTooltipEnabled: boolean;
     edgeTooltipEnabled: boolean;
-    selectedNodeEnabled: boolean;
     selectionMode: string;
-    focusNodeEnabled: boolean;
+    interactiveMode: "show-details" | "show-paths" | "select-nodes";
     miniMapEnabled: boolean;
     snapLineEnabled: boolean;
     infoPanelEnabled: boolean;
@@ -657,9 +656,8 @@ const defaultSettings: GraphinSettings = {
     edgeLabelVisible: true,
     nodeTooltipEnabled: true,
     edgeTooltipEnabled: false,
-    selectedNodeEnabled: true,
+    interactiveMode: "select-nodes",
     selectionMode: "brush-select",
-    focusNodeEnabled: false,
     miniMapEnabled: true,
     snapLineEnabled: true,
     infoPanelEnabled: true,
@@ -682,6 +680,10 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
     const ref = React.useRef(null);
 
+    const helpDoc = <p style={{ width: '400px' }}>
+        If you would like to select multiple nodes, please set the interactive mode to "select-nodes". Then press the "Shift" key and click the nodes you want to select.
+    </p>
+
     // All initializations
     // Save the node or edge when the context menu is clicked.
     useEffect(() => {
@@ -696,6 +698,12 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             })
         }
     }, [])
+
+    useEffect(() => {
+        // We need to clear the focused nodes when the interactive mode is changed. 
+        // otherwise the focused nodes will be kept and make the focus mode not work.
+        setFocusedNodes([]);
+    }, [settings.interactiveMode])
 
     useEffect(() => {
         // TODO: how to force update the layout, the following code doesn't work.
@@ -799,18 +807,18 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             <FishEye options={{}} visible={fishEyeVisible} handleEscListener={onCloseFishEye} />
             <HighlightNode selectedNode={selectedNode} mode={props.highlightMode}></HighlightNode>
             {
-                !settings.selectedNodeEnabled ?
+                settings.interactiveMode == "show-paths" ?
                     <CustomHoverable bindType="node" />
                     : null
             }
             {
-                !settings.selectedNodeEnabled ?
+                settings.interactiveMode == "show-paths" ?
                     <CustomHoverable bindType="edge" />
                     : null
             }
             {
-                !settings.selectedNodeEnabled ?
-                    <ActivateRelations disabled={settings.selectedNodeEnabled} />
+                settings.interactiveMode == "show-paths" ?
+                    <ActivateRelations />
                     : null
             }
             <ContextMenu style={{ width: '160px' }}>
@@ -854,167 +862,183 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 }}
             </Legend>
             {props.toolbarVisible ?
-                <Toolbar style={{
-                    top: 'unset', right: '5px',
-                    bottom: '45px', left: 'unset',
-                    marginBottom: '0px', opacity: 0.8,
-                }}>
-                    <Toolbar.Item>
-                        <Select style={{ width: '100%' }} allowClear
-                            defaultValue={props.layout.type}
-                            onChange={(value) => {
-                                // TODO: Need to notice the user that the layout is changed, but it's not working when the previous layout is not finished.
-                                if (value == 'auto') {
-                                    GraphLayoutPredict.predict(data).then((layout) => {
-                                        console.log("Predicted layout: ", layout)
-                                        const l = layouts.find(item => item.type === layout.predictLayout);
-                                        message.info(`Predicted layout: ${layout.predictLayout}`);
+                <Moveable title="Settings" closable={false}
+                    width="220px" top="100px" right="30px" help={helpDoc}>
+                    <Toolbar style={{
+                        // Remove absolute position to make it work with the Moveable component.
+                        position: 'relative',
+                        marginBottom: '0px', opacity: 0.8,
+                    }} direction="horizontal">
+                        <Toolbar.Item>
+                            <Select style={{ width: '100%' }} allowClear
+                                defaultValue={props.layout.type}
+                                onChange={(value) => {
+                                    // TODO: Need to notice the user that the layout is changed, but it's not working when the previous layout is not finished.
+                                    if (value == 'auto') {
+                                        GraphLayoutPredict.predict(data).then((layout) => {
+                                            console.log("Predicted layout: ", layout)
+                                            const l = layouts.find(item => item.type === layout.predictLayout);
+
+                                            if (l) {
+                                                message.info(`Predicted layout: ${layout.predictLayout}`);
+                                                if (props.changeLayout) {
+                                                    props.changeLayout(l);
+                                                }
+                                            } else {
+                                                message.error(`Predicted layout is ${layout.predictLayout}, but it is not supported currently.`);
+                                            }
+                                        }).catch((err) => {
+                                            console.log(err)
+                                            message.error(`Failed to predict layout: ${err.message}`);
+                                        })
+                                    } else if (value == 'graphin-force') {
+                                        message.warn(`The layout '${value}' may not work well with the device which doesn't support GPU.`);
+                                        const l = layouts.find(item => item.type === value);
                                         if (props.changeLayout) {
                                             props.changeLayout(l);
                                         }
-                                    }).catch((err) => {
-                                        console.log(err)
-                                        message.error(`Failed to predict layout: ${err.message}`);
+                                    } else {
+                                        const l = layouts.find(item => item.type === value);
+                                        if (props.changeLayout) {
+                                            props.changeLayout(l);
+                                        }
+                                    }
+                                }}
+                                placeholder="Select a layout">
+                                {
+                                    layouts.map(item => {
+                                        const { type } = item;
+                                        return (
+                                            <Select.Option key={type} value={type}>
+                                                <ForkOutlined />
+                                                &nbsp;
+                                                {type}
+                                            </Select.Option>
+                                        );
                                     })
-                                } else if (value == 'graphin-force') {
-                                    message.warn(`The layout '${value}' may not work well with the device which doesn't support GPU.`);
-                                    const l = layouts.find(item => item.type === value);
-                                    if (props.changeLayout) {
-                                        props.changeLayout(l);
-                                    }
-                                } else {
-                                    const l = layouts.find(item => item.type === value);
-                                    if (props.changeLayout) {
-                                        props.changeLayout(l);
-                                    }
                                 }
-                            }}
-                            placeholder="Select a layout">
-                            {
-                                layouts.map(item => {
-                                    const { type } = item;
-                                    return (
-                                        <Select.Option key={type} value={type}>
-                                            <ForkOutlined />
-                                            &nbsp;
-                                            {type}
-                                        </Select.Option>
-                                    );
-                                })
-                            }
-                        </Select>
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Select style={{ width: '100%' }} allowClear
-                            defaultValue={"brush-select"}
-                            disabled={!settings.selectedNodeEnabled}
-                            onChange={(value) => {
-                                setSettings({ ...settings, selectionMode: value })
-                            }}
-                            placeholder="Select a selection mode">
-                            {
-                                ["brush-select", "lasso-select"].map(item => {
-                                    return (
-                                        <Select.Option key={item} value={item}>
-                                            <ForkOutlined />
-                                            &nbsp;
-                                            {voca.titleCase(item)}
-                                        </Select.Option>
-                                    );
-                                })
-                            }
-                        </Select>
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, selectedNodeEnabled: checked })
-                        }} checked={settings.selectedNodeEnabled} />
-                        Select Mode
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, focusNodeEnabled: checked })
-                        }} checked={settings.focusNodeEnabled} />
-                        Focus Mode
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, autoPin: checked })
-                        }} checked={settings.autoPin} disabled />
-                        Auto Pin
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, nodeLabelVisible: checked })
-                        }} checked={settings.nodeLabelVisible} />
-                        Node Label
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, edgeLabelVisible: checked })
-                        }} checked={settings.edgeLabelVisible} />
-                        Edge Label
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, nodeTooltipEnabled: checked })
-                        }} checked={settings.nodeTooltipEnabled} />
-                        Node Tooltip
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, edgeTooltipEnabled: checked })
-                        }} checked={settings.edgeTooltipEnabled} />
-                        Edge Tooltip
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, miniMapEnabled: checked })
-                        }} checked={settings.miniMapEnabled} />
-                        MiniMap
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, snapLineEnabled: checked })
-                        }} checked={settings.snapLineEnabled} />
-                        SnapLine
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Switch onChange={(checked) => {
-                            setSettings({ ...settings, infoPanelEnabled: checked })
-                        }} checked={settings.infoPanelEnabled} />
-                        Info Panel
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Button type="primary" size="small" style={{ width: '100%' }} onClick={() => {
-                            localStorage.setItem('graphin-settings', JSON.stringify(settings))
-                            message.success('Settings saved')
-                        }}>Save Settings</Button>
-                    </Toolbar.Item>
-                    <Toolbar.Item>
-                        <Button danger size="small" style={{ width: '100%' }} onClick={() => {
-                            loadSettings()
-                        }}>Load Settings</Button>
-                    </Toolbar.Item>
-                </Toolbar>
+                            </Select>
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Select style={{ width: '100%' }} allowClear
+                                value={settings.interactiveMode}
+                                onChange={(value) => {
+                                    setSettings({ ...settings, interactiveMode: value as any })
+                                }}
+                                placeholder="Select a interactive mode">
+                                {
+                                    ["show-details", "select-nodes", "show-paths"].map(item => {
+                                        return (
+                                            <Select.Option key={item} value={item}>
+                                                <ForkOutlined />
+                                                &nbsp;
+                                                {voca.titleCase(item)}
+                                            </Select.Option>
+                                        );
+                                    })
+                                }
+                            </Select>
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Select style={{ width: '100%' }} allowClear
+                                defaultValue={"brush-select"}
+                                disabled={settings.interactiveMode !== "select-nodes"}
+                                onChange={(value) => {
+                                    setSettings({ ...settings, selectionMode: value })
+                                }}
+                                placeholder="Select a selection mode">
+                                {
+                                    ["brush-select", "lasso-select"].map(item => {
+                                        return (
+                                            <Select.Option key={item} value={item}>
+                                                <ForkOutlined />
+                                                &nbsp;
+                                                {voca.titleCase(item)}
+                                            </Select.Option>
+                                        );
+                                    })
+                                }
+                            </Select>
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, autoPin: checked })
+                            }} checked={settings.autoPin} disabled />
+                            Auto Pin
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, nodeLabelVisible: checked })
+                            }} checked={settings.nodeLabelVisible} />
+                            Node Label
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, edgeLabelVisible: checked })
+                            }} checked={settings.edgeLabelVisible} />
+                            Edge Label
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, nodeTooltipEnabled: checked })
+                            }} checked={settings.nodeTooltipEnabled} />
+                            Node Tooltip
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, edgeTooltipEnabled: checked })
+                            }} checked={settings.edgeTooltipEnabled} />
+                            Edge Tooltip
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, miniMapEnabled: checked })
+                            }} checked={settings.miniMapEnabled} />
+                            MiniMap
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, snapLineEnabled: checked })
+                            }} checked={settings.snapLineEnabled} />
+                            SnapLine
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Switch onChange={(checked) => {
+                                setSettings({ ...settings, infoPanelEnabled: checked })
+                            }} checked={settings.infoPanelEnabled} />
+                            Info Panel
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Button type="primary" size="small" style={{ width: '100%' }} onClick={() => {
+                                localStorage.setItem('graphin-settings', JSON.stringify(settings))
+                                message.success('Settings saved')
+                            }}>Save Settings</Button>
+                        </Toolbar.Item>
+                        <Toolbar.Item>
+                            <Button danger size="small" style={{ width: '100%' }} onClick={() => {
+                                loadSettings()
+                            }}>Load Settings</Button>
+                        </Toolbar.Item>
+                    </Toolbar>
+                </Moveable>
                 : null
             }
 
             <NodeSearcher></NodeSearcher>
 
+            {(settings.interactiveMode == "select-nodes" || settings.interactiveMode == "show-paths") ?
+                <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
+                    mode={settings.interactiveMode == "show-paths" ? "focus" : "select"} />
+                : null
+            }
+
             {/* Only work at focus mode */}
-            {(settings.focusNodeEnabled) ?
+            {(settings.interactiveMode == "show-paths") ?
                 <>
-                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
-                        mode={!settings.selectedNodeEnabled ? "focus" : "select"} />
-                    {
-                        !settings.selectedNodeEnabled ?
-                            <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
-                                onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList}
-                                // TODO: hard code here, need to be fixed
-                                algorithm={data.edges.length > 500 ? 'bfs' : 'dfs'} />
-                            : null
-                    }
+                    <ShowPaths selectedNodes={focusedNodes} nodes={data.nodes} edges={data.edges}
+                        onClosePathsFinder={onClosePathsFinder} adjacencyList={adjacencyList}
+                        // TODO: hard code here, need to be fixed
+                        algorithm={data.edges.length > 500 ? 'bfs' : 'dfs'} />
                 </>
                 : null
             }
@@ -1036,15 +1060,15 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                     </Moveable>
                     : null
             }
-            {(settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
+            {(settings.interactiveMode == "select-nodes") ?
                 <ClickSelect multiple={true} trigger={"shift"}></ClickSelect>
                 : null
             }
-            {(!settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
+            {(settings.interactiveMode == "show-details") ?
                 <NodeClickBehavior onClick={props.onClickNode}></NodeClickBehavior>
                 : null
             }
-            {(!settings.selectedNodeEnabled && !settings.focusNodeEnabled) ?
+            {(settings.interactiveMode == "show-details") ?
                 <EdgeClickBehavior onClick={props.onClickEdge}></EdgeClickBehavior>
                 : null
             }
