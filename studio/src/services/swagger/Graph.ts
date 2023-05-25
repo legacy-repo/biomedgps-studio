@@ -146,6 +146,7 @@ export async function postNodes(
     topk?: number;
     enable_prediction?: boolean;
     query_map?: Record<string, any>;
+    target_ids?: string[];
   },
   options?: { [key: string]: any },
 ) {

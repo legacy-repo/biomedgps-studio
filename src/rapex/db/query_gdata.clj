@@ -485,15 +485,17 @@
   [query-map predicted-payload]
   (let [relation-types (:relation_types predicted-payload)
         topk (:topk predicted-payload)
-        enable-prediciton (:enable_prediction predicted-payload)
+        target-ids (:target_ids predicted-payload)
+        enable-prediction (:enable_prediction predicted-payload)
         source-id (:source_id predicted-payload)
-        enable_prediction (and enable-prediciton
-                               (some? (:source_id predicted-payload))
-                               (and (vector? relation-types) (not-empty relation-types))
-                               (some? topk))
-        predicted-rels (if enable_prediction
-                         (:topkpd (gnn/predict source-id relation-types :topk topk))
-                         {})]
+        predicted-rels (cond (and enable-prediction source-id (vector? relation-types) (not-empty relation-types))
+                             (:topkpd (gnn/predict source-id relation-types :topk (or topk 10)))
+
+                             (and enable-prediction source-id (vector? target-ids) (not-empty target-ids))
+                             (:topkpd (gnn/predict-source-targets source-id target-ids))
+
+                             :else
+                             [])]
     (log/info "Predicted Relationships: " predicted-rels)
     (with-open [session (db/get-session @gdb-conn)]
       (let [r (query-gdb session query-map)
@@ -504,7 +506,7 @@
         (if (empty? r)
           {:nodes []
            :edges []}
-          (if enable_prediction
+          (if enable-prediction
             ;; Remove duplicated nodes and edges
             (let [{:keys [nodes edges]} (merge-with concat r predicted-nr)]
               {:nodes (distinct nodes)

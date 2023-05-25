@@ -249,6 +249,15 @@
     :swagger/default     []
     :reason              "The relation_types parameter can't be none."}))
 
+(s/def ::target_ids
+  (st/spec
+   {:spec                (s/coll-of string?)
+    :type                :array
+    :description         "Target ids"
+    :swagger/type        "array"
+    :swagger/default     []
+    :reason              "The target_ids parameter can't be none."}))
+
 (s/def ::topk
   (st/spec
    {:spec                nat-int?
@@ -276,4 +285,4 @@
 
 (def nodes-query-spec
   (s/keys :req-un [::query_map]
-          :opt-un [::source_id ::relation_types ::topk ::enable_prediction]))
+          :opt-un [::source_id ::relation_types ::topk ::enable_prediction ::target_ids]))

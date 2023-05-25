@@ -384,8 +384,8 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
       }
 
       if (isValidBatchIdsMode(searchObject)) {
-        const nodeIds = node_ids?.filter(id => id);
-        query_str = makeGraphQueryStr(`(n)`, `n.id in ${JSON.stringify(nodeIds)}`, "n", defaultLimit)
+        const nodeIds = node_ids?.filter(id => id).map(id => `'${id}'`).join(",");
+        query_str = makeGraphQueryStr(`(n)`, `n.id in [${nodeIds}]`, "n", defaultLimit)
       }
 
       if (isValidBatchNodesMode(searchObject)) {
@@ -499,6 +499,30 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
         edges: []
       })
     }
+  })
+}
+
+export const predictRelationships = (
+  sourceId: string,
+  targetIds: string[],
+): Promise<GraphData> => {
+  return new Promise((resolve, reject) => {
+    const sourceNodeId = sourceId.split("::")[1];
+    const targetNodeIds = targetIds.map(item => `'${item.split("::")[1]}'`).join(`,`);
+    postNodes({
+      query_map: makeGraphQueryStr(`(n)-[r]-(m)`, `n.id = '${sourceNodeId}' and m.id in [${targetNodeIds}]`),
+      source_id: sourceId,
+      target_ids: targetIds,
+      enable_prediction: true
+    }).then((res) => {
+      if (res) {
+        resolve(res)
+      } else {
+        reject(res)
+      }
+    }).catch((err) => {
+      reject(err)
+    })
   })
 }
 

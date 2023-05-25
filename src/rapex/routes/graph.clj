@@ -148,12 +148,13 @@
                                    :return \"n, r, m\"
                                    :where (format \"id(n) = %s\" id)
                                    :limit 10}"}
-                           [{{{:keys [query_map source_id relation_types topk enable_prediction]} :body} :parameters}]
+                           [{{{:keys [query_map source_id relation_types target_ids topk enable_prediction]} :body} :parameters}]
                            (try
                              (log/info "Graph Query Map: " query_map)
-                             (log/info "Prediction Payload" source_id relation_types topk enable_prediction)
+                             (log/info "Prediction Payload" source_id relation_types target_ids topk enable_prediction)
                              (ok (gdb/query&predict query_map {:source_id source_id
                                                                :relation_types relation_types
+                                                               :target_ids target_ids
                                                                :topk topk
                                                                :enable_prediction enable_prediction}))
                              (catch Exception e

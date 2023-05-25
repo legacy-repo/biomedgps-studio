@@ -23,7 +23,8 @@ import {
     CloseCircleOutlined,
     RedditOutlined,
     ShareAltOutlined,
-    CloseOutlined
+    CloseOutlined,
+    CloudServerOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
 import DataArea from './DataArea';
@@ -226,6 +227,11 @@ const NodeMenu = (props: NodeMenuProps) => {
             key: 'reverse-selected-nodes',
             icon: <CloseCircleOutlined />,
             label: 'Reverse Selected Nodes',
+        },
+        {
+            key: 'predict-relationships',
+            icon: <CloudServerOutlined />,
+            label: 'Predict Relationships',
         },
         {
             key: 'visulize-similarities',

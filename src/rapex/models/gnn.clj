@@ -34,12 +34,38 @@
                       :score (nth item 2)
                       :target (nth item 3)})) topkpd-ave))
 
+(defn predict-source-targets
+  "Predict the intrinsic relations between source and targets.
+   
+   Arguments:
+    source-id: the id of source entity, e.g., Disease::MESH:D015673
+    target-ids: a list of target ids, e.g., [Compound::DB00843 Disease::MESH:D015673]
+   
+   Return: 
+    a list of vectors"
+  [source-id target-ids]
+  (when (not @model-map)
+    (throw (Exception. "You need to call init-model! function firstly.")))
+  (log/info (format "Predicting for %s with targets %s" source-id target-ids))
+  (try
+    (let [results (py/call-attr @nm-module "query_by_target_ids" @model-map source-id target-ids)
+          topkpd (py/call-attr @nm-module "relation_each" @model-map results true 1000)
+          topkpd-ave (py/call-attr @nm-module "relation_ave" @model-map results true 1000)]
+      {:topkpd (format-topkpd (py/call-attr topkpd "to_numpy"))
+       :topkpd_ave (format-topkpd-ave (py/call-attr topkpd-ave "to_numpy"))})
+    (catch Exception e
+      (println "Error while predicting:" (.getMessage e))
+      {:topkpd []
+       :topkpd_ave []})))
+
+
 (defn predict
   "You need to make sure that source-id matches the type of entity in relations."
   [source-id relations & {:keys [topk]
                           :or {topk 100}}]
   (when (not @model-map)
     (throw (Exception. "You need to call init-model! function firstly.")))
+  (log/info (format "Predicting for %s with relations %s topk %s" source-id relations topk))
   (try
     (let [results (py/call-attr @nm-module "query" @model-map relations source-id)
           topkpd (py/call-attr @nm-module "relation_each" @model-map results true topk)

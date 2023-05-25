@@ -18,7 +18,7 @@ import StatisticsChart from './Chart/StatisticsChart';
 // import ReactResizeDetector from 'react-resize-detector';
 import {
   makeColumns, makeDataSources, autoConnectNodes,
-  makeGraphQueryStrWithSearchObject, defaultLayout, makeGraphQueryStrWithIds,
+  makeGraphQueryStrWithSearchObject, defaultLayout, predictRelationships,
   isValidSearchObject, isUUID, getDimensions, getNodes, getSelectedNodes
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
@@ -433,6 +433,26 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       if (props.postMessage) {
         props.postMessage(`what is the ${node.data.name}?`)
       }
+    } else if (menuItem.key == 'predict-relationships') {
+      const sourceId = `${node.nlabel}::${node.data.id}`;
+      const selectedNodes = getSelectedNodes(graph);
+      let targetIds = selectedNodes.map(node => `${node.nlabel}::${node.data.id}`);
+      targetIds = targetIds.filter(id => id != sourceId);
+      console.log("Predict Relationships: ", menuItem, sourceId, targetIds, selectedNodes);
+      predictRelationships(sourceId, targetIds).then((response: GraphData) => {
+        console.log("Predict Relationships Response: ", response)
+        if (response.nodes.length == 0 && response.edges.length == 0) {
+          message.warn("No more relationships can be found.")
+        } else {
+          checkAndSetData({
+            nodes: uniqBy([...data.nodes, ...response.nodes], "id"),
+            edges: uniqBy([...data.edges, ...response.edges], "relid")
+          })
+        }
+      }).catch((error: any) => {
+        console.log("Predict Relationships Error: ", error)
+        message.warn("Something went wrong, please try again later.")
+      })
     } else if (menuItem.key == 'visulize-similarities') {
       const nodes = getNodes(graph);
       const sourceType = node.nlabel;
