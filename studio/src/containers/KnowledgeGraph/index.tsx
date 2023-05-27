@@ -7,7 +7,6 @@ import {
   CloudDownloadOutlined, FullscreenExitOutlined, FullscreenOutlined,
   SettingOutlined, CloudUploadOutlined, SettingFilled, ExclamationCircleOutlined
 } from '@ant-design/icons';
-// import { Utils } from '@antv/graphin';
 import Toolbar from './Toolbar';
 import { uniqBy, uniq } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
@@ -25,7 +24,6 @@ import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
 import GraphTable from './GraphStore/GraphTable';
 import GraphForm from './GraphStore/GraphForm';
-import UploadGraph from './GraphStore/UploadGraph';
 import type { Graph } from '@antv/graphin';
 import type { Graph as GraphItem } from './GraphStore/typings';
 import { getStatistics, getGraphs, postGraphs, deleteGraphsId } from '@/services/swagger/Graph';
@@ -44,6 +42,53 @@ const style = {
 
 type KnowledgeGraphProps = {
   postMessage?: (message: any) => void
+}
+
+const processEdges = (edges: GraphEdge[], options: any): GraphEdge[] => {
+  const edgeMap: Map<string, GraphEdge[]> = new Map();
+  edges.forEach(edge => {
+    const { source, target } = edge;
+    const id = `${source}-${target}`;
+    if (edgeMap.has(id)) {
+      const objs = edgeMap.get(id);
+      if (objs) {
+        edgeMap.set(id, [...objs, edge]);
+      }
+    } else {
+      edgeMap.set(id, [edge]);
+    }
+  });
+
+  const newEdges: GraphEdge[] = [];
+  edgeMap.forEach((value, key) => {
+    if (value.length > 1) {
+      const [firstEdge] = value;
+      const { source, target, ...others } = firstEdge;
+      const reltypes = value.map((edge: GraphEdge) => edge.reltype);
+      newEdges.push({
+        source,
+        target,
+        ...others,
+        reltype: reltypes.join('|'),
+        relid: `MultipleLabels-${source}-${target}`,
+        style: {
+          ...others.style,
+          label: {
+            value: 'MultipleLabels',
+          }
+        },
+        data: {
+          ...others.data,
+          identity: `MultipleLabels-${source}-${target}`,
+          reltypes: reltypes
+        }
+      });
+    } else {
+      newEdges.push(value[0]);
+    }
+  })
+
+  return newEdges;
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
@@ -128,7 +173,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     setIsDirty(true);
     setData({
       nodes: data.nodes,
-      edges: edges
+      edges: processEdges(edges, {})
     })
   }
 

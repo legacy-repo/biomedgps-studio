@@ -2,11 +2,11 @@ import { GraphinContext } from '@antv/graphin';
 import React, { useContext, useEffect, useState } from 'react';
 import { GraphNode, GraphEdge, AdjacencyList } from '../typings';
 import { message, Button, Table, Row, Space, notification, Input } from 'antd';
-import Moveable from "react-moveable";
+import Movable from './Movable';
 import type { InputRef } from 'antd';
 import type { FilterConfirmProps } from 'antd/es/table/interface';
 import Highlighter from 'react-highlight-words';
-import { ClearOutlined, TableOutlined, SearchOutlined, CloseCircleOutlined } from '@ant-design/icons';
+import { ClearOutlined, TableOutlined, SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType, ColumnType } from 'antd/es/table';
 import { sortBy, uniqBy } from 'lodash';
 
@@ -514,23 +514,14 @@ const ShowPaths = (props: ShowPathProps) => {
         }
       </ul>
       {pathTableVisible ?
-        <Row className='path-table'>
-          <Table rowKey={(item) => { return `${item.index}-${item.path}` }} columns={columns}
+        <Movable title="Path Table" onClose={() => {
+          setCurrentPath(null);
+          setPathTableVisible(false);
+        }} width='600px'>
+          <Table className='path-table' rowKey={(item) => { return `${item.index}-${item.path}` }}
+            columns={columns}
             dataSource={pathTableData}
-            ref={pathTableRef} scroll={{ y: 200 }} size='small' title={
-              () => {
-                return <div>
-                  <h4>Paths Table</h4>
-                  <Button type="primary" size='small' icon={<CloseCircleOutlined />}
-                    onClick={() => {
-                      setCurrentPath(null);
-                      onShowPathsInTable(pathTableVisible);
-                    }}>
-                    {pathTableVisible ? 'Hide' : 'Show'}
-                  </Button>
-                </div>
-              }
-            }
+            ref={pathTableRef} scroll={{ y: 200 }} size='small'
             pagination={{
               simple: true,
               defaultPageSize: 1000,
@@ -539,27 +530,7 @@ const ShowPaths = (props: ShowPathProps) => {
                 return `Total ${total} items`;
               }
             }} />
-          <Moveable
-            target={pathTableRef}
-            draggable={true}
-            throttleDrag={1}
-            edgeDraggable={false}
-            startDragRotate={0}
-            throttleDragRotate={0}
-            onDrag={e => {
-              e.target.style.transform = e.transform;
-            }}
-            resizable={false}
-            keepRatio={false}
-            throttleResize={1}
-            renderDirections={["nw", "n", "ne", "w", "e", "sw", "s", "se"]}
-            onResize={e => {
-              e.target.style.width = `${e.width}px`;
-              e.target.style.height = `${e.height}px`;
-              e.target.style.transform = e.drag.transform;
-            }}
-          />
-        </Row>
+        </Movable>
         : null
       }
     </div>

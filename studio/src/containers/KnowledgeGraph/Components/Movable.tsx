@@ -1,12 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
-import { Button, Popover } from 'antd';
+import { useEffect, useRef } from 'react';
+import { Popover } from 'antd';
 import Moveable from 'react-moveable';
 import { CloseOutlined, QuestionCircleFilled } from '@ant-design/icons';
 import './Movable.less';
 
 type MovableProps = {
   onClose?: () => void
-  closable?: boolean,
   width?: string,
   title?: string,
   top?: string,
@@ -16,18 +15,27 @@ type MovableProps = {
 
 const Movable: React.FC<MovableProps> = (props) => {
   const explanationPanelRef = useRef<HTMLDivElement>(null);
-  const [closable, setClosable] = useState<boolean>(props.closable || false);
+  const movableComponentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (props.closable !== undefined) {
-      setClosable(props.closable);
-    } else {
-      // default to true when user doesn't specify the closable prop
-      setClosable(true);
-    }
-  }, [props.closable]);
+    if (movableComponentRef.current) {
+      const component = movableComponentRef.current;
+      component.addEventListener('click', () => {
+        console.log("Focus the explanation panel");
+        component.style.zIndex = '10';
 
-  return <div className='explanation-panel'
+        const otherComponents = document.getElementsByClassName('explanation-panel');
+        for (let i = 0; i < otherComponents.length; i++) {
+          const otherComponent = otherComponents[i] as HTMLDivElement;
+          if (otherComponent !== component) {
+            otherComponent.style.zIndex = '2';
+          }
+        }
+      });
+    }
+  }, [movableComponentRef.current]);
+
+  return <div className='explanation-panel' ref={movableComponentRef}
     style={{
       top: props.top || '200px',
       right: props.right || (props.width || "400px"),
@@ -48,7 +56,7 @@ const Movable: React.FC<MovableProps> = (props) => {
             : null
         }
         {
-          closable ?
+          props.onClose ?
             <CloseOutlined className="explanation-close" onClick={() => {
               props.onClose?.();
             }} />

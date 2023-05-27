@@ -868,8 +868,7 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                 }}
             </Legend>
             {props.toolbarVisible ?
-                <Moveable title="Settings" closable={false}
-                    width="220px" top="100px" right="30px" help={helpDoc}>
+                <Moveable title="Settings" width="220px" top="100px" right="30px" help={helpDoc}>
                     <Toolbar style={{
                         // Remove absolute position to make it work with the Moveable component.
                         position: 'relative',
@@ -1038,10 +1037,18 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
             <NodeSearcher></NodeSearcher>
 
-            {(settings.interactiveMode == "select-nodes" || settings.interactiveMode == "show-paths") ?
-                <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
-                    mode={settings.interactiveMode == "show-paths" ? "focus" : "select"} />
-                : null
+            {
+                settings.interactiveMode == "show-paths" ?
+                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
+                        mode={"focus"} />
+                    : null
+            }
+
+            {
+                settings.interactiveMode == "select-nodes" ?
+                    <FocusBehavior queriedId={props.queriedId} onClickNode={onClickNodeInFocusMode}
+                        mode={"select"} />
+                    : null
             }
 
             {/* Only work at focus mode */}
