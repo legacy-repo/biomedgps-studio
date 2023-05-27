@@ -25,6 +25,7 @@ import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
 import GraphTable from './GraphStore/GraphTable';
 import GraphForm from './GraphStore/GraphForm';
+import UploadGraph from './GraphStore/UploadGraph';
 import type { Graph } from '@antv/graphin';
 import type { Graph as GraphItem } from './GraphStore/typings';
 import { getStatistics, getGraphs, postGraphs, deleteGraphsId } from '@/services/swagger/Graph';
@@ -140,8 +141,14 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     setCurrentGraphUUID("");
   }
 
-  const DirtyStatus = (status: boolean) => {
-    return status ? <Tag color="#f50">dirty</Tag> : <Tag color="#87d068">cleaned</Tag>
+  const DirtyStatus = (status: boolean, currentGraphUUID: string) => {
+    return <span>
+      {
+        status ? <Tag color="#f50">dirty</Tag> : <Tag color="#87d068">cleaned</Tag>
+      }
+      &nbsp;
+      {currentGraphUUID}
+    </span>
   }
 
   useEffect(() => {
@@ -163,7 +170,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       [<span>Edges <Tag color="#2db7f5">Canvas</Tag></span>, data.edges.length],
       [<span>Nodes <Tag color="#108ee9">KGraph</Tag></span>, nodeStat.reduce((acc, cur) => acc + cur.node_count, 0).toLocaleString()],
       [<span>Edges <Tag color="#108ee9">KGraph</Tag></span>, edgeStat.reduce((acc, cur) => acc + cur.relation_count, 0).toLocaleString()],
-      [<span>Status <Tag color="#2db7f5">Canvas</Tag></span>, DirtyStatus(isDirty)],
+      [<span>Status <Tag color="#2db7f5">Canvas</Tag></span>, DirtyStatus(isDirty, currentGraphUUID)],
     ])
   }, [data, edgeStat, nodeStat, currentGraphUUID])
 
@@ -217,10 +224,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     deleteGraphsId({ id: graph.id }).then(response => {
       message.success("Graph deleted successfully.")
       loadGraphs()
-      setGraphTableVisible(false)
     }).catch(error => {
       console.log(error)
-      setGraphTableVisible(false)
       message.error("Failed to delete graph, please check the network connection.")
     })
   }
@@ -573,6 +578,28 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   const enterFullScreenHandler = useFullScreenHandle();
 
+  const onSubmitGraph = (data: GraphItem) => {
+    return new Promise((resolve, reject) => {
+      if (parentGraphUUID && isUUID(parentGraphUUID)) {
+        data = { ...data, parent: parentGraphUUID }
+      }
+
+      // TODO: Remove the id field, because it will cause the backend to throw an error.
+      // @ts-ignore
+      delete data.id;
+
+      postGraphs(data).then(response => {
+        message.success("Graph data saved.")
+        loadGraphs()
+        return resolve(response)
+      }).catch(error => {
+        console.log("Post Graphs Error: ", error)
+        message.error("Graph save failed.")
+        return reject(error)
+      })
+    })
+  }
+
   return (
     <FullScreen handle={enterFullScreenHandler}>
       <Row className='knowledge-graph-container' id='knowledge-graph-container'>
@@ -581,26 +608,21 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
             parent={document.getElementById('knowledge-graph-container') as HTMLElement}
             onClose={() => { setGraphTableVisible(false) }}
+            onUpload={(graph: GraphItem) => {
+              onSubmitGraph(graph)
+            }}
             selectedGraphId={currentGraphUUID}>
           </GraphTable>
           <GraphForm visible={graphFormVisible}
             payload={graphFormPayload}
             parent={document.getElementById('knowledge-graph-container') as HTMLElement}
             onClose={() => { setGraphFormVisible(false) }}
-            onSubmit={(data) => {
-              setGraphFormVisible(false)
-              if (parentGraphUUID && isUUID(parentGraphUUID)) {
-                data = { ...data, parent: parentGraphUUID }
-              }
-
-              postGraphs(data).then(response => {
-                message.success("Graph data saved.")
-                loadGraphs()
-              }).catch(error => {
-                console.log("Post Graphs Error: ", error)
-                message.error("Graph save failed.")
+            onSubmit={(data: any) => {
+              onSubmitGraph(data as GraphItem).finally(() => {
+                setGraphFormVisible(false)
               })
-            }}></GraphForm>
+            }}>
+          </GraphForm>
           <Row className='left-toolbar'>
             <Tooltip title={enterFullScreenHandler.active ? 'Exit Full Screen' : 'Enter Full Screen'}
               placement='right'>

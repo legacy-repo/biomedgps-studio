@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Space, Table, Modal, Button, Tree, Col, Row } from 'antd';
 import type { Graph } from './typings';
 import type { ColumnsType } from 'antd/es/table';
+import UploadGraph from './UploadGraph';
 import type { DataNode, DirectoryTreeProps } from 'antd/es/tree';
 import './GraphTable.less';
 
@@ -13,6 +14,7 @@ type GraphTableProps = {
   onLoad: (graph: Graph, latestChild: Graph) => void;
   onDelete: (graph: Graph) => void;
   onClose: () => void;
+  onUpload?: (graph: Graph) => void;
   parent?: HTMLElement;
   treeFormat?: boolean;
   selectedGraphId?: string;
@@ -40,7 +42,9 @@ const makeTree = (graphs: Graph[]): TreeGraph[] => {
       // Root level object
       const root = {
         ...obj,
-        title: obj.name + "-" + obj.id.slice(0, 8),
+        // TODO: do we need to show the id?
+        // title: obj.name + "-" + obj.id.slice(0, 8),
+        title: obj.name,
         key: obj.id,
       };
       tree.push(root);
@@ -89,7 +93,7 @@ const makeTree = (graphs: Graph[]): TreeGraph[] => {
 }
 
 const GraphTable: React.FC<GraphTableProps> = (props) => {
-  const defaultTreePanelSpan = 5;
+  const defaultTreePanelSpan = 6;
   const [treeData, setTreeData] = React.useState<TreeGraph[]>([]);
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
   const [tableData, setTableData] = React.useState<Graph[]>([]);
@@ -126,6 +130,13 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
       width: 100
     },
     {
+      title: 'UUID',
+      key: 'id',
+      align: 'center',
+      dataIndex: 'id',
+      width: 200
+    },
+    {
       title: 'DB Version',
       key: 'db_version',
       align: 'center',
@@ -137,7 +148,7 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
       key: 'action',
       align: 'center',
       fixed: 'right',
-      width: 150,
+      width: 240,
       render: (_, record, index) => (
         <Space size="small">
           <Button size="small" type="link" disabled={props.selectedGraphId === record.id}
@@ -153,6 +164,20 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
               }
             }}>
             Load{props.selectedGraphId === record.id ? 'ed' : ''}
+          </Button>
+          <Button size="small" type="link" onClick={(e) => {
+            // How to ensure the data format is suitable for the graph loader?
+            const json = JSON.stringify(record);
+            const blob = new Blob([json], { type: 'application/json' });
+            const href = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = href;
+            link.download = record.name + '.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }}>
+            Download
           </Button>
           <Button size="small" type="link" danger onClick={(e) => props.onDelete(record)}>
             Delete
@@ -193,8 +218,26 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
   }, [props.graphs]);
 
   return <Modal className='graph-table' title="Graph Table" open={props.visible}
-    footer={null} width={1000} closable={true} onCancel={props.onClose}
-    getContainer={props.parent ? props.parent : document.body}>
+    width={1000} closable={true} onCancel={props.onClose}
+    getContainer={props.parent ? props.parent : document.body}
+    footer={
+      props.onUpload ?
+        [
+          <UploadGraph key="upload-graph" onUpload={
+            (graph: Graph) => {
+              if (props.onUpload) {
+                const newGraph = graph;
+                // Don't worry about it. We just want to create a new graph not linked to any existing graph
+                // @ts-ignore
+                delete newGraph.parent;
+                // @ts-ignore
+                delete newGraph.created_time;
+                props.onUpload(newGraph);
+              }
+            }
+          }></UploadGraph>
+        ] : null
+    }>
     <Row gutter={16}>
       <Col span={treePanelSpan}>
         {
@@ -214,7 +257,9 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
         <Table rowKey={'id'} columns={columns} dataSource={tableData}
           pagination={false} scroll={{ y: 500, x: 800 }} size='small'
           expandable={{
-            expandedRowRender: (record) => <p style={{ margin: 0 }}>{record.description}</p>,
+            expandedRowRender: (record) => <p style={{ margin: 0 }}>
+              {record.description || 'No description'}
+            </p>,
             rowExpandable: (record) => record.name !== 'Not Expandable',
           }} />
       </Col>
