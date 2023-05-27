@@ -99,7 +99,7 @@ const SimilarityChart: React.FC<SimilarityChartProps> = (props) => {
 
       localCharts.push({
         data: plotData,
-        layout: genLayout('Similarity', 'X', 'Y', false)
+        layout: genLayout('', 'X', 'Y', false)
       });
 
       console.log('localCharts: ', localCharts);

@@ -3,7 +3,9 @@
             [expound.alpha :refer [expound-str]]
             [cprop.core :refer [load-config]]
             [cprop.source :as source]
+            [next.jdbc :as jdbc]
             [clojure.string :as clj-str]
+            [next.jdbc.result-set :as rs]
             [clojure.tools.logging :as log]
             [clojure.java.io :refer [file]]
             [mount.core :refer [args defstate]]
@@ -145,6 +147,10 @@
   []
   (let [content (slurp (:dataset-metadata env))]
     (json/read-str content :key-fn keyword)))
+
+(defn get-graph-metadata-db-url
+  []
+  (:graph-metadb-url env))
 
 (defn get-label-blacklist
   []

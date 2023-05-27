@@ -7,7 +7,7 @@
             [conman.core :as conman]
             [mount.core :refer [defstate]]
             [next.jdbc.result-set :as rs]
-            [rapex.config :refer [env get-label-blacklist get-color-map]]
+            [rapex.config :refer [get-graph-metadata-db-url get-label-blacklist get-color-map]]
             [clojure.tools.logging :as log])
   (:import [java.net URI]
            [java.sql SQLException]
@@ -15,7 +15,7 @@
            [clojure.lang PersistentArrayMap Keyword]))
 
 (defstate ^:dynamic *graph-metadb*
-  :start (if-let [jdbc-url (env :graph-metadb-url)]
+  :start (if-let [jdbc-url (get-graph-metadata-db-url)]
            (conman/connect! {:jdbc-url jdbc-url})
            (do
              (log/warn "database connection URL was not found, please set :graph-metadb-url in your config, e.g: dev-config.edn")
@@ -24,6 +24,21 @@
 
 (defn get-gmetadb-connection []
   (:datasource *graph-metadb*))
+
+(defn which-database
+  []
+  (let [db-url (get-graph-metadata-db-url)]
+    (cond (re-matches #"jdbc:postgresql:.*" db-url)
+          "postgresql"
+
+          (re-matches #"jdbc:sqlite:.*" db-url)
+          "sqlite"
+
+          (re-matches #"jdbc:duckdb:.*" db-url)
+          "duckdb"
+
+          :else
+          (throw (ex-info "Unsupported database type." {})))))
 
 ;; --------------------------------- Neo4j ---------------------------------
 (def gdb-conn (atom nil))
@@ -559,6 +574,27 @@
     ;; [{:total 333}]
     (:total (first results))))
 
+(defn get-all-metadata-tables
+  []
+  (let [db-conn (get-gmetadb-connection)
+        database-name (which-database)
+        query-str (case database-name
+                    "postgresql"
+                    "SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';"
+
+                    "sqlite"
+                    "SELECT name as tablename FROM sqlite_master WHERE type='table';"
+
+                    "duckdb"
+                    ;; TODO: Maybe the following query is wrong. It doesn't be tested.
+                    "SELECT * FROM information_schema.tables WHERE table_schema = 'public';")
+        r (jdbc/execute! db-conn
+                         [query-str]
+                         {:builder-fn rs/as-unqualified-maps})]
+    (->> r (map :tablename))))
+
+(def memorized-get-all-metadata-tables (memoize get-all-metadata-tables))
+
 (defn read-string-as-map
   "Read string and convert it to a hash map which is accepted by honey library.
   "
@@ -572,3 +608,58 @@
                              :bad-request
                              {:query-string query-string
                               :error (.getMessage e)})))))
+
+(defn format-entity2d
+  "Format entity2d to a map as expected format.
+   
+   (format-entity2d [{:node_type \"Disease\", :node_id \"MESH:D015673\", :tsne_x 0.1, :tsne_y 0.2}])
+   
+   Args:
+     results: A vector of maps.
+     algorithm: tsne or umap, default is tsne. Currently, we only support tsne and umap for only having the tsne_x and tsne_y or umap_x and umap_y columns in the database. If you want to use other algorithms, you need to generate the entity2d table by yourself and change the format-entity2d function.
+  "
+  [results & {:keys [algorithm]
+              :or {algorithm "tsne"}}]
+  (let [x_fn (fn [item] (if (= algorithm "tsne")
+                          (:tsne_x item)
+                          (:umap_x item)))
+        y_fn (fn [item] (if (= algorithm "tsne")
+                          (:tsne_y item)
+                          (:umap_y item)))]
+    (pmap (fn [item] {:node_type (:node_type item)
+                      :node_id (:node_id item)
+                      :x (x_fn item)
+                      :y (y_fn item)}) results)))
+
+(defn get-entity2d
+  "Get entity2d based on user's query string and format it to a map as expected format.
+   
+   (get-entity2d {:select [:*] :from :entity2d})"
+  ^PersistentArrayMap [^String source-type ^String source-id
+                       ^"[Ljava.lang.String;" target-types
+                       ^"[Ljava.lang.String;" target-ids]
+  (let [tables (memorized-get-all-metadata-tables)]
+    (if (> (.indexOf tables "entity2d") -1)
+      (let [node-types (concat target-types [source-type])
+            node-ids (concat target-ids [source-id])
+            where-clause (pmap (fn [node-type node-id]
+                                 [:and
+                                  [:= :node_type node-type]
+                                  [:= :node_id node-id]])
+                               node-types node-ids)
+            where-clause (concat [:or] (distinct where-clause))
+            sqlmap {:select [:*]
+                    :from :entity2d
+                    :where where-clause}
+            results (get-results sqlmap)]
+        (if (empty? results)
+          (throw (custom-ex-info "Cannot find the entity2d."
+                                 :not-found
+                                 {:source_type source-type
+                                  :source_id source-id
+                                  :target_types target-types
+                                  :target_ids target-ids}))
+          {:data (format-entity2d (distinct results))}))
+      (do
+        (gnn/dim-reduction source-type source-id target-types target-ids)
+        (log/warn "The table 'entity2d' is not found in the metadata database, so use the real time mode to get the entity2d.")))))

@@ -19,7 +19,15 @@ from Bio import Entrez
 Entrez.email = "yjcyxky@163.com"
 
 
-def to_snake_case(string):
+def to_snake_case(string: str):
+    """Convert string to snake case
+
+    Args:
+        string (str): string to convert
+
+    Returns:
+        str: snake case string
+    """
     # Replace non-alphanumeric characters with spaces
     string = re.sub(r'\W+', ' ', string)
 
@@ -27,7 +35,15 @@ def to_snake_case(string):
     return '_'.join(string.lower().split())
 
 
-def format_key(key):
+def format_key(key: str):
+    """Convert key to snake case and add underscore prefix if it's a reserved word
+
+    Args:
+        key (str): key name
+
+    Returns:
+        str: snake case key name
+    """
     formated_key = re.sub(r'[\-:*.]', '_', key).lower()
     if formated_key in ["type", "unique", "select", "database", "table", "default"]:
         return "_" + formated_key
@@ -35,7 +51,16 @@ def format_key(key):
         return formated_key
 
 
-def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table, index=None) -> list:
+def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table: str, index: bool=None) -> list:
+    """Initialize a SQLite database table
+
+    Args:
+        reader (csv.DictReader): CSV file reader
+        cur (sqlite3.Cursor): SQLite cursor
+        filein (file): CSV file handle
+        table (str): name of table to create
+        index (str, optional): column to use as index. Defaults to None.
+    """
     line = next(reader)
     db_fields = {}
     db_columns = []
@@ -70,7 +95,16 @@ def db_init(reader: csv.DictReader, cur: sqlite3.Cursor, filein, table, index=No
     return db_columns
 
 
-def csv2sqlite(csvfile, dbfile, table_name="data", skip=False, index=None):
+def csv2sqlite(csvfile: str, dbfile: str, table_name: str="data", skip: bool=False, index: str=None) -> None:
+    """Save a CSV file to a SQLite database table
+
+    Args:
+        csvfile (str): path to CSV file
+        dbfile (str): path to SQLite database file
+        table_name (str, optional): name of table to create. Defaults to "data".
+        skip (bool, optional): skip if database file exists. Defaults to False.
+        index (str, optional): column to use as index. Defaults to None.
+    """
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
 
@@ -110,7 +144,19 @@ def csv2sqlite(csvfile, dbfile, table_name="data", skip=False, index=None):
         conn.commit()
 
 
-def csv2duckdb(csvfile, dbfile, table_name="data", skip=False, index=None):
+def csv2duckdb(csvfile: str, dbfile: str, table_name: str="data", skip: bool=False, index: str=None) -> None:
+    """Save a CSV file to a DuckDB database table
+
+    Args:
+        csvfile (str): path to CSV file
+        dbfile (str): path to DuckDB database file
+        table_name (str, optional): name of table to create. Defaults to "data".
+        skip (bool, optional): skip if database file exists. Defaults to False.
+        index (str, optional): column to use as index. Defaults to None.
+
+    Raises:
+        Exception: if database file exists and skip is False
+    """
     if os.path.exists(dbfile) and not skip:
         raise Exception("%s exists, please delete it and retry." % dbfile)
     conn = duckdb.connect(dbfile)
@@ -126,7 +172,7 @@ func_map = {
 }
 
 
-def read_csv(csvfile, sep=","):
+def read_csv(csvfile: str, sep=","):
     with open(csvfile, 'r') as csvfile:
         reader = csv.DictReader(csvfile, delimiter=sep)
         return [item for item in reader]
@@ -524,7 +570,7 @@ def graph_labels(graph_metadata_file, output_dir, db):
 @click.option('--output-dir', '-o', required=True,
               type=click.Path(exists=True, dir_okay=True),
               help="The directory which saved the database file.")
-@click.option('--db', '-b', required=False, default="duckdb",
+@click.option('--db', '-b', required=False, default="sqlite",
               type=click.Choice(["sqlite", "duckdb"]),
               help="Which type of database.")
 def dataset(data_dir, output_dir, db):
@@ -680,6 +726,31 @@ def merge(data_dir, output_file, output_csv):
             df_merged.to_csv(output_file, sep=",", index=False)
         else:
             df_merged.to_csv(output_file, sep="\t", index=False)
+
+
+@database.command(help="Import entity 2d data into database.")
+@click.option('--entity2d-file', '-f', required=True,
+              type=click.Path(exists=True, file_okay=True, dir_okay=False),
+              help="A file which contains entity 2d data.")
+@click.option('--db', '-b', required=False, default="sqlite",
+              type=click.Choice(["sqlite", "duckdb"]),
+              help="Which type of database.")
+@click.option('--db-file', '-d', required=False, default="graph_metadata.sqlite", help="A path of database file.")
+def entity2d(entity2d_file, db, db_file):
+    def read_file(filepath):
+        if filepath.endswith("tsv"):
+            return pd.read_csv(filepath, delimiter='\t')
+        else:
+            return pd.read_csv(filepath, delimiter=',')
+
+    entity2d = read_file(entity2d_file)
+    columns = list(entity2d.columns)
+    expected_columns = ["raw_node_id", "node_id", "node_type", "umap_x", "umap_y", "name", "tsne_x", "tsne_y"]
+    if not all([c in columns for c in expected_columns]):
+        raise Exception("Invalid entity 2d file, expected columns: %s, actual columns: %s" % (expected_columns, columns))
+    
+    func_map.get(db)(entity2d_file, db_file, "entity2d", skip=True)
+    print("Imported %s into database" % entity2d_file)
 
 
 if __name__ == '__main__':

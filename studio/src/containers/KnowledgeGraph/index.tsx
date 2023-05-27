@@ -460,6 +460,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       const filteredNodes = nodes.filter(node => node.data.id != sourceId);
       const targetTypes = filteredNodes.map(node => node.nlabel);
       const targetIds = filteredNodes.map(node => node.data.id);
+      setLoading(true);
       getDimensions(sourceId, sourceType, targetIds, targetTypes).then((response: DimensionArray) => {
         console.log("Get Dimensions Response: ", response, targetIds, targetTypes, sourceId, sourceType);
         const graphData = response.map(item => {
@@ -476,11 +477,15 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         }).filter(item => Object.keys(item).length > 0) as GraphNode[];
         setSimilarityArray(graphData);
         setSimilarityChartVisible(true);
+        setLoading(false);
       }).catch((error: any) => {
         console.log("Get Dimensions Error: ", error);
         setSimilarityArray([]);
         setSimilarityChartVisible(false);
         message.error("Failed to get similarities, please check the network connection.")
+        setLoading(false);
+      }).finally(() => {
+        setLoading(false);
       })
     } else if (menuItem.key == 'show-node-details') {
       setNodeInfoPanelVisible(true)
@@ -688,7 +693,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                     setSimilarityChartVisible(false)
                     setHightlightMode('activate')
                   }} width='600px'
-                    title='Node Similarity'>
+                    title='Node Similarity [t-SNE]'>
                     <SimilarityChart data={similarityArray}
                       description='If you expect to highlight nodes on the chart, you need to enable the "Focus" and "Select" mode.'
                       onClick={(node: GraphNode) => {

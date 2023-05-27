@@ -904,8 +904,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
                                             props.changeLayout(l);
                                         }
                                     } else {
-                                        const l = layouts.find(item => item.type === value);
-                                        if (props.changeLayout) {
+                                        let l = undefined;
+                                        if (value) {
+                                            l = layouts.find(item => item.type === value);
+                                        } else {
+                                            l = layouts.find(item => item.type === "force");
+                                        }
+
+                                        if (props.changeLayout && l) {
                                             props.changeLayout(l);
                                         }
                                     }

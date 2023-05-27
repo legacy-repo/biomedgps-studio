@@ -653,10 +653,10 @@ export const layouts = [
   {
     type: 'radial',
     center: [200, 200], // 可选，默认为图的中心
-    linkDistance: 50, // 可选，边长
+    linkDistance: 80, // 可选，边长
     maxIteration: 1000, // 可选
     sortBy: 'degree', // 可选
-    unitRadius: 100, // 可选
+    unitRadius: 150, // 可选
     preventOverlap: true, // 可选，必须配合 nodeSize
     nodeSize: 30, // 可选
     strictRadial: false, // 可选

@@ -46,7 +46,7 @@
                                              (do
                                                (when (not= (count target_ids) (count target_types))
                                                  (throw (Exception. "The number of target_ids and target_types should be the same.")))
-                                               (gnn/dim-reduction source_type source_id target_types target_ids))
+                                               (query-gdb/get-entity2d source_type source_id target_types target_ids))
                                              (throw (Exception. "Invalid parameters.")))]
                                (ok results))
                              (catch Exception e
