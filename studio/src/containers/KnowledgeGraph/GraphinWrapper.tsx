@@ -23,7 +23,7 @@ import {
     CloseCircleOutlined,
     RedditOutlined,
     ShareAltOutlined,
-    CloseOutlined,
+    DownloadOutlined,
     CloudServerOutlined
 } from '@ant-design/icons';
 import type { TooltipValue, LegendChildrenProps, LegendOptionType } from '@antv/graphin';
@@ -31,7 +31,7 @@ import DataArea from './DataArea';
 import {
     message, Descriptions, Switch, Button, Select, Empty, Menu as AntdMenu,
 } from 'antd';
-import { makeDataSource, layouts, getSelectedNodes } from './utils';
+import { makeDataSource, layouts, prepareGraphData } from './utils';
 import type {
     OnNodeMenuClickFn, OnEdgeMenuClickFn, GraphNode,
     OnClickEdgeFn, OnClickNodeFn, GraphEdge, OnCanvasMenuClickFn,
@@ -39,6 +39,7 @@ import type {
 } from "./typings";
 import ShowPaths from './Components/ShowPaths';
 import { GraphLayoutPredict } from '@antv/vis-predict-engine';
+import type { Graph as GraphItem } from './GraphStore/typings';
 import voca from 'voca';
 import './GraphinWrapper.less';
 
@@ -327,9 +328,39 @@ type CanvasMenuProps = {
 const CanvasMenu = (props: CanvasMenuProps) => {
     const { graph, contextmenu, apis } = useContext(GraphinContext);
     const context = contextmenu.canvas;
-    const handleDownload = () => {
-        graph.downloadFullImage('canvas-contextmenu');
+    const handleDownloadCanvas = () => {
+        if (graph.getNodes().length == 0) {
+            message.warn("No data to download");
+            return;
+        }
+
+        graph.downloadFullImage('canvas', "image/png", {
+            backgroundColor: '#fff',
+            padding: 10,
+        });
         context.handleClose();
+    };
+
+    const handleDownloadData = () => {
+        const payload = prepareGraphData(graph)
+
+        if (payload.data.nodes.length == 0) {
+            message.warn("No data to download");
+            return;
+        }
+
+        // @ts-ignore
+        const json: GraphItem = {
+            payload: payload,
+            name: "shared-graph",
+            description: "Shared graph"
+        }
+        // Download data as json file
+        const blob = new Blob([JSON.stringify(json)], { type: 'application/json' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'graph.json';
+        link.click();
     };
 
     const handleAutoConnect = () => {
@@ -368,19 +399,19 @@ const CanvasMenu = (props: CanvasMenuProps) => {
     return (
         <Menu bindType="canvas">
             <Menu.Item onClick={handleAutoConnect}>
-                <ForkOutlined /> Auto Connect
+                <Button type="text"><ForkOutlined /> Auto Connect Graph</Button>
             </Menu.Item>
             <Menu.Item onClick={handleOpenFishEye}>
-                <EyeOutlined /> Enable FishEye
+                <Button type="text"><EyeOutlined /> Enable FishEye</Button>
+            </Menu.Item>
+            <Menu.Item onClick={handleDownloadData}>
+                <Button type="text"><DownloadOutlined /> Download Graph Data</Button>
+            </Menu.Item>
+            <Menu.Item onClick={handleDownloadCanvas}>
+                <Button type="text"><CloudDownloadOutlined /> Save As Image</Button>
             </Menu.Item>
             <Menu.Item onClick={handleClear}>
-                <DeleteOutlined /> Clear Canvas
-            </Menu.Item>
-            {/* <Menu.Item onClick={handleStopLayout}>
-                <CloseCircleOutlined /> Stop Layout
-            </Menu.Item> */}
-            <Menu.Item onClick={handleDownload}>
-                <CloudDownloadOutlined /> Download Layout
+                <Button type="text" danger><DeleteOutlined />Clear Canvas</Button>
             </Menu.Item>
         </Menu>
     );

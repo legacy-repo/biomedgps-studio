@@ -31,6 +31,7 @@ const downloadExampleFile = () => {
   link.setAttribute("download", 'example.csv');
   document.body.appendChild(link); // Required for FF
   link.click();
+  document.body.removeChild(link);
 }
 
 export interface DataType {

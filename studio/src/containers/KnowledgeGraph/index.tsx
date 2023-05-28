@@ -649,25 +649,6 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     <FullScreen handle={enterFullScreenHandler}>
       <Row className='knowledge-graph-container' id='knowledge-graph-container'>
         <Spin spinning={loading}>
-          <GraphTable visible={graphTableVisible} graphs={graphs}
-            onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
-            parent={document.getElementById('knowledge-graph-container') as HTMLElement}
-            onClose={() => { setGraphTableVisible(false) }}
-            onUpload={(graph: GraphItem) => {
-              onSubmitGraph(graph)
-            }}
-            selectedGraphId={currentGraphUUID}>
-          </GraphTable>
-          <GraphForm visible={graphFormVisible}
-            payload={graphFormPayload}
-            parent={document.getElementById('knowledge-graph-container') as HTMLElement}
-            onClose={() => { setGraphFormVisible(false) }}
-            onSubmit={(data: any) => {
-              onSubmitGraph(data as GraphItem).finally(() => {
-                setGraphFormVisible(false)
-              })
-            }}>
-          </GraphForm>
           <Row className='left-toolbar'>
             <Tooltip title={enterFullScreenHandler.active ? 'Exit Full Screen' : 'Enter Full Screen'}
               placement='right'>
@@ -770,6 +751,25 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                     </SimilarityChart>
                   </Movable> : null
               }
+              <GraphTable visible={graphTableVisible} graphs={graphs}
+                onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
+                parent={document.getElementById('knowledge-graph-container') as HTMLElement}
+                onClose={() => { setGraphTableVisible(false) }}
+                onUpload={(graph: GraphItem) => {
+                  onSubmitGraph(graph)
+                }}
+                selectedGraphId={currentGraphUUID}>
+              </GraphTable>
+              <GraphForm visible={graphFormVisible}
+                payload={graphFormPayload}
+                parent={document.getElementById('knowledge-graph-container') as HTMLElement}
+                onClose={() => { setGraphFormVisible(false) }}
+                onSubmit={(data: any) => {
+                  onSubmitGraph(data as GraphItem).finally(() => {
+                    setGraphFormVisible(false)
+                  })
+                }}>
+              </GraphForm>
             </GraphinWrapper>
             {contextHolder}
           </Col>

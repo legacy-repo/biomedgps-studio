@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { GraphinContext } from '@antv/graphin';
 import { Button, Form, Input, message, Modal } from 'antd';
-import './GraphForm.less';
 import TextArea from 'antd/lib/input/TextArea';
+import { prepareGraphData } from '../utils';
+
+import './GraphForm.less';
 
 type OnSubmitPayload = {
   payload: Record<string, unknown>;
@@ -19,9 +22,18 @@ type GraphFormProps = {
 };
 
 const GraphForm: React.FC<GraphFormProps> = (props) => {
+  const { graph } = useContext(GraphinContext);
   const onFinish = (values: any) => {
     if (props.payload) {
-      props.onSubmit({ payload: props.payload, ...values });
+      if (graph) {
+        console.log('Save graph data which are from graphin.')
+        const payload = prepareGraphData(graph);
+        props.onSubmit({ payload, ...values });
+      } else {
+        // TODO: remove this branch after graphin is ready
+        console.log('Save graph data which are from server.')
+        props.onSubmit({ payload: props.payload, ...values });
+      }
     }
   };
 

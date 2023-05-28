@@ -8,7 +8,6 @@ import {
   EdgeStat, OptionType, DimensionArray
 } from './typings';
 import voca from 'voca';
-// import { Graph } from '@antv/g6';
 
 export const makeColumns = (dataSource: Array<Record<string, any>>, blackList: Array<string>) => {
   let keys: Array<string> = [];
@@ -594,6 +593,9 @@ export const legacyDefaultLayout = {
 // Mode details on https://antv-g6.gitee.io/en/examples/net/radialLayout#sortRadial
 export const layouts = [
   {
+    type: 'preset'
+  },
+  {
     type: 'auto',
   },
   {
@@ -700,4 +702,42 @@ export const getNodes = (graph?: Graph) => {
 
   const nodes = graph.getNodes();
   return nodes.map((node: any) => node.getModel() as GraphNode);
+}
+
+export const prepareGraphData = (graph: Graph): {
+  data: {
+    nodes: any[],
+    edges: any[]
+  },
+  layout: any,
+  defaultLayout: any
+} => {
+  const data = {
+    nodes: graph.getNodes().map(node => {
+      const n = node.getModel();
+      return {
+        ...n,
+        style: n._initialStyle,
+        _initialStyle: n.style
+      }
+    }),
+    edges: graph.getEdges().map(edge => {
+      const e = edge.getModel();
+      return {
+        ...e,
+        style: e._initialStyle,
+        _initialStyle: e.style
+      }
+    }),
+  }
+
+  const layout = graph.get('layout');
+
+  return {
+    data: data,
+    layout: {
+      type: 'preset'
+    },
+    defaultLayout: layout
+  }
 }
