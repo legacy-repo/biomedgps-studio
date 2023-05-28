@@ -172,6 +172,13 @@ declare namespace API {
     version?: string;
   };
 
+  type getKnowledgesParams = {
+    /** Page, From 1. */
+    page?: number;
+    /** Num of items per page. */
+    page_size?: number;
+  };
+
   type getLabelsParams = {
     /** Query string with honeysql specification. */
     query_str: string;
@@ -317,6 +324,28 @@ declare namespace API {
     page: number;
     page_size: number;
     data: RapexGraph[];
+  };
+
+  type RapexKnowledge = {
+    source_id: string;
+    source_type: string;
+    source_name: string;
+    target_id: string;
+    target_name: string;
+    target_type: string;
+    created_at?: number;
+    pmid: number;
+    relation_id?: string;
+    relation_type: string;
+    curator?: string;
+    key_sentence: string;
+  };
+
+  type RapexKnowledgeDataResponse = {
+    data: RapexKnowledge[];
+    page: number;
+    page_size: number;
+    total: number;
   };
 
   type RapexPathwayData = {

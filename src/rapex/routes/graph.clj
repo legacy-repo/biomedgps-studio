@@ -1,11 +1,13 @@
 (ns rapex.routes.graph
-  (:require [ring.util.http-response :refer [ok no-content not-found bad-request internal-server-error]]
+  (:require [ring.util.http-response :refer [ok no-content not-found created
+                                             bad-request internal-server-error]]
             [rapex.routes.graph-specs :as specs]
             [clojure.spec.alpha :as s]
             [rapex.db.neo4j.core :as db]
             [clojure.string :as clj-str]
             [rapex.db.query-gdata :as gdb]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log]
+            [rapex.db.query-gdata :as qgd]))
 
 (defn to-snake-case
   [s]
@@ -30,6 +32,40 @@
 (def routes
   [""
    {:swagger {:tags ["Knowledge Graph"]}}
+
+   ["/knowledges"
+    {:get {:summary     "Get the knowledges from custom curation database."
+           :parameters  {:query ::specs/knowledge-query-params}
+           :responses   {200 {:body ::specs/DBDataItems}}
+           :handler     (fn [{{{:keys [page page_size]} :query} :parameters
+                              {:as headers} :headers}]
+                          (try
+                            (let [page (or page 1)
+                                  page_size (or page_size 50)
+                                  auth-users (get headers "x-auth-users")
+                                  curator (if auth-users (clj-str/split auth-users #",") nil)
+                                  results (qgd/get-knowledges curator :page page :page-size page_size)]
+                              (log/info "page:" page "page_size:" page_size "curator: " curator)
+                              (ok results))
+                            (catch Exception e
+                              (log/error "Error: " e)
+                              (get-error-response e))))}
+
+     :post {:summary     "Create a knowledge."
+            :parameters  {:body qgd/custom-knowledge-spec}
+            :responses   {200 {:body qgd/custom-knowledge-spec}}
+            :handler     (fn [{{{:as payload} :body} :parameters
+                               {:as headers} :headers}]
+                           (try
+                             (log/info "payload:" payload)
+                             (let [curator (get headers "x-auth-users")
+                                   ;; TODO: How to deal with multiple users?
+                                   payload (assoc payload :curator curator)]
+                               (log/info "payload:" payload)
+                               (ok (qgd/create-knowledge! payload)))
+                             (catch Exception e
+                               (log/error "Error: " e)
+                               (get-error-response e))))}}]
 
    ["/node-types"
     {:get  {:summary    "Get the type of all nodes."

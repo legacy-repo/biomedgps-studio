@@ -188,6 +188,11 @@
    (s/keys :req-un [::query_str ::label_type]
            :opt-un [::page ::page_size ::disable_total ::only_total])))
 
+(s/def ::knowledge-query-params
+  (st/spec
+   (s/keys :req-un []
+           :opt-un [::page ::page_size])))
+
 (s/def ::RelationshipsQueryParams
   (st/spec
    (s/keys :req-un [::query_str]

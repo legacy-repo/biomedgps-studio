@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Select, message, Empty, Input, Row } from 'antd';
+import { Button, Form, Select, message, Empty, Input, Row, InputNumber } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { getNodeTypes, getLabels, getRelationships } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
@@ -10,7 +10,7 @@ import './GraphForm.less';
 let timeout: ReturnType<typeof setTimeout> | null;
 
 type GraphFormProps = {
-  onSubmit?: (data: GraphEdge) => void;
+  onSubmit?: (data: GraphEdge) => Promise<GraphEdge>;
   onClose?: () => void;
 };
 
@@ -139,7 +139,12 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
             ...values
           }
 
-          props.onSubmit(payload);
+          props.onSubmit(payload).then(() => {
+            form.resetFields();
+          }).catch((error: any) => {
+            console.log("onConfirm error: ", error);
+            message.error("Submit error, please try later!");
+          })
         }
       })
       .catch(errorInfo => {
@@ -160,6 +165,7 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
         className='graph-form'
         initialValues={{ remember: true }}
         autoComplete="off"
+        labelAlign='left'
       >
         <Form.Item label="Source Node Type" name="source_type"
           rules={[{ required: true, message: 'Please select a node type.' }]}>
@@ -242,9 +248,14 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
           <Input placeholder="Please enter the target node name" />
         </Form.Item>
 
+        <Form.Item label="PMID" name="pmid"
+          rules={[{ required: true, message: 'Please enter pmid which is related with your curated knowledge.' }]}>
+          <InputNumber placeholder="Please enter the pmid" min={1} max={100000000} style={{ width: '100%' }} />
+        </Form.Item>
+
         <Form.Item label="Key Sentence" name="key_sentence"
           rules={[{ required: true, message: 'Please input key sentence!' }]}>
-          <TextArea rows={12} placeholder="Please input key sentence!" />
+          <TextArea rows={8} placeholder="Please input key sentence!" />
         </Form.Item>
 
         <Form.Item wrapperCol={{ offset: 15 }}>

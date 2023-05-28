@@ -10,6 +10,14 @@ export type GraphEdge = {
   relation_id?: string;
   curator?: string;
   created_at?: number;
+  pmid: number;
+}
+
+export type GraphTableData = {
+  data: GraphEdge[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 export type OptionType = {

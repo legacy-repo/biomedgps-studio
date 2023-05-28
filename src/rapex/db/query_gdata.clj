@@ -7,12 +7,17 @@
             [conman.core :as conman]
             [mount.core :refer [defstate]]
             [next.jdbc.result-set :as rs]
+            [rapex.util :as util]
             [rapex.config :refer [get-graph-metadata-db-url get-label-blacklist get-color-map]]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.spec.alpha :as s]
+            [spec-tools.core :as st])
   (:import [java.net URI]
            [java.sql SQLException]
            [java.lang IllegalStateException IllegalArgumentException]
            [clojure.lang PersistentArrayMap Keyword]))
+
+(declare make-curation-table!)
 
 (defstate ^:dynamic *graph-metadb*
   :start (if-let [jdbc-url (get-graph-metadata-db-url)]
@@ -663,3 +668,188 @@
       (do
         (gnn/dim-reduction source-type source-id target-types target-ids)
         (log/warn "The table 'entity2d' is not found in the metadata database, so use the real time mode to get the entity2d.")))))
+
+;; ---------------------- Custom Graph Table for Curation ----------------------
+(s/def ::source_id
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Soure id"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The source_id parameter can't be none."}))
+
+(s/def ::source_name
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Soure name"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The source_name parameter can't be none."}))
+
+(s/def ::source_type
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Soure type"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The source_type parameter can't be none."}))
+
+(s/def ::target_id
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Target id"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The target_id parameter can't be none."}))
+
+(s/def ::target_name
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Target name"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The target_name parameter can't be none."}))
+
+(s/def ::target_type
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Target type"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The target_type parameter can't be none."}))
+
+(s/def ::relation_id
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Relation id"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The relation_id parameter can't be none."}))
+
+(s/def ::relation_type
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Relation type"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The relation_type parameter can't be none."}))
+
+(s/def ::curator
+  (st/spec
+   {:spec                string?
+    :type                :string
+    :description         "Curator"
+    :swagger/type        "string"
+    :swagger/default     ""
+    :reason              "The curator parameter can't be none."}))
+
+(s/def ::created_at
+  (st/spec
+   {:spec                integer?
+    :type                :number
+    :description         "Created at"
+    :swagger/type        "number"
+    :swagger/default     ""
+    :reason              "The created_at parameter can't be none."}))
+
+(s/def ::pmid
+  (st/spec
+   {:spec                integer?
+    :type                :number
+    :description         "PMID"
+    :swagger/type        "number"
+    :swagger/default     ""
+    :reason              "The pmid parameter can't be none."}))
+
+(def custom-knowledge-spec
+  (s/keys :req-un [::source_id ::source_name ::source_type
+                   ::target_id ::target_name ::target_type
+                   ::relation_type ::key_sentence ::pmid]
+          :opt-un [::curator ::created_at ::relation_id]))
+
+(defn- creation-sql
+  [^String table-name ^String which-database]
+  (let [id-type (cond (= which-database "postgresql")
+                      "SERIAL PRIMARY KEY"
+                      (= which-database "sqlite")
+                      "INTEGER PRIMARY KEY AUTOINCREMENT"
+                      (= which-database "duckdb")
+                      "INTEGER PRIMARY KEY AUTOINCREMENT"
+                      :else
+                      (throw (ex-info "Unsupported database type." {})))]
+    (format "CREATE TABLE IF NOT EXISTS %s (relation_id %s, relation_type VARCHAR(155) NOT NULL, source_name VARCHAR(255) NOT NULL, source_type VARCHAR(255) NOT NULL, source_id VARCHAR(255) NOT NULL, target_name VARCHAR(255) NOT NULL, target_type VARCHAR(255) NOT NULL, target_id VARCHAR(255) NOT NULL, key_sentence TEXT NOT NULL, created_at BIGINT NOT NULL, curator VARCHAR(64) NOT NULL, pmid INTEGER NOT NULL);" table-name id-type)))
+
+(defn make-curation-table!
+  [& {:keys [table-name]
+      :or {table-name "knowledge_curation"}}]
+  (let [db-conn (get-gmetadb-connection)
+        database-name (which-database)
+        query-str (creation-sql table-name database-name)
+        tables (get-all-metadata-tables)]
+    (log/info "Create the table 'knowledge_curation' in the metadata database with the following query string: " query-str)
+    (if (> (.indexOf tables "knowledge_curation") -1)
+      (log/info "The table 'knowledge_curation' is already existed in the metadata database.")
+      (do
+        (jdbc/execute! db-conn
+                       [query-str])
+        (log/info "The table 'knowledge_curation' is not found in the metadata database, so create it.")))))
+
+(def memorized-make-curation-table! (memoize make-curation-table!))
+
+(defn get-knowledges
+  "Get knowledges based on user's query string."
+  ^PersistentArrayMap [^String curator & {:keys [page page-size]
+                                          :or {page 1
+                                               page-size 10}}]
+  (memorized-make-curation-table!)
+  (let [sqlmap {:select [:*]
+                :from :knowledge_curation
+                :where [:in :curator curator]
+                :order-by [[:created_at :desc]]
+                :limit page-size
+                :offset (* (- page 1) page-size)}
+        results (get-results sqlmap)
+        total (get-total sqlmap)]
+    {:data (or results [])
+     :total (or total 0)
+     :page page
+     :page_size page-size}))
+
+(defn create-knowledge!
+  [{:keys [source_name source_type source_id target_name pmid
+           target_type target_id relation_type key_sentence curator]
+    :or {curator "anonymous"}}]
+  ;; TODO: How to check the arguments are valid?
+  (let [created_at (util/time->int (util/now))
+        db-conn (get-gmetadb-connection)
+        sqlmap {:insert-into :knowledge_curation
+                :columns [:relation_type :created_at :source_name :source_type :source_id
+                          :target_name :target_type :target_id :key_sentence :curator :pmid]
+                :values [[relation_type created_at source_name source_type source_id
+                          target_name target_type target_id key_sentence curator pmid]]}
+        output {:relation_type relation_type
+                :source_name source_name
+                :source_type source_type
+                :source_id source_id
+                :target_name target_name
+                :target_type target_type
+                :target_id target_id
+                :key_sentence key_sentence
+                :curator curator
+                :created_at created_at
+                :pmid pmid}]
+    (try
+      (jdbc/execute! db-conn (sql/format sqlmap))
+      output
+      (catch Exception e
+        (throw (custom-ex-info "Cannot create the knowledge."
+                               :bad-request
+                               (merge output {:error (.getMessage e)})))))))

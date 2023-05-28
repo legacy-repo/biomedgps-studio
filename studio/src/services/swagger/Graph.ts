@@ -97,6 +97,33 @@ export async function deleteGraphsId(
   });
 }
 
+/** Get knowledges Get knowledges. GET /api/v1/knowledges */
+export async function getKnowledges(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.getKnowledgesParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.RapexKnowledgeDataResponse>('/api/v1/knowledges', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Create a knowledge Create a knowledge POST /api/v1/knowledges */
+export async function postKnowledges(body: API.RapexKnowledge, options?: { [key: string]: any }) {
+  return request<API.RapexKnowledge>('/api/v1/knowledges', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** Get labels. Get labels GET /api/v1/labels */
 export async function getLabels(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
