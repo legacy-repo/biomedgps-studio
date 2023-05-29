@@ -222,6 +222,47 @@
       </div>
     </div>
   </div>
+  <script type="">
+    const hideHeader = function() {
+      // Get the current URL
+      var currentUrl = window.location.href;
+
+      // Function to extract query string parameters
+      function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
+      }
+
+      // Check if the "show_header" parameter is present
+      var showHeader = getParameterByName('show_header', currentUrl);
+      console.log('currentUrl', currentUrl, showHeader);
+      if (showHeader === 'false') {
+        // Create a <style> element
+        var styleElement = document.createElement('style');
+
+        // Add your CSS rules inside the <style> element
+        styleElement.textContent = `
+        .ant-layout-header { display: none; }
+        .react-chat-viewerBox { height: calc(100vh - 10px) !important; }
+        .ant-layout-content { height: 100% !important; }
+        .footer-container { display: none; }
+        `;
+
+        // Append the <style> element to the <head> section
+        document.head.appendChild(styleElement);
+      }
+    }
+
+    window.addEventListener('load', function() {
+      // Function to run after page load
+      hideHeader();
+    });
+  </script>
 </body>
 
 </html>

@@ -6,6 +6,7 @@ export default {
   'menu.knowledge-graph-editor': '知识编辑器',
   'menu.datasets': '数据集',
   'menu.help': '帮助',
+  'menu.chatbot': '问答机器人',
   'menu.about': '关于',
 
   'menu.more-blocks': '更多区块',

@@ -6,6 +6,7 @@ export default {
   'menu.knowledge-graph-editor': 'Knowledge Graph Editor',
   'menu.datasets': 'Datasets',
   'menu.help': 'Help',
+  'menu.chatbot': 'Chatbot',
   'menu.about': 'About',
 
   'menu.more-blocks': 'More Blocks',

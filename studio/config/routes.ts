@@ -35,6 +35,13 @@ export const routes = [
     category: 'knowledge-graph'
   },
   {
+    name: 'chatbot',
+    icon: 'comment',
+    path: '/chatbot',
+    hideInMenu: true,
+    component: './ChatBot',
+  },
+  {
     name: 'about',
     icon: 'info-circle',
     path: '/about',
