@@ -2,7 +2,7 @@ name: Deploy Studio
 on:
   push:
     branches:
-      - master
+      - dev
 
 jobs:
   build-and-deploy:
@@ -10,6 +10,10 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@master
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.13.1
 
       - name: install
         run: cd studio && yarn
