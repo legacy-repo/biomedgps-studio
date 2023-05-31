@@ -1,13 +1,42 @@
 # Rapex
 
-A platform for discovering Response to Air Pollution EXposure
+A knowledge graph system with graph neural network for drug discovery, disease mechanism, biomarker screening and discovering response to toxicant exposure.
+
+## Features
+
+- [x] Knowledge graph studio for graph query, visualization and analysis.
+- [x] Graph neural network for drug discovery, disease mechanism, biomarker screening and discovering response to toxicant exposure.
+- [x] Support customized knowledge graph schema and data source.
+- [x] Support customized graph neural network model.
+- [x] Support customized omics datasets.
+- [x] Integrated large language models (such as vicuna, rwkv, chatgpt etc. more details on [chat-publications](https://github.com/yjcyxky/chat-publications)) for answering questions.
+
+## Demo
+
+### Ask questions with chatbot
+
+![chatbot](./assets/chatbot.png)
+
+### Find similar diseases with your queried disease
+
+![disease](./assets/disease-similarities.png)
+
+### Predict drugs and related genes for your queried disease
+
+![disease](./assets/drug-targets-genes.png)
+
+
+### Find potential paths between two nodes
+
+![path](./assets/path.png)
+
 
 ## Installation
 
 ### Clone the repo
 
 ```bash
-git clone https://github.com/rapex-lab/rapex.git
+git clone https://github.com/yjcyxky/rapex.git
 ```
 
 ### Compile it
@@ -49,10 +78,6 @@ FIXME: explanation
 ## Options
 
 FIXME: listing of options this app accepts.
-
-## Examples
-
-...
 
 ### Bugs
 

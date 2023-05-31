@@ -1,2 +1,0 @@
-examples/gnn/data/relationships.tsv filter=lfs diff=lfs merge=lfs -text
-pydl/pydl/models/transE_l2_entity.npy filter=lfs diff=lfs merge=lfs -text
