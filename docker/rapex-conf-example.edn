@@ -1,0 +1,43 @@
+;; WARNING
+;; The dev-config.edn file is used for local environment variables, such as database credentials.
+;; This file is listed in .gitignore and will be excluded from version control by Git.
+
+{:port 3000
+ ;; when :nrepl-port is set the application starts the nREPL server on load
+ :nrepl-port 7000
+ :database-url "jdbc:postgresql://127.0.0.1:5432/rapex_dev?user=postgres&password=xxxx"
+ :graph-database-url "neo4j://127.0.0.1:7687?user=neo4j&password=xxxx"
+ :graph-metadb-url "jdbc:sqlite:/data/network-medicine/datasets/graph_metadata.sqlite"
+ :graph-config {:label-blacklist ["User"]}
+ :workdir "/data/network-medicine/results"
+ :datadir "/data/network-medicine/datasets"
+ :dbtype "sqlite"
+ :default-dataset "000000"
+ :dataset-metadata "/data/network-medicine/datasets/datasets.json"
+ :ocpu-api-service "http://127.0.0.1:8004"
+ :fs-services [{:fs-service             "minio"
+                :fs-endpoint            "http://127.0.0.1:9000"
+                :fs-access-key          "pgx-lab"
+                :fs-secret-key          "4gmPNxxxxxuxT1e"
+                :fs-rootdir             "/data/network-medicine/results"}]
+ :default-fs-service "minio"
+ ;; All config of related plugin are defined here.
+ :plugins {}
+ :enable-cors true
+ :enable-gnn true
+ :cors-origins nil
+ :studio-config  {:about_url           "https://example.com/custom/about.md"
+                  :help_url            "https://example.com/custom/help.md"
+                  :website_title       "Network Medicine"
+                  :website_description "Network Medicine for Disease Mechanism and Treatment Based on AI and knowledge graph."
+                  :website_keywords    "Network Medicine, MultiOmics Data, Treatment, AI, Knowledge Graph"
+                  :website_logo        "https://example.com/custom/logo.png"
+                  :default_dataset     ""}
+ :menu-config {:routes [{:name "knowledge-graph"
+                         :icon "ShareAltOutlined"
+                         :path "/knowledgegraph"
+                         :component "KnowledgeGraph"},
+                        {:name "chatbox"
+                         :icon "InfoCircleOutlined"
+                         :path "/chatai"
+                         :component "ChatAI"}]}}

@@ -1,0 +1,106 @@
+version: "3.3"
+
+# All available services
+services:
+  db:
+    container_name: rapex-db
+    image: postgres:10.0
+    env_file: .env
+    restart: always
+    volumes:
+      - ./db:/var/lib/postgresql/data
+    networks:
+      - rapex-lab
+    ports:
+      - 5432:5432
+
+  opencpu-server:
+    container_name: "rapex-opencpu-server"
+    hostname: "opencpu-server"
+    env_file: .env
+    restart: always
+    image: opencpu/base:v2.2.8-6
+    volumes:
+      - ./opencpu-server/server.conf:/etc/opencpu/server.conf
+      - ./opencpu-server/Rprofile:/etc/opencpu/Rprofile
+      - ./opencpu-server/rlib:/usr/local/lib/R/site-library/
+      - ./opencpu-server/data:/home/opencpu/
+    expose:
+      - 80
+    ports:
+      - 8005:80
+    user: "${UID}:${GID}"
+    networks:
+      - rapex-lab
+
+  # rapex:
+  #   container_name: "rapex"
+  #   hostname: "rapex"
+  #   restart: on-failure
+  #   image: nordata/rapex-env:latest
+  #   volumes:
+  #     - ./datasets:/datasets
+  #     - ./results:/results
+  #     - ./rapex-conf.edn:/rapex-conf.edn
+  #     - /etc/localtime:/etc/localtime:ro
+  #     - ./rapex.jar:/app/target/uberjar/rapex.jar:ro
+  #   entrypoint: ["java", "-XX:+IgnoreUnrecognizedVMOptions", "-Dconf=/rapex-conf.edn", "-Djava.awt.headless=true", "-Dfile.encoding=UTF-8", "-jar", "/app/target/uberjar/rapex.jar"]
+  #   expose:
+  #     - "3000"
+  #   ports:
+  #     - "30000:3000"
+  #   user: "${UID}:${GID}"
+  #   networks:
+  #     - rapex-lab
+
+  minio:
+    container_name: "rapex-minio"
+    hostname: "minio"
+    restart: always
+    image: "minio/minio:RELEASE.2021-08-20T18-32-01Z"
+    networks:
+      - rapex-lab
+    expose:
+      - "9000"
+      - "9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    user: "${UID}:${GID}"
+    volumes:
+      - ./results:/results
+    env_file: .env
+    command: server /results --console-address :9001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  neo4j:
+    image: neo4j:4.2.3
+    container_name: "rapex-nm-gdata"
+    restart: "always"
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    # To avoid file checking
+    user: "7474:7474"
+    env_file: .env
+    networks:
+      - rapex-lab
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/import:/var/lib/neo4j/import
+      - ./neo4j/neo4j.conf:/var/lib/neo4j/neo4j.conf
+      - ./neo4j/plugins:/var/lib/neo4j/plugins
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+networks:
+  rapex-lab:
+    external:
+      name: rapex-lab

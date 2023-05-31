@@ -1,0 +1,32 @@
+.body {
+    background-color: #fff;
+}
+
+#ccc {
+    display: none;
+}
+
+.external > img {
+    display: none;
+}
+
+#sidebar {
+    display: none;
+}
+
+#section-list {
+    margin-left: 0px;
+    padding-top: 0px;
+}
+
+.dataTable {
+    width: 100%;
+}
+
+.cosmic, .logo_grch38, .subhead, footer {
+    display: none;
+}
+
+#section-genome-browser {
+    display: none !important;
+}

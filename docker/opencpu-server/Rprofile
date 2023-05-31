@@ -1,0 +1,13 @@
+## Rprofile for OpenCPU cloud server.
+## Example of Rprofile
+#
+# options(width=65, digits=5)
+# options(show.signif.stars=FALSE)
+local({
+  site_profile <- file.path(R.home(), 'etc', 'Rprofile.site')
+  if(file.exists(site_profile))
+    source(site_profile)
+})
+
+print("Preload apga...")
+library(apga)

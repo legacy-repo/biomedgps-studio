@@ -1,0 +1,67 @@
+#back-top,
+.scrollTopBtn {
+    display: none !important;
+}
+
+#Gene>.gc-page-content-wrapper {
+    display: none;
+}
+
+.hidden-xs,
+.hidden-sm,
+.hidden-md {
+    display: none !important;
+}
+
+#aliases_descriptions>.row>.col-md-3 {
+    display: none;
+}
+
+#Antibodies,
+#RecombinantProteins,
+#Assays,
+#AnimalModels,
+#Crispr,
+#miRNA,
+#InhibRna,
+#Clones,
+#CellLines,
+#ReporterLentiviralParticles {
+    display: none;
+}
+
+.eupopup-container {
+    display: none !important;
+}
+
+.messenger__bubble {
+    display: none !important;
+}
+
+.row:not(:first-of-type):not(:nth-of-type(2)) {
+    display: none;
+}
+
+#products,
+#sources {
+    display: none;
+}
+
+footer {
+    display: none;
+}
+
+#kayako-messenger {
+    display: none;
+}
+
+.container {
+    width: 100% !important;
+    background-color: unset !important;
+    border-left: unset !important;
+    border-right: unset !important;
+    padding-right: 0px;
+    padding-left: 0px;
+    margin-right: 0px;
+    margin-left: 0px;
+}
