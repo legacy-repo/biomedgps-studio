@@ -8,8 +8,6 @@ type AskQuestionProps = {
 };
 
 const AskQuestion: React.FC<AskQuestionProps> = (props) => {
-
-
   return (
     <div className={"question-queryer"}>
       <h3>Question:</h3>

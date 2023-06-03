@@ -8,7 +8,7 @@ import {
   SettingOutlined, CloudUploadOutlined, SettingFilled, ExclamationCircleOutlined
 } from '@ant-design/icons';
 import Toolbar from './Toolbar';
-import { uniqBy, uniq } from 'lodash';
+import { uniqBy, partial } from 'lodash';
 import GraphinWrapper from './GraphinWrapper';
 import QueryBuilder from './QueryBuilder';
 import AdvancedSearch from './AdvancedSearch';
@@ -16,82 +16,52 @@ import ComplexChart from './Chart/ComplexChart';
 import StatisticsChart from './Chart/StatisticsChart';
 // import ReactResizeDetector from 'react-resize-detector';
 import {
-  makeColumns, makeDataSources, autoConnectNodes,
-  makeGraphQueryStrWithSearchObject, defaultLayout, predictRelationships,
-  isValidSearchObject, isUUID, getDimensions, getNodes, getSelectedNodes
+  makeColumns, makeDataSources, defaultLayout,
+  autoConnectNodes as autoConnectNodesInterface,
+  makeGraphQueryStrWithSearchObject as makeGraphQueryStrWithSearchObjectInterface,
+  predictRelationships as predictRelationshipsInterface,
+  isValidSearchObject, isUUID, getNodes, getSelectedNodes,
+  processEdges
 } from './utils';
 import NodeInfoPanel from './NodeInfoPanel';
 import EdgeInfoPanel from './EdgeInfoPanel';
 import GraphTable from './GraphStore/GraphTable';
 import GraphForm from './GraphStore/GraphForm';
 import type { Graph } from '@antv/graphin';
-import type { Graph as GraphItem } from './GraphStore/typings';
-import { getStatistics, getGraphs, postGraphs, deleteGraphsId } from '@/services/swagger/Graph';
+import type {
+  GraphHistoryItem, GraphHistoryItemPayload
+} from './GraphStore/typings';
 import {
   SearchObject, GraphData, GraphEdge, GraphNode,
-  NodeStat, EdgeStat, EdgeInfo, DimensionArray
+  NodeStat, EdgeStat, EdgeInfo, DimensionArray, APIs
 } from './typings';
+import {
+  GetGeneInfoFn,
+  GetItems4GenePanelFn,
+} from './NodeInfoPanel/typings';
 
 import './index.less';
 import SimilarityChart from './Chart/SimilarityChart';
 import Movable from './Components/Movable';
 
 const style = {
+  // @ts-ignore
   backgroundImage: `url(${window.publicPath + "graph-background.png"})`
 }
 
 type KnowledgeGraphProps = {
-  postMessage?: (message: any) => void
-}
-
-const processEdges = (edges: GraphEdge[], options: any): GraphEdge[] => {
-  const edgeMap: Map<string, GraphEdge[]> = new Map();
-  edges.forEach(edge => {
-    const { source, target } = edge;
-    const id = `${source}-${target}`;
-    if (edgeMap.has(id)) {
-      const objs = edgeMap.get(id);
-      if (objs) {
-        edgeMap.set(id, [...objs, edge]);
-      }
-    } else {
-      edgeMap.set(id, [edge]);
-    }
-  });
-
-  const newEdges: GraphEdge[] = [];
-  edgeMap.forEach((value, key) => {
-    if (value.length > 1) {
-      const [firstEdge] = value;
-      const { source, target, ...others } = firstEdge;
-      const reltypes = value.map((edge: GraphEdge) => edge.reltype);
-      newEdges.push({
-        source,
-        target,
-        ...others,
-        reltype: reltypes.join('|'),
-        relid: `MultipleLabels-${source}-${target}`,
-        style: {
-          ...others.style,
-          label: {
-            value: 'MultipleLabels',
-          }
-        },
-        data: {
-          ...others.data,
-          identity: `MultipleLabels-${source}-${target}`,
-          reltypes: reltypes
-        }
-      });
-    } else {
-      newEdges.push(value[0]);
-    }
-  })
-
-  return newEdges;
+  postMessage?: (message: any) => void;
+  apis: APIs;
+  getGeneInfo?: GetGeneInfoFn;
+  getItems4GenePanel?: GetItems4GenePanelFn;
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
+  const { apis } = props;
+  const predictRelationships = partial(predictRelationshipsInterface, apis);
+  const makeGraphQueryStrWithSearchObject = partial(makeGraphQueryStrWithSearchObjectInterface, apis);
+  const autoConnectNodes = partial(autoConnectNodesInterface, apis);
+
   const [modal, contextHolder] = Modal.useModal();
   // const [data, setData] = useState(Utils.mock(8).circle().graphin())
   const [data, setData] = useState<GraphData>({
@@ -140,7 +110,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   const [currentGraphUUID, setCurrentGraphUUID] = useState<string>("New Graph");
   const [isDirty, setIsDirty] = useState<boolean>(false);
 
-  const [graphs, setGraphs] = useState<GraphItem[]>([]);
+  const [graphHistory, setGraphHistory] = useState<GraphHistoryItem[]>([]);
   const [graphTableVisible, setGraphTableVisible] = useState<boolean>(false);
   const [graphFormVisible, setGraphFormVisible] = useState<boolean>(false);
   const [graphFormPayload, setGraphFormPayload] = useState<Record<string, any>>({});
@@ -220,21 +190,41 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }, [data, edgeStat, nodeStat, currentGraphUUID])
 
   const loadGraphs = () => {
-    getGraphs({ page: 1, page_size: 100 }).then(response => {
-      setGraphs(response.data)
+    apis.getGraphHistory({ page: 1, page_size: 100 }).then(response => {
+      setGraphHistory(response.data)
     }).catch(error => {
       console.log(error)
-      message.error("Failed to get graphs, please check the network connection.")
+      message.error("Failed to get graph histories, please check the network connection.")
     })
   }
 
-  const loadGraph = (graph: GraphItem, latestChild: GraphItem) => {
-    const payload = graph.payload;
+  const getDimensions = (
+    sourceId: string, sourceType: string,
+    targetIds: string[], targetTypes: string[]
+  ): Promise<DimensionArray> => {
+    return new Promise((resolve, reject) => {
+      apis.postDimensionReduction({
+        source_id: sourceId,
+        source_type: sourceType,
+        target_ids: targetIds,
+        target_types: targetTypes
+      }).then(res => {
+        console.log("Get dimensions: ", res)
+        resolve(res.data as DimensionArray)
+      }).catch(err => {
+        console.log("Error when getting dimensions: ", err)
+        reject([])
+      })
+    })
+  }
+
+  const loadGraph = (graphHistoryItem: GraphHistoryItem, latestChild: GraphHistoryItem) => {
+    const payload = graphHistoryItem.payload;
     if (payload) {
       setIsDirty(false);
       // Only support one level of graph hierarchy, so the parent graph is always the latest child graph.
       setParentGraphUUID(latestChild.id);
-      setCurrentGraphUUID(graph.id);
+      setCurrentGraphUUID(graphHistoryItem.id);
       checkAndSetData(payload.data);
       setLayout(payload.layout);
       setToolbarVisible(payload.toolbarVisible);
@@ -242,8 +232,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
     }
   }
 
-  const onLoadGraph = (graph: GraphItem, latestChild: GraphItem) => {
-    console.log("Load graph: ", graph, latestChild);
+  const onLoadGraph = (graphHistoryItem: GraphHistoryItem, latestChild: GraphHistoryItem) => {
+    console.log("Load graph: ", graphHistoryItem, latestChild);
     if (isDirty) {
       modal.confirm({
         title: "You have unsaved changes",
@@ -253,20 +243,20 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
         cancelText: "Cancel",
         onOk() {
           setIsDirty(false);
-          loadGraph(graph, latestChild)
+          loadGraph(graphHistoryItem, latestChild)
         },
         onCancel() {
           // TODO: anything else?
         }
       })
     } else {
-      loadGraph(graph, latestChild)
+      loadGraph(graphHistoryItem, latestChild)
     }
   }
 
-  const onDeleteGraph = (graph: GraphItem) => {
+  const onDeleteGraph = (graphHistoryItem: GraphHistoryItem) => {
     // TODO: add confirm dialog, it will delete the graph cascade.
-    deleteGraphsId({ id: graph.id }).then(response => {
+    apis.deleteGraphHistory({ id: graphHistoryItem.id }).then(response => {
       message.success("Graph deleted successfully.")
       loadGraphs()
     }).catch(error => {
@@ -276,7 +266,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
   }
 
   useEffect(() => {
-    getStatistics()
+    apis.getStatistics()
       .then(response => {
         setNodeStat(response.node_stat as NodeStat[])
         setEdgeStat(response.relationship_stat as EdgeStat[])
@@ -623,7 +613,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
 
   const enterFullScreenHandler = useFullScreenHandle();
 
-  const onSubmitGraph = (data: GraphItem) => {
+  const onSubmitGraph = (data: GraphHistoryItemPayload) => {
     return new Promise((resolve, reject) => {
       if (parentGraphUUID && isUUID(parentGraphUUID)) {
         data = { ...data, parent: parentGraphUUID }
@@ -633,7 +623,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
       // @ts-ignore
       delete data.id;
 
-      postGraphs(data).then(response => {
+      apis.postGraphHistory(data).then(response => {
         message.success("Graph data saved.")
         loadGraphs()
         return resolve(response)
@@ -670,11 +660,13 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             </Tooltip>
           </Row>
           <Row className='top-toolbar'>
-            <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}></QueryBuilder>
+            <QueryBuilder onChange={searchLabel} onAdvancedSearch={enableAdvancedSearch}
+              getLabels={apis.getLabels} getNodeTypes={apis.getNodeTypes}>
+            </QueryBuilder>
             <AdvancedSearch onOk={updateSearchObject} visible={advancedSearchPanelActive}
               onCancel={disableAdvancedSearch} searchObject={searchObject} edgeStat={edgeStat}
               parent={document.getElementById('knowledge-graph-container') as HTMLElement}
-              key={searchObject.node_id}>
+              key={searchObject.node_id} apis={apis}>
             </AdvancedSearch>
           </Row>
           <Col className='graphin' style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -687,8 +679,10 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
             <Toolbar position='right' width={'80%'} closable={false}
               maskVisible visible={nodeInfoPanelVisible} onClose={onCloseInfoPanel}>
               {
-                clickedNode ?
-                  <NodeInfoPanel node={clickedNode}></NodeInfoPanel> :
+                (clickedNode && props.getGeneInfo && props.getItems4GenePanel) ?
+                  <NodeInfoPanel node={clickedNode} getGeneInfo={props.getGeneInfo}
+                    getItems4GenePanel={props.getItems4GenePanel}>
+                  </NodeInfoPanel> :
                   <Empty description="No node selected" />
               }
             </Toolbar>
@@ -751,12 +745,12 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                     </SimilarityChart>
                   </Movable> : null
               }
-              <GraphTable visible={graphTableVisible} graphs={graphs}
+              <GraphTable visible={graphTableVisible} graphs={graphHistory}
                 onLoad={onLoadGraph} onDelete={onDeleteGraph} treeFormat
                 parent={document.getElementById('knowledge-graph-container') as HTMLElement}
                 onClose={() => { setGraphTableVisible(false) }}
-                onUpload={(graph: GraphItem) => {
-                  onSubmitGraph(graph)
+                onUpload={(graphHistory: GraphHistoryItemPayload) => {
+                  onSubmitGraph(graphHistory)
                 }}
                 selectedGraphId={currentGraphUUID}>
               </GraphTable>
@@ -765,7 +759,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = (props) => {
                 parent={document.getElementById('knowledge-graph-container') as HTMLElement}
                 onClose={() => { setGraphFormVisible(false) }}
                 onSubmit={(data: any) => {
-                  onSubmitGraph(data as GraphItem).finally(() => {
+                  onSubmitGraph(data as GraphHistoryItem).finally(() => {
                     setGraphFormVisible(false)
                   })
                 }}>

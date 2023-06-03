@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Tabs } from 'antd';
-import type { EdgeInfo } from '@/containers/KnowledgeGraph/typings';
+import type { EdgeInfo } from '../typings';
 
 import './index.less';
 

@@ -1,14 +1,19 @@
 import React from "react";
 import { Empty, Row } from 'antd';
-import type { GraphNode } from '@/containers/KnowledgeGraph/typings';
+import type { GraphNode } from '../typings';
 import DiseasePanel from './DiseasePanel';
 import DrugPanel from './DrugPanel';
 import GenePanel from './GenePanel';
+import type {
+  GetGeneInfoFn, GetItems4GenePanelFn
+} from './typings';
 
 import './index.less';
 
 type NodeInfoPanelProps = {
-  node?: GraphNode
+  node?: GraphNode,
+  getItems4GenePanel: GetItems4GenePanelFn,
+  getGeneInfo: GetGeneInfoFn,
 }
 
 const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
@@ -20,7 +25,9 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
       const label = node.nlabel.toLocaleLowerCase();
 
       if (["gene", "protein"].includes(label)) {
-        return <GenePanel node={node} />;
+        return <GenePanel node={node} getGeneInfo={props.getGeneInfo}
+          getItems4GenePanel={props.getItems4GenePanel}>
+        </GenePanel>;
       }
 
       if (["drug", "chemical", "compound"].includes(label)) {

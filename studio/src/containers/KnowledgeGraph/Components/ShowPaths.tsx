@@ -5,6 +5,7 @@ import { message, Button, Table, Row, Space, notification, Input } from 'antd';
 import Movable from './Movable';
 import type { InputRef } from 'antd';
 import type { FilterConfirmProps } from 'antd/es/table/interface';
+// @ts-ignore
 import Highlighter from 'react-highlight-words';
 import { ClearOutlined, TableOutlined, SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType, ColumnType } from 'antd/es/table';

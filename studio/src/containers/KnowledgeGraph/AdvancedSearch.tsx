@@ -1,4 +1,4 @@
-import { Modal, Tabs, Input, Button } from "antd";
+import { Modal, Tabs } from "antd";
 import React, { useState } from "react";
 import { SearchObject, EdgeStat } from './typings';
 import TransferTable from './Components/TransferTable';
@@ -6,6 +6,7 @@ import type { DataType } from './Components/TransferTable';
 import UploadNode from './Components/UploadNode';
 import QueryForm from './Components/QueryForm';
 import AskQuestion from "./Components/AskQuestion";
+import type { APIs } from './typings';
 
 import './AdvancedSearch.less'
 
@@ -16,6 +17,7 @@ type AdvancedSearchProps = {
   searchObject?: SearchObject;
   edgeStat: EdgeStat[],
   parent?: HTMLElement;
+  apis: APIs;
 }
 
 const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
@@ -29,7 +31,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
       label: "Single Query",
       key: "single",
       children: <QueryForm edgeStat={props.edgeStat} onCancel={props.onCancel}
-        onOk={props.onOk} searchObject={props.searchObject} />
+        onOk={props.onOk} searchObject={props.searchObject} {...props.apis} />
     },
     {
       label: "Batch Query",
@@ -59,7 +61,7 @@ const AdvancedSearch: React.FC<AdvancedSearchProps> = (props) => {
           activeKey === "batch" ?
             <UploadNode onUpload={(dataSource) => {
               setDataSource(dataSource)
-            }} />
+            }} getLabels={props.apis.getLabels} />
             : null
         }
       />

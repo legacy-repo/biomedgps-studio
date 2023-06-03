@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Tabs } from 'antd';
 
-import type { GeneInfo } from '@/plugins4kg/utils';
-import type { GraphNode } from '@/containers/KnowledgeGraph/typings';
+import type { GeneInfo } from './typings';
+import type { GraphNode } from '../typings';
 
 import './index.less';
 
@@ -10,7 +10,7 @@ type NodeInfoPanelProps = {
   node?: GraphNode
 }
 
-const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
+const DrugNodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   const { node } = props;
   const [info, setInfo] = useState<GeneInfo | undefined>(undefined);
 
@@ -30,4 +30,4 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   )
 }
 
-export default NodeInfoPanel;
+export default DrugNodeInfoPanel;

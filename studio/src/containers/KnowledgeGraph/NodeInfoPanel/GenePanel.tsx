@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, Empty, Button, Popover } from 'antd';
 import { filter, map } from 'lodash';
-import { getGeneInfo } from '@/plugins4kg/utils';
-import { getItems4GenePanel } from '@/plugins4kg';
-
-import type { GraphNode } from '@/containers/KnowledgeGraph/typings';
-import type { GeneInfo } from '@/plugins4kg/utils';
+import type { GraphNode } from '../typings';
+import type { GeneInfo } from './typings';
 
 import './gene-panel.less';
 import { SettingOutlined } from "@ant-design/icons";
 
 type NodeInfoPanelProps = {
   node?: GraphNode
+  getItems4GenePanel: (info: GeneInfo, exclude: any[]) => any[]
+  getGeneInfo: (geneId: string) => Promise<GeneInfo>
 }
 
-const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
+const GeneNodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   const { node } = props;
   const [info, setInfo] = useState<GeneInfo | undefined>(undefined);
   const [checkItems, setCheckItems] = useState<any[]>([
@@ -54,10 +53,13 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   useEffect(() => {
     if (node) {
       // TODO: Need to keep the type of id same with the type of knowledge graph's node id
-      getGeneInfo(node.data.id).then((info) => {
+      props.getGeneInfo(node.data.id).then((info) => {
         setInfo(info);
 
-        setItems(getItems4GenePanel(info, filter(checkItems, (item) => !item.checked)));
+        setItems(props.getItems4GenePanel(
+          info,
+          filter(checkItems, (item) => !item.checked))
+        );
       }).catch((error) => {
         console.log('getGeneInfo Error: ', error);
         setInfo(undefined);
@@ -113,4 +115,4 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
   )
 }
 
-export default NodeInfoPanel;
+export default GeneNodeInfoPanel;

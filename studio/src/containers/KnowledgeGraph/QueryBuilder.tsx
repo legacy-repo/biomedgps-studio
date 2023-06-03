@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Row, Empty, Select, Button } from "antd";
-import { getNodeTypes, getLabels } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
 import { OptionType } from './typings';
+import type { APIs } from './typings';
 import './QueryBuilder.less';
 
 let timeout: ReturnType<typeof setTimeout> | null;
@@ -10,6 +10,8 @@ let timeout: ReturnType<typeof setTimeout> | null;
 type QueryBuilderProps = {
     onChange?: (label: string, value: string | undefined) => void;
     onAdvancedSearch?: () => void;
+    getNodeTypes: APIs['GetNodeTypesFn'];
+    getLabels: APIs['GetLabelsFn'];
 }
 
 const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
@@ -29,7 +31,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
 
         const fetchData = () => {
             setLoading(true)
-            getLabels({
+            props.getLabels({
                 query_str: makeQueryStr({ id: value, name: value }, {}, {}),
                 label_type: label_type
             })
@@ -79,7 +81,7 @@ const QueryBuilder: React.FC<QueryBuilderProps> = (props) => {
     }
 
     useEffect(() => {
-        getNodeTypes()
+        props.getNodeTypes()
             .then(response => {
                 console.log("Get types of nodes: ", response)
                 let o: OptionType[] = []

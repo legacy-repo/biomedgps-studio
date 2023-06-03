@@ -2,8 +2,13 @@ import ChatBox from '@/components/ChatBox';
 import { Row, Col, Button } from 'antd';
 import KnowledgeGraph from '@/containers/KnowledgeGraph';
 import { useEffect, useState } from 'react';
-import './index.less';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
+import {
+  getGraphs, getLabels, getNodeTypes, getRelationships, getStatistics, postGraphs, deleteGraphsId, postDimension, postSimilarity, postNodes
+} from '@/services/swagger/Graph';
+import type { APIs } from '@/containers/KnowledgeGraph/typings';
+
+import './index.less';
 
 const kgFullSpan = 24;
 const kgThreeQuartersSpan = 16;
@@ -34,6 +39,18 @@ const ChatAI: React.FC = () => {
         setChatBoxVisible(!chatBoxVisible)
       }} icon={chatBoxVisible ? <MessageOutlined /> : <MessageFilled />} />
       <KnowledgeGraph
+        apis={{
+          getStatistics: getStatistics as APIs['GetStatisticsFn'],
+          getGraphHistory: getGraphs as APIs['GetGraphHistoryFn'],
+          postGraphHistory: postGraphs as APIs['PostGraphHistoryFn'],
+          deleteGraphHistory: deleteGraphsId as APIs['DeleteGraphHistoryFn'],
+          getNodeTypes: getNodeTypes as APIs['GetNodeTypesFn'],
+          getLabels: getLabels as APIs['GetLabelsFn'],
+          getRelationships: getRelationships as APIs['GetRelationshipsFn'],
+          postGraph: postNodes as APIs['PostGraphFn'],
+          postDimensionReduction: postDimension as APIs['PostDimensionReductionFn'],
+          postSimilarity: postSimilarity as APIs['PostSimilarityFn']
+        }}
         postMessage={(message) => {
           setMessage(message)
         }}>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Space, Table, Modal, Button, Tree, Col, Row } from 'antd';
-import type { Graph } from './typings';
+import type { GraphHistoryItem } from './typings';
 import type { ColumnsType } from 'antd/es/table';
 import UploadGraph from './UploadGraph';
 import type { DataNode, DirectoryTreeProps } from 'antd/es/tree';
@@ -9,25 +9,25 @@ import './GraphTable.less';
 const { DirectoryTree } = Tree;
 
 type GraphTableProps = {
-  graphs: Graph[];
+  graphs: GraphHistoryItem[];
   visible: boolean;
-  onLoad: (graph: Graph, latestChild: Graph) => void;
-  onDelete: (graph: Graph) => void;
+  onLoad: (graph: GraphHistoryItem, latestChild: GraphHistoryItem) => void;
+  onDelete: (graph: GraphHistoryItem) => void;
   onClose: () => void;
-  onUpload?: (graph: Graph) => void;
+  onUpload?: (graph: GraphHistoryItem) => void;
   parent?: HTMLElement;
   treeFormat?: boolean;
   selectedGraphId?: string;
 };
 
-type TreeGraph = Graph & {
+type TreeGraph = GraphHistoryItem & {
   children?: TreeGraph[];
   title: string;
   key: string;
   isLeaf?: boolean;
 }
 
-const makeTree = (graphs: Graph[]): TreeGraph[] => {
+const makeTree = (graphs: GraphHistoryItem[]): TreeGraph[] => {
   // Create a map of objects
   const objectMap = {};
   graphs.forEach(obj => {
@@ -96,10 +96,10 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
   const defaultTreePanelSpan = 6;
   const [treeData, setTreeData] = React.useState<TreeGraph[]>([]);
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
-  const [tableData, setTableData] = React.useState<Graph[]>([]);
+  const [tableData, setTableData] = React.useState<GraphHistoryItem[]>([]);
   const [treePanelSpan, setTreePanelSpan] = React.useState<number>(defaultTreePanelSpan);
 
-  const columns: ColumnsType<Graph> = [
+  const columns: ColumnsType<GraphHistoryItem> = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -191,7 +191,7 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
     console.log('Trigger Select', keys, info);
     if (info.selectedNodes[0] && info.selectedNodes[0].children) {
       const selectedNode = info.selectedNodes[0] as TreeGraph;
-      setTableData(selectedNode.children as Graph[]);
+      setTableData(selectedNode.children as GraphHistoryItem[]);
       setSelectedKeys(keys as string[]);
     } else {
       setSelectedKeys([]);
@@ -207,7 +207,7 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
     if (props.treeFormat) {
       const defaultTreeData = makeTree(props.graphs);
       setTreeData(defaultTreeData);
-      const defaultTableData = defaultTreeData[0] ? defaultTreeData[0].children as Graph[] : [];
+      const defaultTableData = defaultTreeData[0] ? defaultTreeData[0].children as GraphHistoryItem[] : [];
       setTableData(defaultTableData);
       setTreePanelSpan(defaultTreePanelSpan);
       setSelectedKeys(defaultTreeData[0] ? [defaultTreeData[0].key] : []);
@@ -224,7 +224,7 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
       props.onUpload ?
         [
           <UploadGraph key="upload-graph" onUpload={
-            (graph: Graph) => {
+            (graph: GraphHistoryItem) => {
               if (props.onUpload) {
                 const newGraph = graph;
                 // Don't worry about it. We just want to create a new graph not linked to any existing graph

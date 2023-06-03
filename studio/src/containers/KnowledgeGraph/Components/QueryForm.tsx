@@ -3,9 +3,10 @@ import {
   InputNumber, message, Button
 } from "antd";
 import React, { useState, useEffect } from "react";
-import { getNodeTypes, getLabels, getRelationships } from '@/services/swagger/Graph';
-import { makeQueryStr, getRelationshipOption, makeRelationshipTypes, getMaxDigits } from '../utils';
-import { OptionType, SearchObject, EdgeStat } from '../typings';
+import {
+  makeQueryStr, getRelationshipOption, makeRelationshipTypes, getMaxDigits
+} from '../utils';
+import { OptionType, SearchObject, EdgeStat, APIs } from '../typings';
 
 let timeout: ReturnType<typeof setTimeout> | null;
 
@@ -14,6 +15,9 @@ type AdvancedSearchProps = {
   onCancel?: () => void;
   searchObject?: SearchObject;
   edgeStat: EdgeStat[];
+  getNodeTypes: APIs['GetNodeTypesFn'];
+  getLabels: APIs['GetLabelsFn'];
+  getRelationships: APIs['GetRelationshipsFn'];
 }
 
 const mergeModeOptions = [
@@ -54,7 +58,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
   const [nodeOptions, setNodeOptions] = useState<any[] | undefined>(undefined);
 
   useEffect(() => {
-    getNodeTypes()
+    props.getNodeTypes()
       .then(response => {
         console.log("Get types of nodes: ", response)
         let o: OptionType[] = []
@@ -221,7 +225,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
       :order-by ${order_clause}}
     `;
 
-    getRelationships({
+    props.getRelationships({
       query_str: query_str,
       disable_total: "true"
     }).then(response => {
@@ -264,7 +268,7 @@ const QueryForm: React.FC<AdvancedSearchProps> = (props) => {
 
     const fetchData = () => {
       setLoading(true)
-      getLabels({
+      props.getLabels({
         query_str: makeQueryStr({ id: value, name: value }, {}, {}),
         label_type: label_type
       })

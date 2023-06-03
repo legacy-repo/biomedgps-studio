@@ -39,7 +39,7 @@ import type {
 } from "./typings";
 import ShowPaths from './Components/ShowPaths';
 import { GraphLayoutPredict } from '@antv/vis-predict-engine';
-import type { Graph as GraphItem } from './GraphStore/typings';
+import type { GraphHistoryItem } from './GraphStore/typings';
 import voca from 'voca';
 import './GraphinWrapper.less';
 
@@ -726,10 +726,13 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
     useEffect(() => {
         loadSettings();
 
+        // @ts-ignore
         if (ref && ref.current && ref.current.graph) {
+            // @ts-ignore
             ref.current.graph.on("edge:contextmenu", e => {
                 setCurrentEdge(e.item)
             })
+            // @ts-ignore
             ref.current.graph.on("node:contextmenu", e => {
                 setCurrentNode(e.item)
             })
@@ -744,10 +747,14 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
 
     useEffect(() => {
         // TODO: how to force update the layout, the following code doesn't work.
+        // @ts-ignore
         if (ref.current && ref.current.graph) {
             console.log("Updating layout: ", props.layout);
+            // @ts-ignore
             ref.current.graph.updateLayout(props.layout);
+            // @ts-ignore
             ref.current.graph.refreshPositions();
+            // @ts-ignore
             ref.current.graph.fitView();
         }
     }, [props.layout])
@@ -1161,7 +1168,9 @@ const GraphinWrapper: React.FC<GraphinProps> = (props) => {
             }
             <CustomGraphinContext.Provider value={
                 {
+                    // @ts-ignore
                     graph: ref.current?.graph,
+                    // @ts-ignore
                     apis: ref.current?.apis,
                     selectedNodes: focusedNodes
                 }

@@ -1,10 +1,10 @@
 import { message, Upload, Button, notification } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { UploadProps } from 'antd';
-import type { Graph } from './typings';
+import type { GraphHistoryItem } from './typings';
 
 type UploadNodeProps = {
-  onUpload: (data: Graph) => void;
+  onUpload: (data: GraphHistoryItem) => void;
 };
 
 const UploadGraph: React.FC<UploadNodeProps> = (props) => {

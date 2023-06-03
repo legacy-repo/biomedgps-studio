@@ -1,14 +1,16 @@
 import { message, Upload, Button, notification } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
+// @ts-ignore
 import Papa from 'papaparse';
 import type { UploadProps } from 'antd';
 import React, { useEffect, useState } from 'react';
 import type { DataType } from './TransferTable';
-import { getLabels } from '@/services/swagger/Graph';
+import type { APIs } from '../typings';
 import { flatten, uniqBy } from 'lodash';
 
 type UploadNodeProps = {
   onUpload: (data: DataType[]) => void;
+  getLabels: APIs['GetLabelsFn'];
 };
 
 const UploadNode: React.FC<UploadNodeProps> = (props) => {
@@ -29,7 +31,7 @@ const UploadNode: React.FC<UploadNodeProps> = (props) => {
     const nodeTypes = Object.keys(groupedNodes);
     console.log('UploadNode fetch: ', groupedNodes, nodeTypes)
     const promises = nodeTypes.map((nodeType) => {
-      return getLabels({
+      return props.getLabels({
         query_str: `{:select [:*] :where [:in :id ${JSON.stringify(groupedNodes[nodeType])}]}`,
         label_type: nodeType,
       })

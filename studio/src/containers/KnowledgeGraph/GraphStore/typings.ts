@@ -1,4 +1,4 @@
-export type Graph = {
+export type GraphHistoryItem = {
   description: string;
   payload: Record<string, any>;
   name: string;
@@ -10,9 +10,28 @@ export type Graph = {
   parent: string;
 };
 
-export type GraphResponse = {
+export type GraphHistoryResponse = {
   total: number;
   page: number;
   page_size: number;
-  data: Graph[];
+  data: GraphHistoryItem[];
 };
+
+export type GraphHistoryParams = {
+  page?: number;
+  page_size?: number;
+  owner?: string;
+  db_version?: string;
+  version?: string;
+}
+
+export type GraphHistoryItemPayload = {
+  description?: string;
+  payload: Record<string, any>;
+  name: string;
+  created_time?: number;
+  db_version?: string;
+  version?: string;
+  owner?: any;
+  parent?: string;
+}

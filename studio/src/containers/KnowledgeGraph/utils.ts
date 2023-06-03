@@ -2,12 +2,58 @@ import type { TableColumnType } from 'antd';
 import type { SortOrder } from 'antd/es/table/interface';
 import { filter, uniq } from 'lodash';
 import { Graph } from '@antv/g6';
-import { postNodes, postSimilarity, postDimension } from '@/services/swagger/Graph';
 import {
   SearchObject, GraphData, GraphNode, Relationship,
-  EdgeStat, OptionType, DimensionArray
+  EdgeStat, OptionType, APIs, GraphEdge
 } from './typings';
 import voca from 'voca';
+
+export const processEdges = (edges: GraphEdge[], options: any): GraphEdge[] => {
+  const edgeMap: Map<string, GraphEdge[]> = new Map();
+  edges.forEach(edge => {
+    const { source, target } = edge;
+    const id = `${source}-${target}`;
+    if (edgeMap.has(id)) {
+      const objs = edgeMap.get(id);
+      if (objs) {
+        edgeMap.set(id, [...objs, edge]);
+      }
+    } else {
+      edgeMap.set(id, [edge]);
+    }
+  });
+
+  const newEdges: GraphEdge[] = [];
+  edgeMap.forEach((value, key) => {
+    if (value.length > 1) {
+      const [firstEdge] = value;
+      const { source, target, ...others } = firstEdge;
+      const reltypes = value.map((edge: GraphEdge) => edge.reltype);
+      newEdges.push({
+        source,
+        target,
+        ...others,
+        reltype: reltypes.join('|'),
+        relid: `MultipleLabels-${source}-${target}`,
+        style: {
+          ...others.style,
+          label: {
+            value: 'MultipleLabels',
+          }
+        },
+        data: {
+          ...others.data,
+          identity: `MultipleLabels-${source}-${target}`,
+          reltypes: reltypes
+        }
+      });
+    } else {
+      newEdges.push(value[0]);
+    }
+  })
+
+  return newEdges;
+}
 
 export const makeColumns = (dataSource: Array<Record<string, any>>, blackList: Array<string>) => {
   let keys: Array<string> = [];
@@ -128,7 +174,7 @@ export function makeGraphQueryStr(
   return queryStr;
 }
 
-export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
+export const makeGraphQueryStrWithIds = (apis: APIs, ids: number[]): Promise<GraphData> => {
   // Remove all undefined and null values
   const filterIds = ids.filter(item => item);
   let query_map = {
@@ -137,7 +183,7 @@ export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
     "return": "n"
   };
   return new Promise((resolve, reject) => {
-    postNodes({ query_map: query_map }).then((res) => {
+    apis.postGraph({ query_map: query_map }).then((res) => {
       if (res) {
         resolve(res)
       } else {
@@ -149,7 +195,7 @@ export const makeGraphQueryStrWithIds = (ids: number[]): Promise<GraphData> => {
   })
 }
 
-export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
+export function autoConnectNodes(apis: APIs, nodes: GraphNode[]): Promise<GraphData> {
   // To convert the js object into a literal string
   let nodeList = nodes.map(item => {
     // In fact, id is a number in neo4j, but it is converted to a string in the front end.
@@ -165,7 +211,7 @@ export function autoConnectNodes(nodes: GraphNode[]): Promise<GraphData> {
     "return": "n,m,r"
   };
   return new Promise((resolve, reject) => {
-    postNodes({ query_map: query_map }).then((res) => {
+    apis.postGraph({ query_map: query_map }).then((res) => {
       if (res) {
         resolve(res)
       } else {
@@ -305,7 +351,7 @@ export const isValidSearchObject = (searchObject: SearchObject): boolean => {
   }
 }
 
-export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): Promise<GraphData> {
+export function makeGraphQueryStrWithSearchObject(apis: APIs, searchObject: SearchObject): Promise<GraphData> {
   console.log("makeGraphQueryStrWithSearchObject: ", searchObject)
   const {
     node_type, node_id, relation_types, all_relation_types,
@@ -443,7 +489,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
 
       console.log("query_str: ", query_str)
       if (Object.keys(query_str).length > 0) {
-        postNodes({ query_map: query_str, ...payload }).then((res) => {
+        apis.postGraph({ query_map: query_str, ...payload }).then((res) => {
           if (res) {
             resolve(res)
           } else {
@@ -460,7 +506,7 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
     if (isValidSimilarityMode(searchObject)) {
       // TODO: Current version only support the format of node_id = "node_type:node_id"
       // How to keep consistency with the format of node_id in the deep learning model?
-      postSimilarity({
+      apis.postSimilarity({
         source_type: node_type,
         // node_id may be a integer, but the backend only support string
         source_id: `${node_id}`,
@@ -480,10 +526,10 @@ export function makeGraphQueryStrWithSearchObject(searchObject: SearchObject): P
   })
 }
 
-export const searchRelationshipsById = (label: string, id: string | undefined): Promise<GraphData> => {
+export const searchRelationshipsById = (apis: APIs, label: string, id: string | undefined): Promise<GraphData> => {
   return new Promise((resolve, reject) => {
     if (label && id) {
-      postNodes({ query_map: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }).then((res) => {
+      apis.postGraph({ query_map: makeGraphQueryStr(`(n:${label})-[r]-(m)`, `n.id = '${id}'`) }).then((res) => {
         if (res) {
           resolve(res)
         } else {
@@ -502,13 +548,14 @@ export const searchRelationshipsById = (label: string, id: string | undefined): 
 }
 
 export const predictRelationships = (
+  apis: APIs,
   sourceId: string,
   targetIds: string[],
 ): Promise<GraphData> => {
   return new Promise((resolve, reject) => {
     const sourceNodeId = sourceId.split("::")[1];
     const targetNodeIds = targetIds.map(item => `'${item.split("::")[1]}'`).join(`,`);
-    postNodes({
+    apis.postGraph({
       query_map: makeGraphQueryStr(`(n)-[r]-(m)`, `n.id = '${sourceNodeId}' and m.id in [${targetNodeIds}]`),
       source_id: sourceId,
       target_ids: targetIds,
@@ -521,26 +568,6 @@ export const predictRelationships = (
       }
     }).catch((err) => {
       reject(err)
-    })
-  })
-}
-
-export const getDimensions = (
-  sourceId: string, sourceType: string,
-  targetIds: string[], targetTypes: string[]
-): Promise<DimensionArray> => {
-  return new Promise((resolve, reject) => {
-    postDimension({
-      source_id: sourceId,
-      source_type: sourceType,
-      target_ids: targetIds,
-      target_types: targetTypes
-    }).then(res => {
-      console.log("Get dimensions: ", res)
-      resolve(res.data as DimensionArray)
-    }).catch(err => {
-      console.log("Error when getting dimensions: ", err)
-      reject([])
     })
   })
 }
@@ -566,6 +593,7 @@ export const legacyDefaultLayout = {
   clusterNodeStrength: 40, // 节点聚类作用力
   minNodeSpacing: 20,
   nodeSize: 40,
+  // @ts-ignore
   defSpringLen: (_edge, source, target) => {
     const nodeSize = 40;
     const Sdegree = source.data.layout?.degree;
@@ -617,6 +645,7 @@ export const layouts = [
     clusterNodeStrength: 40, // 节点聚类作用力
     minNodeSpacing: 20,
     nodeSize: 40,
+    // @ts-ignore
     defSpringLen: (_edge, source, target) => {
       const nodeSize = 40;
       const Sdegree = source.data.layout?.degree;

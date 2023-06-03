@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, Row, Empty } from 'antd';
-import type { EdgeInfo } from '@/containers/KnowledgeGraph/typings';
+import type { EdgeInfo } from '../typings';
 import DrugGene from './DrugGenePanel';
 import DrugDisease from './DrugDiseasePanel';
 import GeneDisease from './DiseaseGenePanel';
