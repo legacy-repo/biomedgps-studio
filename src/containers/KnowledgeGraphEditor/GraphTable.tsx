@@ -116,7 +116,8 @@ const GraphTable: React.FC<GraphTableProps> = (props) => {
   }, [page, pageSize]);
 
   return <Row className='graph-table-container'>
-    <Table size='small' className='graph-table' columns={columns} loading={loading} scroll={{ x: 1000, y: 620 }}
+    <Table size='small' className='graph-table' columns={columns} loading={loading}
+      scroll={{ x: 1000, y: 'calc(100vh - 240px)' }}
       dataSource={data.data} rowKey={(record) => `${record.source_id}-${record.target_id}`}
       expandable={{
         expandedRowRender: (record) => <p style={{ margin: 0 }}>
