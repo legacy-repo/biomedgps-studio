@@ -1,4 +1,4 @@
-# Rapex
+# BioMedGPS Studio
 
 A knowledge graph system with graph neural network for drug discovery, disease mechanism, biomarker screening and discovering response to toxicant exposure.
 
@@ -30,71 +30,35 @@ A knowledge graph system with graph neural network for drug discovery, disease m
 
 ![path](./assets/path.png)
 
+## Launch frontend
 
-## Installation
-
-### Clone the repo
-
-```bash
-git clone https://github.com/yjcyxky/rapex.git
-```
-
-### Compile it
+Clone the repo and install dependencies.
 
 ```bash
-./bin/lein uberjar
+git clone https://github.com/yjcyxky/biomedgps-studio.git
+
+# Recommend using yarn and node v16.13.1
+
+cd biomedgps-studio && yarn
 ```
 
-### Launch a postgresql instance for testing
-
-```
-bash create-db.sh rapex_dev 54320
-```
-
-### Launch rapex
+Start the frontend server.
 
 ```bash
-export MIGRATE_DB=true
-export JAVA_OPTS='-Dconf=./example-conf.edn'
+# Use the remote backend
+yarn start:remote-dev
 
-bash bin/start
-```
-
-### Launch frontend
-
-```bash
-cd studio && yarn start:local-dev
+# If you have launched the backend server locally, please use the following command.
+# You can find the backend server code on [biomedgps](https://github.com/yjcyxky/biomedgps) or [rapex](https://github.com/yjcyxky/rapex)
+yarn start:local-dev
 
 # Release it to GitHub
-cd studio && yarn build && yarn gh-pages
+yarn build && yarn gh-pages
 ```
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar rapex-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## TODO List
-
-- [] Add advanced search for knowledge graph.
-    - [] Two modes: add to current canvas & add to new canvas.
 
 ## License
 
-Copyright © 2022 FIXME
+Copyright © 2022 Jingcheng Yang
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

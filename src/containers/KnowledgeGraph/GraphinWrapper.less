@@ -1,0 +1,96 @@
+#graphin-container {
+    position: relative;
+    border: 1px solid #ddd;
+    min-height: 500px;
+    background: url("/graph-background.png") rgb(255, 255, 255);
+
+    .ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+
+    // canvas {
+    // width: 100% !important;
+    // height: 100% !important;
+    // }
+
+    .graphin-components>div:nth-child(2) {
+        box-shadow: unset !important;
+        border: 1px solid #d6d6d6 !important;
+    }
+
+    .graphin-components-tooltip {
+        width: fit-content !important;
+        z-index: 10;
+        background-color: #ffffff;
+
+        .ant-descriptions {
+            max-height: 300px;
+            max-width: 400px;
+            overflow-y: scroll;
+        }
+
+        .ant-descriptions-item-content {
+            span {
+                display: flex;
+                max-height: 100px;
+                overflow-y: scroll;
+            }
+        }
+    }
+
+    .graphin-components-toolbar {
+        .graphin-components-toolbar-content {
+            box-shadow: unset;
+            margin-bottom: 0;
+            border-radius: 5px;
+            flex-direction: column;
+            // Don't need to show the border for the toolbar when it is in the setting container
+            // border: 1px solid #d6d6d6;
+
+            li {
+                display: flex;
+                justify-content: space-between;
+                width: 180px;
+                padding: 0px;
+                margin: 8px;
+            }
+        }
+    }
+
+    .graphin-components-contextmenu {
+        width: fit-content !important;
+
+        .ant-menu {
+            box-shadow: 0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12);
+        }
+
+        .graphin-components-contextmenu-content {
+            li {
+                padding: 5px 0 0 0;
+            }
+
+            .ant-btn {
+                padding: 0px 20px 0px 10px;
+            }
+        }
+    }
+
+    div:has(> div.graphin-minimap) {
+        border: 1px solid #d6d6d6;
+        border-bottom: unset;
+        border-left: unset;
+        border-bottom-left-radius: 5px;
+        box-shadow: unset !important;
+    }
+
+    .node-searcher {
+        position: absolute;
+        right: 5px;
+        bottom: 5px;
+        width: 240px;
+    }
+}
