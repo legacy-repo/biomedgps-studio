@@ -7,7 +7,6 @@
     "analyze": "cross-env ANALYZE=1 umi build",
     "build": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi build",
     "build-nm": "cross-env UMI_APP_AI_API=https://ai.3steps.cn/run/predict UMI_APP_API_PREFIX=https://drugs.3steps.cn umi build",
-    "build-t2dm": "cross-env UMI_APP_AI_API=https://t2dm-ai.3steps.cn/run/predict UMI_APP_API_PREFIX=https://t2dm.3steps.cn umi build",
     "deploy": "cross-env UMI_APP_IS_STATIC=true npm run build && npm run gh-pages",
     "dev": "npm run start:dev",
     "docker-hub:build": "docker build  -f Dockerfile.hub -t  ant-design-pro ./",
