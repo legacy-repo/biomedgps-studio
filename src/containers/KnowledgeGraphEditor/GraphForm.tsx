@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Form, Select, message, Empty, Input, Row, InputNumber } from 'antd';
+import { Button, Form, Select, message, Empty, Input, Row, InputNumber, Modal } from 'antd';
 import TextArea from 'antd/lib/input/TextArea';
 import { getNodeTypes, getLabels, getStatistics } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
 import { GraphEdge, OptionType } from './typings';
 import { sortBy } from 'lodash';
+import v from 'voca';
+import MarkdownViewer from '@/components/MarkdownViewer';
 
 import './GraphForm.less';
 
@@ -75,6 +77,38 @@ export const relationshipTypeDict = {
   "VirGenHumGen": "VirGenHumGen",
   "Covid2_acc_host_gene": "Covid2_acc_host_gene",
   "DrugHumGen": "DrugHumGen",
+  "A+": "agonism, activation",
+  "A-": "antagonism, blocking",
+  "B": "binding, ligand (esp. receptors)",
+  "E+": "increases expression/production",
+  "E-": "decreases expression/production",
+  "E": "affects expression/production (neutral)",
+  "N": "inhibits",
+  "O": "transport, channels",
+  "K": "metabolism, pharmacokinetics",
+  "Z": "enzyme activity",
+  "T": "treatment/therapy (including investigatory)",
+  "C": "inhibits cell growth (esp. cancers)",
+  "Sa": "side effect/adverse event",
+  "Pr": "prevents, suppresses",
+  "Pa": "alleviates, reduces",
+  "J": "role in disease pathogenesis",
+  "Mp": "biomarkers (of disease progression)",
+  "U": "causal mutations",
+  "Ud": "mutations affecting disease course",
+  "D": "drug targets",
+  "Te": "possible therapeutic effect",
+  "Y": "polymorphisms alter risk",
+  "G": "promotes progression",
+  "Md": "biomarkers (diagnostic)",
+  "X": "overexpression in disease",
+  "L": "improper regulation linked to disease",
+  "W": "enhances response",
+  "V+": "activates, stimulates",
+  "I": "signaling pathway",
+  "H": "same protein or complex",
+  "Rg": "regulation",
+  "Q": "production by cell population",
 }
 
 type RelationType = { source: string, relationType: string, fullRelationType: string }
@@ -96,17 +130,11 @@ type GraphFormProps = {
 };
 
 const helpDoc = () => {
-  return <>
-    <span style={{ color: 'red', fontWeight: 'bold' }}>!!! Read me first !!! (Scroll down to see all the content):</span>
-    <br />
-    <span>1. Fill in the form to add a new edge to the graph. Each edge have two nodes, source and target. You should choose the type of the source and target node first, then search the node by ID or name. You need to choose the accurate node from the dropdown list. If you can't find the node, please use different ID or name to search again. If you still can't find the node, please contact the administrator.</span>
-    <br />
-    <span>2. After you choose the source and target node, you can fill in the other fields. The fields with * are required. The fields with tooltip have more details.</span>
-    <br />
-    <span>3. If you can find several knowledges from the literature, you need to add them one by one. After you submit the first knowledge, you can click the "Reset" button to reset the form. Then you can add the next knowledge.</span>
-    <br />
-    <span>4. After you submit the knowledge, the administrator will review it. If the knowledge is valid, it will be added to the graph. If the knowledge is invalid, it will be improved by the administrator and then added to the graph. So the pmid is very important.</span>
-  </>
+  return <span>
+    The knowledge graph editor is a tool to help curate knowledges from the literatures. It use the triplet format to represent the knowledge.
+    Each triplet is a directed edge with a source node, a target node and a relation type. The source and target node can be any biological entities, such as gene, disease, drug, etc.
+    <b>Please read the help doc carefully before you start. If you have any questions, please <a href="mailto:jyang85@mgh.harvard.edu">contact us</a>.</b>
+  </span>
 }
 
 const idTooltip = () => {
@@ -133,6 +161,8 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
 
   const [nodeOptions, setNodeOptions] = useState<any[] | undefined>(undefined);
   const [relationshipOptions, setRelationshipOptions] = useState<OptionType[]>([]);
+
+  const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => {
     getNodeTypes()
@@ -178,16 +208,16 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
 
           const formatRelType = (item: RelationType) => {
             const r = relationshipTypeDict[item.relationType] ? relationshipTypeDict[item.relationType] : item.relationType
-            return `${r} [${item.source}]`
+            return v.titleCase(`${r}`) + ` [${item.source}]`
           }
 
-          const relationshipOptions = relationshipTypes.map((item: RelationType) => {
+          const relationshipOptions = sortBy(relationshipTypes.map((item: RelationType) => {
             return {
               order: 0,
               label: formatRelType(item),
               value: item.fullRelationType
             }
-          });
+          }), ['label']);
 
           setRelationshipOptions(relationshipOptions);
         })
@@ -293,6 +323,10 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
     }
   }
 
+  const onCancel = () => {
+    setVisible(false);
+  }
+
   const onConfirm = () => {
     setButtonLoading(true);
     form.validateFields()
@@ -329,8 +363,18 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
 
   return (
     <Row className='graph-form-container'>
-      <h3 className='title'>Graph Form</h3>
+      <h3 className='title'>
+        <span style={{ marginRight: '5px' }}>Graph Form</span>
+        <Button className='help-button' type="primary"
+          size='small' onClick={() => setVisible(true)}>
+          Help
+        </Button>
+      </h3>
       <p className='graph-help'>{helpDoc()}</p>
+      <Modal className="help-container" title="Help" onCancel={onCancel}
+        open={visible} destroyOnClose={true} footer={null} width={'50%'}>
+        <MarkdownViewer url="/RelationshipType.md" />
+      </Modal>
       <Form
         name="basic"
         labelCol={{ span: 8 }}
