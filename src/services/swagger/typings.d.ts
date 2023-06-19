@@ -79,9 +79,22 @@ declare namespace API {
     id: string;
   };
 
+  type deleteKnowledgesIdParams = {
+    /** Graph ID */
+    id: number;
+  };
+
   type deleteTasksIdParams = {
     /** Task ID */
     id: string;
+  };
+
+  type EdgeStat = {
+    source: string;
+    relation_type: string;
+    start_node_type: string;
+    end_node_type: string;
+    relation_count: number;
   };
 
   type ErrorMsg = {
@@ -238,8 +251,18 @@ declare namespace API {
     plugin_name?: string;
   };
 
+  type NodeStat = {
+    source: string;
+    node_type: string;
+    node_count: number;
+  };
+
   type postChartChartNameParams = {
     chart_name: string;
+  };
+
+  type putKnowledgesIdParams = {
+    id: number;
   };
 
   type RapexDEGData = {
@@ -335,7 +358,7 @@ declare namespace API {
     target_type: string;
     created_at?: number;
     pmid: number;
-    relation_id?: string;
+    relation_id?: number;
     relation_type: string;
     curator?: string;
     key_sentence: string;
@@ -379,6 +402,11 @@ declare namespace API {
     page: number;
     page_size: number;
     data: RapexSimilarGenesData[];
+  };
+
+  type StatReponse = {
+    node_stat: NodeStat[];
+    relationship_stat: EdgeStat[];
   };
 
   type TaskCreationResponse = {

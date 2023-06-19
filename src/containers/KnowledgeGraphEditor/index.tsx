@@ -4,7 +4,7 @@ import GraphForm from './GraphForm';
 import GraphTable from './GraphTable';
 import type { GraphEdge, GraphTableData } from './typings';
 import { TableOutlined, BulbOutlined } from '@ant-design/icons';
-import { getKnowledges, postKnowledges } from '@/services/swagger/Graph';
+import { getKnowledges, postKnowledges, putKnowledgesId } from '@/services/swagger/Graph';
 
 import './index.less';
 
@@ -12,19 +12,32 @@ const span = 8;
 
 const KnowledgeGraphEditor: React.FC = () => {
   const [refreshKey, setRefreshKey] = React.useState<number>(0);
+  const [formData, setFormData] = React.useState<GraphEdge>({} as GraphEdge);
 
   const onSubmitKnowledge = (data: GraphEdge): Promise<GraphEdge> => {
     console.log("Submit knowledge: ", data);
     return new Promise((resolve, reject) => {
-      postKnowledges(data).then(response => {
-        console.log("Post knowledge: ", response);
-        setRefreshKey(refreshKey + 1);
-        resolve(response);
-      }).catch(error => {
-        console.log("Post knowledge error: ", error);
-        setRefreshKey(refreshKey + 1);
-        reject(error);
-      })
+      if (data.relation_id) {
+        putKnowledgesId({ id: data.relation_id }, data).then(response => {
+          console.log("Put knowledge: ", response);
+          setRefreshKey(refreshKey + 1);
+          resolve(response);
+        }).catch(error => {
+          console.log("Put knowledge error: ", error);
+          setRefreshKey(refreshKey + 1);
+          reject(error);
+        })
+      } else {
+        postKnowledges(data).then(response => {
+          console.log("Post knowledge: ", response);
+          setRefreshKey(refreshKey + 1);
+          resolve(response);
+        }).catch(error => {
+          console.log("Post knowledge error: ", error);
+          setRefreshKey(refreshKey + 1);
+          reject(error);
+        })
+      }
     })
   }
 
@@ -48,11 +61,16 @@ const KnowledgeGraphEditor: React.FC = () => {
     })
   }
 
+  const editKnowledge = (record: GraphEdge) => {
+    console.log("Edit knowledge: ", record);
+    setFormData(record);
+  }
+
   const items = [
     {
       key: 'table-viewer',
       label: <span><TableOutlined />Table Viewer</span>,
-      children: <GraphTable key={refreshKey} getTableData={getKnowledgesData} />
+      children: <GraphTable key={refreshKey} getTableData={getKnowledgesData} editKnowledge={editKnowledge} />
     },
     {
       key: 'graph-viewer',
@@ -64,7 +82,9 @@ const KnowledgeGraphEditor: React.FC = () => {
 
   return <Row gutter={8} className="knowledge-graph-editor">
     <Col xxl={span} xl={span} lg={span} md={24} sm={24} xs={24} className='form'>
-      <GraphForm onSubmit={onSubmitKnowledge} />
+      <GraphForm onSubmit={onSubmitKnowledge} formData={formData} onClose={() => {
+        setFormData({} as GraphEdge)
+      }} />
     </Col>
     <Col xxl={24 - span} xl={24 - span} lg={24 - span} md={24} sm={24} xs={24} className='table'>
       <h3 className='title'>History Table</h3>

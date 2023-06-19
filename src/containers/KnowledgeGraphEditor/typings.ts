@@ -7,7 +7,7 @@ export type GraphEdge = {
   target_type: string;
   key_sentence: string;
   relation_type: string;
-  relation_id?: string;
+  relation_id?: number;
   curator?: string;
   created_at?: number;
   pmid: number;

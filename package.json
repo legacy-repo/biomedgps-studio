@@ -1,8 +1,8 @@
 {
-  "name": "rapex-studio",
+  "name": "biomedgps-studio",
   "version": "0.3.0",
   "private": true,
-  "description": "A studio for discovering Response to Air Pollution EXposure",
+  "description": "A knowledge graph system with graph neural network for drug discovery, disease mechanism and biomarker screening.",
   "scripts": {
     "analyze": "cross-env ANALYZE=1 umi build",
     "build": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi build",

@@ -80,10 +80,18 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
   const visitorId = localStorage.getItem('rapex-visitor-id')
   let headers = {}
   if (visitorId) {
-    headers = { "x-auth-users": visitorId }
+    headers = {
+      "x-auth-users": visitorId
+    }
   } else {
     headers = {}
   }
+
+  headers = {
+    "Authorization": "Basic bWVjZnMtbm06bm1AbWdo",
+    ...headers
+  }
+
   return ({
     url: url,
     options: { ...options, headers: headers }

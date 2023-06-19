@@ -124,6 +124,39 @@ export async function postKnowledges(body: API.RapexKnowledge, options?: { [key:
   });
 }
 
+/** Update a knowledge Update a knowledge. PUT /api/v1/knowledges/${param0} */
+export async function putKnowledgesId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.putKnowledgesIdParams,
+  body: API.RapexKnowledge,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<API.RapexKnowledge>(`/api/v1/knowledges/${param0}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    params: { ...queryParams },
+    data: body,
+    ...(options || {}),
+  });
+}
+
+/** Delete a knowledge Delete a knowledge DELETE /api/v1/knowledges/${param0} */
+export async function deleteKnowledgesId(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteKnowledgesIdParams,
+  options?: { [key: string]: any },
+) {
+  const { id: param0, ...queryParams } = params;
+  return request<any>(`/api/v1/knowledges/${param0}`, {
+    method: 'DELETE',
+    params: { ...queryParams },
+    ...(options || {}),
+  });
+}
+
 /** Get labels. Get labels GET /api/v1/labels */
 export async function getLabels(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -236,16 +269,7 @@ export async function postSimilarity(
 
 /** Get node & relationship statistics data. Get node & relationship statistics data. GET /api/v1/statistics */
 export async function getStatistics(options?: { [key: string]: any }) {
-  return request<{
-    node_stat: { source?: string; node_type?: string; node_count?: number }[];
-    relationship_stat: {
-      source?: string;
-      relation_type?: string;
-      start_node_type?: string;
-      end_node_type?: string;
-      relation_count?: number;
-    }[];
-  }>('/api/v1/statistics', {
+  return request<API.StatReponse>('/api/v1/statistics', {
     method: 'GET',
     ...(options || {}),
   });

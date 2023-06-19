@@ -199,7 +199,9 @@ export type GraphHistoryResponse = {
 }
 
 export type APIs = {
-  GetStatisticsFn: () => Promise<{
+  GetStatisticsFn: (options?: {
+    [key: string]: any;
+  }) => Promise<{
     node_stat: NodeStat[], relationship_stat: EdgeStat[]
   }>;
   // Graph History
