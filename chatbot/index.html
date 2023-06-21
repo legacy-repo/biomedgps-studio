@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta
+      name="Current build time"
+      content="Wed Jun 21 2023 15:19:48 GMT+0000 (Coordinated Universal Time)"
+    />
+    <meta name="Current build branch" content="dev" />
+    <meta
+      name="Current build commit hash"
+      content="8f83994b56e531063763d592a765a66332cc9c4b"
+    />
+    <meta charset="UTF-8" />
+    <meta name="theme-color" content="#1890ff" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="keywords" content="{{ website_keywords }}" />
+    <meta name="description" content="{{ website_description }}" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"
+    />
+    <title>{{ website_title }}</title>
+    <link
+      rel="shortcut icon"
+      href='{"config":{"hash":true,"history":{"type":"hash"},"antd":{},"dva":{"hmr":true},"favicon":"/gene.png","define":{"ANT_DESIGN_PRO_ONLY_DO_NOT_USE_IN_YOUR_PRODUCTION":"","REACT_APP_ENV":false,"isStatic":false},"layout":{"locale":true,"siderWidth":280,"menu":{"defaultOpenAll":true},"navTheme":"light","primaryColor":"#1890ff","layout":"top","contentWidth":"Fluid","fixedHeader":false,"fixSiderbar":true,"colorWeak":false,"title":"","description":"RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.","keywords":"RAPEX, transcriptomics, air pollution, knowledge graph","pwa":false,"logo":"/logo.png","iconfontUrl":""},"locale":{"baseNavigator":true,"useLocalStorage":true,"baseSeparator":"-","antd":true,"default":"zh-CN"},"dynamicImport":{"loading":"@ant-design/pro-layout/es/PageLoading"},"targets":{"node":true,"chrome":49,"firefox":64,"safari":10,"edge":13,"ios":10,"ie":11},"routes":[{"path":"/welcome","name":"quick-start","icon":"home","component":"./Welcome","category":"omics-data"},{"path":"/omics-analyzer","name":"omics-analyzer","icon":"appstore-add","component":"./OmicsAnalyzer","category":"omics-data"},{"path":"/knowledge-graph","name":"knowledge-graph","icon":"share-alt","component":"./KnowledgeGraph","category":"knowledge-graph"},{"path":"/knowledge-graph-editor","name":"knowledge-graph-editor","icon":"link","component":"./KnowledgeGraphEditor","category":"knowledge-graph"},{"name":"chatbot","icon":"comment","path":"/chatbot","hideInMenu":true,"component":"./ChatBot"},{"name":"about","icon":"info-circle","path":"/about","hideInMenu":true,"component":"./About"},{"name":"help","icon":"question-circle","path":"/help","hideInMenu":true,"component":"./Help"},{"path":"/","redirect":"/welcome"},{"component":"./404"}],"access":{},"theme":{"root-entry-name":"variable"},"esbuild":{},"title":false,"ignoreMomentLocale":true,"proxy":{"/api":{"target":"http://localhost:3002","changeOrigin":true}},"manifest":{"basePath":"/"},"fastRefresh":{},"runtimePublicPath":true,"openAPI":[{"requestLibPath":"import { request } from &apos;umi&apos;","schemaPath":"http://127.0.0.1:4523/export/openapi?projectId=1645899&amp;version=3.1","projectName":"swagger","mock":false}],"nodeModulesTransform":{"type":"none","exclude":[]},"mfsu":{},"webpack5":{},"exportStatic":{},"alias":{"react-router":"/home/runner/work/biomedgps-studio/biomedgps-studio/node_modules/react-router","react-router-dom":"/home/runner/work/biomedgps-studio/biomedgps-studio/node_modules/umi/node_modules/react-router-dom","history":"/home/runner/work/biomedgps-studio/biomedgps-studio/node_modules/history-with-query"},"analyze":{"analyzerMode":"server","analyzerPort":8888,"openAnalyzer":true,"generateStatsFile":false,"statsFilename":"stats.json","logLevel":"info","defaultSizes":"parsed"},"autoprefixer":{"flexbox":"no-2009"},"base":"/","cssnano":{"mergeRules":false,"minifyFontValues":{"removeQuotes":false}},"devServer":{},"mountElementId":"root","outputPath":"dist","publicPath":"/","ProBlockOption":{"moveMock":true,"moveService":true,"modifyRequest":true,"autoAddMenu":true},"themeConfig":{},"mode":"doc","locales":[["en-US","English"],["zh-CN","中文"]],"resolve":{},"apiParser":{},"request":{"dataField":"data"}},"route":{"name":"chatbot","icon":"comment","path":"/chatbot","hideInMenu":true,"component":"/home/runner/work/biomedgps-studio/biomedgps-studio/src/pages/ChatBot","exact":true}}'
+      type="image/x-icon"
+    />
+    <link rel="shortcut icon" type="image/x-icon" href="/gene.png" />
+    <link rel="stylesheet" href="/umi.e6992b66.css" />
+    <script>
+      window.routerBase = "/";
+    </script>
+    <script>
+      window.publicPath = window.resourceBaseUrl || "/";
+    </script>
+    <script>
+      //! umi version: 3.5.41
+    </script>
+  </head>
+
+  <body>
+    <noscript>
+      <div class="noscript-container">
+        Hi there! Please
+        <div class="noscript-enableJS">
+          <a
+            href="https://www.enablejavascript.io/en"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <b>enable Javascript</b>
+          </a>
+        </div>
+        in your browser to use {{ website_title }} !
+      </div>
+    </noscript>
+    <div id="root">
+      <style>
+        html,
+        body,
+        #root {
+          height: 100%;
+          margin: 0;
+          padding: 0;
+        }
+
+        #root {
+          background-repeat: no-repeat;
+          background-size: 100% auto;
+        }
+
+        .noscript-container {
+          display: flex;
+          align-content: center;
+          justify-content: center;
+          margin-top: 90px;
+          font-size: 20px;
+          font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+            "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+        }
+
+        .noscript-enableJS {
+          padding-right: 3px;
+          padding-left: 3px;
+        }
+
+        .page-loading-warp {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 98px;
+        }
+
+        .ant-spin {
+          position: absolute;
+          display: none;
+          -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          color: rgba(0, 0, 0, 0.65);
+          color: #1890ff;
+          font-size: 14px;
+          font-variant: tabular-nums;
+          line-height: 1.5;
+          text-align: center;
+          list-style: none;
+          opacity: 0;
+          -webkit-transition: -webkit-transform 0.3s
+            cubic-bezier(0.78, 0.14, 0.15, 0.86);
+          transition: -webkit-transform 0.3s
+            cubic-bezier(0.78, 0.14, 0.15, 0.86);
+          transition: transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+          transition: transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86),
+            -webkit-transform 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+          -webkit-font-feature-settings: "tnum";
+          font-feature-settings: "tnum";
+        }
+
+        .ant-spin-spinning {
+          position: static;
+          display: inline-block;
+          opacity: 1;
+        }
+
+        .ant-spin-dot {
+          position: relative;
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          font-size: 20px;
+        }
+
+        .ant-spin-dot-item {
+          position: absolute;
+          display: block;
+          width: 9px;
+          height: 9px;
+          background-color: #1890ff;
+          border-radius: 100%;
+          -webkit-transform: scale(0.75);
+          -ms-transform: scale(0.75);
+          transform: scale(0.75);
+          -webkit-transform-origin: 50% 50%;
+          -ms-transform-origin: 50% 50%;
+          transform-origin: 50% 50%;
+          opacity: 0.3;
+          -webkit-animation: antspinmove 1s infinite linear alternate;
+          animation: antSpinMove 1s infinite linear alternate;
+        }
+
+        .ant-spin-dot-item:nth-child(1) {
+          top: 0;
+          left: 0;
+        }
+
+        .ant-spin-dot-item:nth-child(2) {
+          top: 0;
+          right: 0;
+          -webkit-animation-delay: 0.4s;
+          animation-delay: 0.4s;
+        }
+
+        .ant-spin-dot-item:nth-child(3) {
+          right: 0;
+          bottom: 0;
+          -webkit-animation-delay: 0.8s;
+          animation-delay: 0.8s;
+        }
+
+        .ant-spin-dot-item:nth-child(4) {
+          bottom: 0;
+          left: 0;
+          -webkit-animation-delay: 1.2s;
+          animation-delay: 1.2s;
+        }
+
+        .ant-spin-dot-spin {
+          -webkit-transform: rotate(45deg);
+          -ms-transform: rotate(45deg);
+          transform: rotate(45deg);
+          -webkit-animation: antrotate 1.2s infinite linear;
+          animation: antRotate 1.2s infinite linear;
+        }
+
+        .ant-spin-lg .ant-spin-dot {
+          width: 32px;
+          height: 32px;
+          font-size: 32px;
+        }
+
+        .ant-spin-lg .ant-spin-dot i {
+          width: 14px;
+          height: 14px;
+        }
+
+        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+          .ant-spin-blur {
+            background: #fff;
+            opacity: 0.5;
+          }
+        }
+
+        @-webkit-keyframes antSpinMove {
+          to {
+            opacity: 1;
+          }
+        }
+
+        @keyframes antSpinMove {
+          to {
+            opacity: 1;
+          }
+        }
+
+        @-webkit-keyframes antRotate {
+          to {
+            -webkit-transform: rotate(405deg);
+            transform: rotate(405deg);
+          }
+        }
+
+        @keyframes antRotate {
+          to {
+            -webkit-transform: rotate(405deg);
+            transform: rotate(405deg);
+          }
+        }
+      </style>
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
+          min-height: 420px;
+        "
+      >
+        <div class="page-loading-warp" style="flex-direction: column">
+          <img src="{{ website_logo }}" alt="logo" width="256" />
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin: 20px 0px;
+              font-size: 1.5rem;
+            "
+          >
+            {{ website_title }}
+          </div>
+          <div class="ant-spin ant-spin-lg ant-spin-spinning">
+            <span class="ant-spin-dot ant-spin-dot-spin"
+              ><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i
+              ><i class="ant-spin-dot-item"></i><i class="ant-spin-dot-item"></i
+            ></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="">
+      const hideHeader = function () {
+        // Get the current URL
+        var currentUrl = window.location.href;
+
+        // Function to extract query string parameters
+        function getParameterByName(name, url) {
+          if (!url) url = window.location.href;
+          name = name.replace(/[[\]]/g, "\\$&");
+          var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+          if (!results) return null;
+          if (!results[2]) return "";
+          return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+
+        // Check if the "show_header" parameter is present
+        var showHeader = getParameterByName("show_header", currentUrl);
+        console.log("currentUrl", currentUrl, showHeader);
+        if (showHeader === "false") {
+          // Create a <style> element
+          var styleElement = document.createElement("style");
+
+          // Add your CSS rules inside the <style> element
+          styleElement.textContent = `
+        .ant-layout-header { display: none; }
+        .react-chat-viewerBox { height: 100vh !important; }
+        .ant-layout-content { height: 100% !important; }
+        .footer-container { display: none; }
+        `;
+
+          // Append the <style> element to the <head> section
+          document.head.appendChild(styleElement);
+        }
+      };
+
+      window.addEventListener("load", function () {
+        // Function to run after page load
+        hideHeader();
+      });
+    </script>
+
+    <script>
+      var __assign =
+        (this && this.__assign) ||
+        function () {
+          __assign =
+            Object.assign ||
+            function (t) {
+              for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s)
+                  if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+              }
+              return t;
+            };
+          return __assign.apply(this, arguments);
+        };
+      var prevFetch = window.fetch;
+      var enableAudit = false;
+      var apiDomain = "https://proapi.azurewebsites.net/";
+      function urlHasOwnProtocol(url) {
+        return (
+          url.startsWith("http://") ||
+          url.startsWith("https://") ||
+          url.startsWith("//")
+        );
+      }
+      var isStaticAsset = function (url) {
+        return (
+          /.html??S*/g.test(url) ||
+          /.js??S*/g.test(url) ||
+          /.css??S*/g.test(url)
+        );
+      };
+      function getEntireUrl(url, apiDomain) {
+        return !urlHasOwnProtocol(url)
+          ? apiDomain + (url.startsWith("/") ? url : "/" + url)
+          : url;
+      }
+      /*
+           只处理本身 url 不带协议的请求
+            1. 当开启操作审计时，除静态资源请求外所有接口直接走当前域，同时带上相应的头信息
+            2. 当未开启操作审计时，请求转换为跨域请求调用
+           */
+      window.fetch = function (url, options) {
+        if (options === void 0) {
+          options = {};
+        }
+        if (!urlHasOwnProtocol(url)) {
+          if (enableAudit && !isStaticAsset(url)) {
+            // 开启操作审计时带上相应头信息
+            var auditOptions = __assign({}, options, {
+              headers: __assign({}, options.headers),
+            });
+            return prevFetch.call(window, url, auditOptions);
+          }
+          // 未开启操作审计请求以跨域方式发出
+          var corsOptions = __assign({}, options, { credentials: "omit" });
+          // 发起跨域请求
+          var entireUrl = getEntireUrl(url, apiDomain);
+          return prevFetch.call(window, entireUrl, corsOptions);
+        }
+        return prevFetch.call(window, url, options);
+      };
+    </script>
+    <script src="/umi.3f72ec5d.js"></script>
+  </body>
+</html>
