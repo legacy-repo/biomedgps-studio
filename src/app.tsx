@@ -87,11 +87,6 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
     headers = {}
   }
 
-  headers = {
-    "Authorization": "Basic bWVjZnMtbm06bm1AbWdo",
-    ...headers
-  }
-
   return ({
     url: url,
     options: { ...options, headers: headers }

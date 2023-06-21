@@ -4,7 +4,7 @@ import TextArea from 'antd/lib/input/TextArea';
 import { getNodeTypes, getLabels, getStatistics } from '@/services/swagger/Graph';
 import { makeQueryStr } from './utils';
 import { GraphEdge, OptionType } from './typings';
-import { sortBy } from 'lodash';
+import { set, sortBy } from 'lodash';
 import v from 'voca';
 import MarkdownViewer from '@/components/MarkdownViewer';
 
@@ -132,8 +132,7 @@ type GraphFormProps = {
 const helpDoc = () => {
   return <span>
     The knowledge graph editor is a tool to help curate knowledges from the literatures. It use the triplet format to represent the knowledge.
-    Each triplet is a directed edge with a source node, a target node and a relation type. The source and target node can be any biological entities, such as gene, disease, drug, etc.
-    <b>Please read the help doc carefully before you start. If you have any questions, please <a href="mailto:jyang85@mgh.harvard.edu">contact us</a>.</b>
+    Each triplet is a directed edge with a source node, a target node and a relation type. The source and target node can be any biological entities, such as gene, disease, drug, etc. <b>Please read the help doc carefully before you start. If you have any questions, please <a href="mailto:jyang85@mgh.harvard.edu">contact us</a>.</b>
   </span>
 }
 
@@ -163,6 +162,7 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
   const [relationshipOptions, setRelationshipOptions] = useState<OptionType[]>([]);
 
   const [visible, setVisible] = useState<boolean>(false);
+  const [anchor, setAnchor] = useState<"manual" | "help">("help");
 
   useEffect(() => {
     getNodeTypes()
@@ -287,6 +287,11 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
     }
   }
 
+  const openDoc = (anchor: string) => {
+    setVisible(true);
+    setAnchor(anchor);
+  }
+
   const formatLabelOption = (item: any) => {
     if (item._label == "Gene") {
       if (item.taxname) {
@@ -366,14 +371,18 @@ const GraphForm: React.FC<GraphFormProps> = (props) => {
       <h3 className='title'>
         <span style={{ marginRight: '5px' }}>Graph Form</span>
         <Button className='help-button' type="primary"
-          size='small' onClick={() => setVisible(true)}>
+          size='small' onClick={() => openDoc("help")}>
           Help
+        </Button>
+        <Button className='help-button' type="primary"
+          size='small' onClick={() => openDoc("manual")}>
+          Manual
         </Button>
       </h3>
       <p className='graph-help'>{helpDoc()}</p>
-      <Modal className="help-container" title="Help" onCancel={onCancel}
-        open={visible} destroyOnClose={true} footer={null} width={'50%'}>
-        <MarkdownViewer url="/RelationshipType.md" />
+      <Modal className="help-container" title={v.titleCase(anchor)} onCancel={onCancel}
+        open={visible} destroyOnClose={true} footer={null} width={'60%'}>
+        <MarkdownViewer url={`/README/knowledge_editor_${anchor}.md`} />
       </Modal>
       <Form
         name="basic"
