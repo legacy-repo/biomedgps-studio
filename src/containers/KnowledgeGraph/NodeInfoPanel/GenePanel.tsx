@@ -3,6 +3,7 @@ import { Tabs, Empty, Button, Popover } from 'antd';
 import { filter, map } from 'lodash';
 import type { GraphNode } from '../typings';
 import type { GeneInfo } from './typings';
+import { entityId2id } from './utils';
 
 import './gene-panel.less';
 import { SettingOutlined } from "@ant-design/icons";
@@ -52,8 +53,9 @@ const GeneNodeInfoPanel: React.FC<NodeInfoPanelProps> = (props) => {
 
   useEffect(() => {
     if (node) {
+      const entrezId = entityId2id(node.data.id);
       // TODO: Need to keep the type of id same with the type of knowledge graph's node id
-      props.getGeneInfo(node.data.id).then((info) => {
+      props.getGeneInfo(entrezId).then((info) => {
         setInfo(info);
 
         setItems(props.getItems4GenePanel(
