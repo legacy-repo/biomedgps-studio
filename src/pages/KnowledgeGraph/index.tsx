@@ -7,6 +7,9 @@ import {
   getGraphs, getLabels, getNodeTypes, getRelationships, getStatistics, postGraphs, deleteGraphsId, postDimension, postSimilarity, postNodes
 } from '@/services/swagger/Graph';
 import type { APIs } from '@/containers/KnowledgeGraph/typings';
+import { getGeneInfo } from '@/plugins4kg/utils';
+import { getItems4GenePanel } from '@/plugins4kg';
+
 
 import './index.less';
 
@@ -51,6 +54,8 @@ const ChatAI: React.FC = () => {
           postDimensionReduction: postDimension as APIs['PostDimensionReductionFn'],
           postSimilarity: postSimilarity as APIs['PostSimilarityFn']
         }}
+        getGeneInfo={getGeneInfo}
+        getItems4GenePanel={getItems4GenePanel}
         postMessage={(message) => {
           setMessage(message)
         }}>
