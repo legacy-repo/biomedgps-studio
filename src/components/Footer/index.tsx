@@ -1,7 +1,7 @@
 import { GithubOutlined } from '@ant-design/icons';
 import { DefaultFooter } from '@ant-design/pro-components';
 import { Row } from 'antd';
-import { useIntl, useModel } from 'umi';
+import { useIntl } from 'umi';
 import './index.less';
 
 const Footer: React.FC = () => {
@@ -11,9 +11,6 @@ const Footer: React.FC = () => {
     defaultMessage: 'Rapex Team',
   });
 
-  const { initialState } = useModel('@@initialState');
-  const version = initialState?.appVersion?.version
-  const dbVersion = initialState?.appVersion?.dbVersion.id
   const currentYear = new Date().getFullYear();
 
   return (
@@ -41,7 +38,6 @@ const Footer: React.FC = () => {
           },
         ]}
       />
-      <span>App Version ({version}) | Database Version ({dbVersion}) </span>
     </Row>
   );
 };

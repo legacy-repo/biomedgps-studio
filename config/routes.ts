@@ -2,24 +2,7 @@
 import * as icons from "@ant-design/icons";
 import type { MenuDataItem } from '@ant-design/pro-components';
 
-// We categorize the routes into two categories: omics-data and knowledge-graph
-// All components related to omics-data can be controlled by the defaultDataset property in the config file. If the defaultDataset is not set, all components related to omics-data will be hidden.
-// All other components will be shown by default.
 export const routes = [
-  {
-    path: '/welcome',
-    name: 'quick-start',
-    icon: 'home',
-    component: './Welcome',
-    category: 'omics-data'
-  },
-  {
-    path: '/omics-analyzer',
-    name: 'omics-analyzer',
-    icon: 'appstore-add',
-    component: './OmicsAnalyzer',
-    category: 'omics-data'
-  },
   {
     path: '/knowledge-graph',
     name: 'knowledge-graph',

@@ -1,12 +1,11 @@
 import ChatBox from '@/components/ChatBox';
 import { Row, Col, Button } from 'antd';
-import KnowledgeGraph from '@/containers/KnowledgeGraph';
-import { useEffect, useState } from 'react';
+import { KnowledgeGraph } from 'biominer-components';
+import React, { useEffect, useState } from 'react';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 import {
-  getGraphs, getLabels, getNodeTypes, getRelationships, getStatistics, postGraphs, deleteGraphsId, postDimension, postSimilarity, postNodes
-} from '@/services/swagger/Graph';
-import type { APIs } from '@/containers/KnowledgeGraph/typings';
+  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchSimilarityNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph
+} from '@/services/swagger/KnowledgeGraph';
 import { getGeneInfo } from '@/plugins4kg/utils';
 import { getItems4GenePanel } from '@/plugins4kg';
 
@@ -43,20 +42,23 @@ const ChatAI: React.FC = () => {
       }} icon={chatBoxVisible ? <MessageOutlined /> : <MessageFilled />} />
       <KnowledgeGraph
         apis={{
-          getStatistics: getStatistics as APIs['GetStatisticsFn'],
-          getGraphHistory: getGraphs as APIs['GetGraphHistoryFn'],
-          postGraphHistory: postGraphs as APIs['PostGraphHistoryFn'],
-          deleteGraphHistory: deleteGraphsId as APIs['DeleteGraphHistoryFn'],
-          getNodeTypes: getNodeTypes as APIs['GetNodeTypesFn'],
-          getLabels: getLabels as APIs['GetLabelsFn'],
-          getRelationships: getRelationships as APIs['GetRelationshipsFn'],
-          postGraph: postNodes as APIs['PostGraphFn'],
-          postDimensionReduction: postDimension as APIs['PostDimensionReductionFn'],
-          postSimilarity: postSimilarity as APIs['PostSimilarityFn']
+          GetStatisticsFn: fetchStatistics,
+          GetEntitiesFn: fetchEntities,
+          GetRelationsFn: fetchRelations,
+          GetRelationCountsFn: fetchRelationCounts,
+          GetGraphHistoryFn: fetchSubgraphs,
+          PostGraphHistoryFn: postSubgraph,
+          DeleteGraphHistoryFn: deleteSubgraph,
+          GetNodesFn: fetchNodes,
+          GetSimilarityNodesFn: fetchSimilarityNodes,
+          GetOneStepLinkedNodesFn: fetchOneStepLinkedNodes,
+          GetConnectedNodesFn: fetchEdgesAutoConnectNodes,
+          GetEntity2DFn: fetchEntity2d,
+          GetEntityColorMapFn: fetchEntityColorMap,
         }}
         getGeneInfo={getGeneInfo}
         getItems4GenePanel={getItems4GenePanel}
-        postMessage={(message) => {
+        postMessage={(message: string) => {
           setMessage(message)
         }}>
       </KnowledgeGraph>

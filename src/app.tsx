@@ -1,78 +1,17 @@
 import Footer from '@/components/Footer';
 import Header from '@/components/Header';
-import { BookOutlined, BulbOutlined, LinkOutlined } from '@ant-design/icons';
 import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
-import { history, Link, RequestConfig, useIntl } from 'umi';
+import { history, RequestConfig } from 'umi';
 import defaultSettings, { CustomSettings, defaultCustomSettings, AppVersion } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
-import { getStudioConfig, getVersion } from '@/services/swagger/Instance';
-import { getDatasets } from '@/services/swagger/StatEngine';
+// TODO: Remove the following line. It's a temporary solution to fix the issue of losing styles of antd components.
+import 'antd/dist/antd.css';
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
 const loginPath = '/user/login';
-
-const ExampleLink: React.FC = () => {
-  const intl = useIntl();
-  return (
-    <Link to="/~docs" key="docs">
-      <BookOutlined />
-      <span>
-        {intl.formatMessage({
-          id: 'app.examples',
-          defaultMessage: 'Examples',
-        })}
-      </span>
-    </Link>
-  );
-};
-
-const DocLink: React.FC = () => {
-  const intl = useIntl();
-  return (
-    <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-      <BulbOutlined />
-      <span>
-        {intl.formatMessage({
-          id: 'app.docs',
-          defaultMessage: 'Docs',
-        })}
-      </span>
-    </Link>
-  );
-};
-
-const OpenAPILink: React.FC = () => {
-  const intl = useIntl();
-  return (
-    <Link key="openapi" to="/umi/plugin/openapi" target="_blank">
-      <LinkOutlined />
-      <span>
-        {intl.formatMessage({
-          id: 'app.openapi',
-          defaultMessage: 'OpenAPI',
-        })}
-      </span>
-    </Link>
-  );
-};
-
-const ComponentLink: React.FC = () => {
-  const intl = useIntl();
-  return (
-    <Link to="/~docs" key="docs">
-      <BookOutlined />
-      <span>
-        {intl.formatMessage({
-          id: 'app.components',
-          defaultMessage: 'Components',
-        })}
-      </span>
-    </Link>
-  );
-};
 
 console.log('apiPrefix', process.env);
 
@@ -128,48 +67,15 @@ export async function getInitialState(): Promise<{
   customSettings?: CustomSettings;
   appVersion?: AppVersion;
 }> {
-  const fetchStudioConfig = async () => {
-    try {
-      const data = await getStudioConfig();
-      return {
-        aboutUrl: data.about_url,
-        helpUrl: data.help_url,
-        websiteTitle: data.website_title,
-        websiteLogo: data.website_logo,
-        websiteDescription: data.website_description,
-        defaultDataset: data.default_dataset
-      };
-    } catch (error) {
-      return defaultCustomSettings;
+  const customSettings: CustomSettings = defaultCustomSettings;
+  const appVersion: AppVersion = {
+    version: 'unknown',
+    dbVersion: {
+      id: 0,
+      applied: 'unknown',
+      description: 'Cannot get version.'
     }
   };
-
-  const fetchVersion = async () => {
-    try {
-      const version = await getVersion();
-      const latest_db_version = version.db_version[version.db_version.length - 1];
-      return {
-        version: version.version,
-        dbVersion: {
-          id: latest_db_version.id,
-          applied: latest_db_version.applied,
-          description: latest_db_version.description
-        }
-      }
-    } catch (error) {
-      return {
-        version: 'unknown',
-        dbVersion: {
-          id: 0,
-          applied: 'unknown',
-          description: 'Cannot get version.'
-        }
-      }
-    }
-  }
-
-  const customSettings: CustomSettings = await fetchStudioConfig();
-  const appVersion: AppVersion = await fetchVersion();
 
   const settings = {
     settings: { ...defaultSettings, logo: customSettings.websiteLogo } as typeof defaultSettings,
@@ -216,7 +122,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
     },
     // TODO: Improve the interface for getDatasets.
-    rightContentRender: () => <Header getDatasets={getDatasets} />,
+    rightContentRender: () => <Header />,
     disableContentMargin: false,
     waterMarkProps: {
       // content: initialState?.currentUser?.name,
@@ -244,17 +150,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
 
       // setInitialState({ ...initialState, collapsed: true });
     },
-    links: isDev
-      ? [
-        <DocLink></DocLink>,
-        // <ExampleLink></ExampleLink>,
-        // <OpenAPILink></OpenAPILink>,
-        // <ComponentLink></ComponentLink>,
-      ]
-      : [
-        // <DocLink></DocLink>,
-        // <ExampleLink></ExampleLink>
-      ],
+    links: [],
     menuHeaderRender: undefined,
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,

@@ -39,3 +39,5 @@ screenshot
 
 build
 node_modules
+.yalc
+yalc.lock

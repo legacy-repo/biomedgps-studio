@@ -1,4 +1,4 @@
-import ChatBox from '@/components/ReactChatPlugin';
+import { ReactChatPlugin } from 'biominer-components';
 import { filter } from 'lodash';
 import { useEffect, useState } from 'react';
 import './index.less';
@@ -223,7 +223,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     }
   }, [props.message]);
 
-  return <ChatBox
+  return <ReactChatPlugin
     messages={messages}
     userId={1}
     disableInput={disableInput}

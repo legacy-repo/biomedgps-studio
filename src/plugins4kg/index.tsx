@@ -5,7 +5,6 @@ import MolStarViewer from "./MolStarViewer";
 import MutationViewer from "./MutationViewer";
 import SangerCosmic from "./SangerCosmic";
 import SgrnaSelector from "./SgrnaSelector";
-import StatEngine from "../containers/StatEngine";
 
 import type { GeneInfo as GeneInfoType } from "./utils";
 
@@ -17,7 +16,6 @@ export {
   MutationViewer,
   SangerCosmic,
   SgrnaSelector,
-  StatEngine
 }
 
 export const getItems4GenePanel = (geneInfo: GeneInfoType, hiddenItems: string[] = []) => {
