@@ -2,7 +2,6 @@ import { QuestionCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { Space, Menu } from 'antd';
 import React, { useState } from 'react';
 import { SelectLang } from 'umi';
-// import HeaderSearch from '../HeaderSearch';
 import { useHistory } from 'react-router-dom';
 import type { MenuProps } from 'antd';
 import styles from './index.less';
