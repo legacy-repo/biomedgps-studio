@@ -1,423 +1,312 @@
 declare namespace API {
-  type Chart = {
-    name: string;
-    version: string;
-    description: string;
+  type deleteCuratedKnowledgeParams = {
+    id: number;
+  };
+
+  type deleteSubgraphParams = {
+    id: string;
+  };
+
+  type Edge = {
+    relid: string;
+    source: string;
     category: string;
-    home: string;
-    source: string;
-    short_name: string;
-    icons: { src?: string; type?: string; sizes?: string }[];
-    author: string;
-    maintainers: string[];
-    tags: string[];
-    readme: string;
-    id: string;
+    target: string;
+    reltype: string;
+    style: EdgeStyle;
+    data: EdgeData;
   };
 
-  type ChartDataResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: Chart[];
-  };
-
-  type ChartSchema = {
-    schema: {
-      fields?: {
-        key?: string;
-        dataIndex?: string;
-        valueType?: string;
-        title?: string;
-        tooltip?: string;
-        formItemProps?: { rules?: { required?: boolean; message?: string }[]; initialValue?: any };
-        fieldProps?: { mode?: any; step?: any };
-        valueEnum?: any;
-      }[];
-      examples?: { title?: string; key?: string; arguments?: Record<string, any> }[];
-    };
-    readme: string;
-  };
-
-  type ChartTask = {
-    response: {
-      log?: string;
-      results?: string[];
-      charts?: string[];
-      response_type?: string;
-      task_id?: string;
-    };
-    description: string;
-    finished_time: any;
-    plugin_name: string;
-    payload: Record<string, any>;
-    name: string;
-    plugin_type: string;
-    percentage: number;
-    status: string;
-    id: string;
-    started_time: number;
-    plugin_version: string;
-    owner: any;
-  };
-
-  type ChartTaskResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: ChartTask[];
-  };
-
-  type DBVersion = {
-    id: number;
-    applied: string;
-    description: string;
-  };
-
-  type deleteGraphsIdParams = {
-    /** Graph ID */
-    id: string;
-  };
-
-  type deleteKnowledgesIdParams = {
-    /** Graph ID */
-    id: number;
-  };
-
-  type deleteTasksIdParams = {
-    /** Task ID */
-    id: string;
-  };
-
-  type EdgeStat = {
-    source: string;
+  type EdgeData = {
     relation_type: string;
-    start_node_type: string;
-    end_node_type: string;
-    relation_count: number;
-  };
-
-  type ErrorMsg = {
-    /** 错误信息 Error message */
-    msg: string;
-    /** 错误上下文 Error context */
-    context: Record<string, any>;
-  };
-
-  type getChartsParams = {
-    /** Which page? */
-    page?: number;
-    /** Page size */
-    page_size?: number;
-  };
-
-  type getChartsUiSchemaChartNameParams = {
-    chart_name: string;
-    /** An id of dataset. */
-    dataset?: string;
-  };
-
-  type getDatasetRapexDegsParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** A standalone dataset. */
-    dataset: string;
-  };
-
-  type getDatasetRapexGenesParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** A standalone dataset. */
-    dataset: string;
-  };
-
-  type getDatasetRapexPathwaysParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** A standalone dataset. */
-    dataset: string;
-  };
-
-  type getDatasetRapexSimilarGenesParams = {
-    /** Queried ensembl id. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Organ name. */
-    organ?: string;
-    dataset: string;
-  };
-
-  type getDownloadParams = {
-    /** A file link which prefix starts with oss://, minio:// or file://. */
-    filelink: string;
-  };
-
-  type getGraphsIdParams = {
-    /** Graph ID */
-    id: string;
-  };
-
-  type getGraphsParams = {
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Owner name that you want to query. */
-    owner?: string;
-    /** Filter tasks by plugin_type field. */
-    db_version?: string;
-    /** Filter results by status field. */
-    version?: string;
-  };
-
-  type getKnowledgesParams = {
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-  };
-
-  type getLabelsParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Label type. */
-    label_type: string;
-  };
-
-  type getNodePropertiesParams = {
-    node_name?: string;
-  };
-
-  type getRapexGeneExprDataParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** A standalone dataset. */
-    dataset: string;
-  };
-
-  type getRelationshipsParams = {
-    /** Query string with honeysql specification. */
-    query_str: string;
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Only return the total number of records */
-    only_total?: string;
-    /** Don't return the total number of records */
-    disable_total?: string;
-  };
-
-  type getTasksIdParams = {
-    /** Task ID */
-    id: string;
-  };
-
-  type getTasksParams = {
-    /** Page, From 1. */
-    page?: number;
-    /** Num of items per page. */
-    page_size?: number;
-    /** Owner name that you want to query. */
-    owner?: string;
-    /** Filter tasks by plugin_type field. */
-    plugin_type?: string;
-    /** Filter results by status field. */
-    status?: string;
-    /** The name of the plugin */
-    plugin_name?: string;
-  };
-
-  type NodeStat = {
-    source: string;
-    node_type: string;
-    node_count: number;
-  };
-
-  type postChartChartNameParams = {
-    chart_name: string;
-  };
-
-  type putKnowledgesIdParams = {
-    id: number;
-  };
-
-  type RapexDEGData = {
-    pvalue: number;
-    ensembl_id: string;
-    method: string;
-    datatype: string;
-    padj: number;
-    gene_symbol: string;
-    entrez_id: string;
-    organ: string;
-    id: number;
-    logfc: number;
-    direction: string;
-  };
-
-  type RapexDEGDataResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: RapexDEGData[];
-  };
-
-  type RapexExprData = {
-    ensembl_id: string;
-  };
-
-  type RapexExprDataResponse = {
-    /** 页码 Page, From 1. */
-    page: number;
-    /** 条目数 Num of items per page. */
-    page_size: number;
-    /** 数据 Records. */
-    data: RapexExprData[];
-    /** 总数 How many records. */
-    total: number;
-  };
-
-  type RapexGeneData = {
-    ensembl_id: string;
-    entrez_id: number;
-    gene_symbol: string;
-    description: string;
-    pfam: string;
-    chromosome: number;
-    mgi_id: string;
-    pubmed_ids: string;
-    taxid: number;
-    swiss_p: string;
-    name: string;
-    strand: number;
-    start: number;
-    end: number;
-    prosite: string;
-    type_of_gene: string;
-    alias: string;
-    pdb: string;
-    pubmed: string;
-  };
-
-  type RapexGeneDataResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: RapexGeneData[];
-  };
-
-  type RapexGraph = {
-    description: string;
-    payload: Record<string, any>;
-    name: string;
-    id: string;
-    created_time: number;
-    db_version: string;
-    version: string;
-    owner: any;
-    parent: string;
-  };
-
-  type RapexGraphResponse = {
-    total: number;
-    page: number;
-    page_size: number;
-    data: RapexGraph[];
-  };
-
-  type RapexKnowledge = {
     source_id: string;
     source_type: string;
-    source_name: string;
     target_id: string;
+    target_type: string;
+    score: number;
+    key_sentence: string;
+    resource: string;
+  };
+
+  type EdgeKeyShape = {
+    lineDash: number[];
+    stroke: string;
+    lineWidth: number;
+  };
+
+  type EdgeLabel = {
+    value: string;
+  };
+
+  type EdgeStyle = {
+    label: EdgeLabel;
+    keyshape?: EdgeKeyShape;
+  };
+
+  type Entity = {
+    idx: number;
+    id: string;
+    name: string;
+    label: string;
+    resource: string;
+    description?: string;
+  };
+
+  type Entity2D = {
+    embedding_id: number;
+    entity_id: string;
+    entity_type: string;
+    entity_name: string;
+    umap_x: number;
+    umap_y: number;
+    tsne_x: number;
+    tsne_y: number;
+  };
+
+  type EntityMetadata = {
+    id: number;
+    resource: string;
+    entity_type: string;
+    entity_count: number;
+  };
+
+  type ErrorMessage = {
+    msg: string;
+  };
+
+  type fetchCuratedKnowledgesParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type fetchEdgesAutoConnectNodesParams = {
+    node_ids: string;
+  };
+
+  type fetchEntitiesParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type fetchEntity2dParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type fetchNodesParams = {
+    node_ids: string;
+  };
+
+  type fetchOneStepLinkedNodesParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type fetchRelationCountsParams = {
+    query_str?: string;
+  };
+
+  type fetchRelationsParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type fetchSimilarityNodesParams = {
+    node_id: string;
+    query_str?: string;
+    topk?: number;
+  };
+
+  type fetchSubgraphsParams = {
+    page?: number;
+    page_size?: number;
+    query_str?: string;
+  };
+
+  type Graph = {
+    nodes: Node[];
+    edges: Edge[];
+  };
+
+  type Icon = {
+    type: string;
+    value: string;
+    fill: string;
+    size: number;
+    color: string;
+  };
+
+  type KnowledgeCuration = {
+    id: number;
+    relation_type: string;
+    source_name: string;
+    source_type: string;
+    source_id: string;
     target_name: string;
     target_type: string;
-    created_at?: number;
-    pmid: number;
-    relation_id?: number;
-    relation_type: string;
-    curator?: string;
+    target_id: string;
     key_sentence: string;
+    created_at: string;
+    curator: string;
+    pmid: number;
   };
 
-  type RapexKnowledgeDataResponse = {
-    data: RapexKnowledge[];
-    page: number;
-    page_size: number;
+  type Label = {
+    value: string;
+    fill: string;
+    fontSize: number;
+    offset: number;
+    position: string;
+  };
+
+  type Node = {
+    comboId?: string;
+    id: string;
+    label: string;
+    nlabel: string;
+    degree?: number;
+    style: NodeStyle;
+    category: string;
+    cluster?: string;
+    type: string;
+    x?: number;
+    y?: number;
+    data: NodeData;
+  };
+
+  type NodeData = {
+    identity: string;
+    id: string;
+    label: string;
+    name: string;
+    description?: string;
+    resource: string;
+  };
+
+  type NodeKeyShape = {
+    fill: string;
+    stroke: string;
+    opacity: number;
+    fillOpacity: number;
+  };
+
+  type NodeStyle = {
+    label: Label;
+    keyshape: NodeKeyShape;
+    icon: Icon;
+  };
+
+  type putCuratedKnowledgeParams = {
+    id: number;
+  };
+
+  type putSubgraphParams = {
+    id: string;
+  };
+
+  type RecordResponseEntity = {
+    /** data */
+    records: Entity[];
+    /** total num */
     total: number;
-  };
-
-  type RapexPathwayData = {
-    entrez_id: number;
-    pathway_id: string;
-    gene_symbol: string;
-    ensembl_id: string;
-    pathway_name: string;
-  };
-
-  type RapexPathwayDataResponse = {
-    total: number;
+    /** current page index */
     page: number;
+    /** default 10 */
     page_size: number;
-    data: RapexPathwayData[];
   };
 
-  type RapexSimilarGenesData = {
-    queried_ensembl_id: string;
-    ensembl_id: string;
-    pcc: number;
-    pvalue: string;
-    queried_gene_symbol: string;
-    queried_entrez_id: number;
-    gene_symbol: string;
-    entrez_id: number;
-  };
-
-  type RapexSimilarGenesDataResponse = {
+  type RecordResponseEntity2D = {
+    /** data */
+    records: Entity2D[];
+    /** total num */
     total: number;
+    /** current page index */
     page: number;
+    /** default 10 */
     page_size: number;
-    data: RapexSimilarGenesData[];
   };
 
-  type StatReponse = {
-    node_stat: NodeStat[];
-    relationship_stat: EdgeStat[];
+  type RecordResponseKnowledgeCuration = {
+    /** data */
+    records: KnowledgeCuration[];
+    /** total num */
+    total: number;
+    /** current page index */
+    page: number;
+    /** default 10 */
+    page_size: number;
   };
 
-  type TaskCreationResponse = {
-    /** 任务ID */
-    task_id: string;
+  type RecordResponseRelation = {
+    /** data */
+    records: Relation[];
+    /** total num */
+    total: number;
+    /** current page index */
+    page: number;
+    /** default 10 */
+    page_size: number;
   };
 
-  type Version = {
-    /** 版本信息 */
+  type RecordResponseSubgraph = {
+    /** data */
+    records: Subgraph[];
+    /** total num */
+    total: number;
+    /** current page index */
+    page: number;
+    /** default 10 */
+    page_size: number;
+  };
+
+  type Relation = {
+    id: number;
+    relation_type: string;
+    source_id: string;
+    source_type: string;
+    target_id: string;
+    target_type: string;
+    score?: number;
+    key_sentence?: string;
+    resource: string;
+  };
+
+  type RelationCount = {
+    relation_type: string;
+    target_type: string;
+    source_type: string;
+    resource: string;
+    ncount: number;
+  };
+
+  type RelationMetadata = {
+    id: number;
+    resource: string;
+    relation_type: string;
+    relation_count: number;
+    start_entity_type: string;
+    end_entity_type: string;
+  };
+
+  type Statistics = {
+    entity_stat: EntityMetadata[];
+    relation_stat: RelationMetadata[];
+  };
+
+  type Subgraph = {
+    id: string;
+    name: string;
+    description?: string;
+    payload: string;
+    created_time: string;
+    owner: string;
     version: string;
-    /** 数据库版本信息 */
-    db_version: DBVersion;
+    db_version: string;
+    parent?: string;
   };
 }

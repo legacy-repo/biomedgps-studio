@@ -75,7 +75,9 @@ export default defineConfig({
       requestLibPath: "import { request } from 'umi'",
       // schemaPath: join(__dirname, 'api.json'),
       // You may need to open the apifox before running `yarn openapi`.
-      schemaPath: "http://127.0.0.1:4523/export/openapi?projectId=1645899&version=3.1",
+      // schemaPath: "http://127.0.0.1:4523/export/openapi?projectId=1645899&version=3.1",
+      // TODO: ApiFox cannot import the spec correctly.
+      schemaPath: "http://localhost:8000/spec",
       projectName: "swagger",
       mock: false,
     }
