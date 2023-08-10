@@ -1,6 +1,5 @@
 import { Settings as LayoutSettings } from '@ant-design/pro-components';
 
-
 const Settings: LayoutSettings & {
   pwa?: boolean;
   logo?: string;
@@ -34,17 +33,6 @@ export type CustomSettings = {
   websiteKeywords?: string;
   defaultDataset?: string;
   mode?: string;
-}
-
-export const defaultCustomSettings = {
-  aboutUrl: '/README/about.md',
-  helpUrl: '/README/help.md',
-  websiteTitle: 'RAPEX',
-  websiteLogo: '/logo-white.png',
-  websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
-  websiteKeywords: 'RAPEX, transcriptomics, air pollution, knowledge graph',
-  defaultDataset: '000000',
-  mode: 'Developer'
 }
 
 export type AppVersion = {

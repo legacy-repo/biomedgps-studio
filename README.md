@@ -15,19 +15,19 @@ A knowledge graph system with graph neural network for drug discovery, disease m
 
 ### Ask questions with chatbot
 
-![chatbot](./assets/chatbot.png)
+![chatbot](./public/assets/chatbot.png)
 
 ### Find similar diseases with your queried disease
 
-![disease](./assets/disease-similarities.png)
+![disease](./public/assets/disease-similarities.png)
 
 ### Predict drugs and related genes for your queried disease
 
-![disease](./assets/drug-targets-genes.png)
+![disease](./public/assets/drug-targets-genes.png)
 
 ### Find potential paths between two nodes
 
-![path](./assets/path.png)
+![path](./public/assets/path.png)
 
 ## Launch frontend
 

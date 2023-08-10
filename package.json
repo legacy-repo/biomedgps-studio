@@ -5,8 +5,8 @@
   "description": "A knowledge graph system with graph neural network for drug discovery, disease mechanism and biomarker screening.",
   "scripts": {
     "analyze": "cross-env ANALYZE=1 umi build",
-    "build": "cross-env UMI_APP_API_PREFIX=https://data.3steps.cn:8443 umi build",
-    "build-nm": "cross-env UMI_APP_AI_API=https://ai.3steps.cn/run/predict UMI_APP_API_PREFIX=https://drugs.3steps.cn umi build",
+    "build": "umi build",
+    "build:embed": "cross-env UMI_ENV=embed umi build",
     "deploy": "cross-env UMI_APP_IS_STATIC=true npm run build && npm run gh-pages",
     "dev": "npm run start:dev",
     "docker-hub:build": "docker build  -f Dockerfile.hub -t  ant-design-pro ./",
@@ -31,7 +31,6 @@
     "prettier": "prettier -c --write \"src/**/*\"",
     "serve": "umi-serve",
     "start": "cross-env UMI_ENV=dev umi dev",
-    "start:remote-dev": "cross-env UMI_APP_AI_API=https://ai.3steps.cn/run/predict UMI_APP_API_PREFIX=https://drugs.3steps.cn umi dev",
     "start:local-dev": "cross-env UMI_APP_API_PREFIX=http://localhost:8000 umi dev",
     "start:dev": "cross-env REACT_APP_ENV=dev MOCK=none UMI_ENV=dev umi dev",
     "start:no-mock": "cross-env MOCK=none UMI_ENV=dev umi dev",
@@ -112,7 +111,6 @@
     "remark-toc": "^8.0.1",
     "umi": "^3.5.0",
     "umi-plugin-git": "^1.0.3",
-    "umi-plugin-pro": "^2.0.1",
     "voca": "^1.4.0"
   },
   "devDependencies": {

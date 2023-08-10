@@ -4,16 +4,29 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
 import { history, RequestConfig } from 'umi';
-import defaultSettings, { CustomSettings, defaultCustomSettings, AppVersion } from '../config/defaultSettings';
+import defaultSettings, { CustomSettings, AppVersion } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
 // TODO: Remove the following line. It's a temporary solution to fix the issue of losing styles of antd components.
 import 'antd/dist/antd.css';
 
+// @ts-ignore
+const publicPath = window.publicPath || '/';
+const defaultCustomSettings = {
+  aboutUrl: `${publicPath}README/about.md`,
+  helpUrl: `${publicPath}README/help.md`,
+  websiteTitle: 'RAPEX',
+  websiteLogo: `${publicPath}logo-white.png`,
+  websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
+  websiteKeywords: 'RAPEX, transcriptomics, air pollution, knowledge graph',
+  defaultDataset: '000000',
+  mode: 'Developer'
+}
+
 const isDev = process.env.NODE_ENV === 'development';
-const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : '';
+const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : window.location.origin;
 const loginPath = '/user/login';
 
-console.log('apiPrefix', process.env);
+console.log('apiPrefix', process.env, apiPrefix);
 
 const addHeader = (url: string, options: RequestOptionsInit) => {
   const visitorId = localStorage.getItem('rapex-visitor-id')

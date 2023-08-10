@@ -6,7 +6,7 @@ import './index.less';
 
 const Help: React.FC = () => {
   const [markdown, setMarkdown] = React.useState('');
-  const markdownLink = '/README/help.md';
+  const markdownLink = `${window.publicPath}README/help.md`;
 
   useEffect(() => {
     fetch(markdownLink)
@@ -14,9 +14,11 @@ const Help: React.FC = () => {
       .then((text) => setMarkdown(text));
   }, []);
 
-  return <Card className="help">
-    <MarkdownViewer markdown={markdown} />
-  </Card>;
+  return (
+    <Card className="help">
+      <MarkdownViewer markdown={markdown} />
+    </Card>
+  );
 };
 
 export default Help;
