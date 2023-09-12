@@ -33,7 +33,9 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
   let headers = {}
   if (visitorId) {
     headers = {
-      "x-auth-users": visitorId
+      "x-auth-users": visitorId,
+      // TODO: Support JWT
+      "Authorization": "Bearer " + visitorId,
     }
   } else {
     headers = {}
