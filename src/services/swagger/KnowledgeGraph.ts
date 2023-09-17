@@ -17,6 +17,21 @@ export async function fetchEdgesAutoConnectNodes(
   });
 }
 
+/** Call `/api/v1/curated-graph` with query params to fetch curated graph. GET /api/v1/curated-graph */
+export async function fetchCuratedGraph(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.fetchCuratedGraphParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.Graph>('/api/v1/curated-graph', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** Call `/api/v1/curated-knowledges` with query params to fetch curated knowledges. GET /api/v1/curated-knowledges */
 export async function fetchCuratedKnowledges(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -43,6 +58,21 @@ export async function postCuratedKnowledge(
       'Content-Type': 'application/json',
     },
     data: body,
+    ...(options || {}),
+  });
+}
+
+/** Call `/api/v1/curated-knowledges-by-owner` with query params to fetch curated knowledges by owner. GET /api/v1/curated-knowledges-by-owner */
+export async function fetchCuratedKnowledgesByOwner(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.fetchCuratedKnowledgesByOwnerParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.RecordResponseKnowledgeCuration>('/api/v1/curated-knowledges-by-owner', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
     ...(options || {}),
   });
 }

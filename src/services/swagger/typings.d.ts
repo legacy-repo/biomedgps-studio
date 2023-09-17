@@ -26,6 +26,7 @@ declare namespace API {
     score: number;
     key_sentence: string;
     resource: string;
+    pmids: string;
   };
 
   type EdgeKeyShape = {
@@ -50,6 +51,10 @@ declare namespace API {
     label: string;
     resource: string;
     description?: string;
+    taxid?: string;
+    synonyms?: string;
+    pmids?: string;
+    xrefs?: string;
   };
 
   type Entity2D = {
@@ -72,6 +77,23 @@ declare namespace API {
 
   type ErrorMessage = {
     msg: string;
+  };
+
+  type fetchCuratedGraphParams = {
+    curator: string;
+    project_id?: string;
+    organization_id?: string;
+    page?: number;
+    page_size?: number;
+    strict_mode: boolean;
+  };
+
+  type fetchCuratedKnowledgesByOwnerParams = {
+    curator: string;
+    project_id?: string;
+    organization_id?: string;
+    page?: number;
+    page_size?: number;
   };
 
   type fetchCuratedKnowledgesParams = {
@@ -154,6 +176,7 @@ declare namespace API {
     created_at: string;
     curator: string;
     pmid: number;
+    payload?: any;
   };
 
   type Label = {
@@ -274,6 +297,7 @@ declare namespace API {
     score?: number;
     key_sentence?: string;
     resource: string;
+    pmids?: string;
   };
 
   type RelationCount = {
