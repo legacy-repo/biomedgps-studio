@@ -14,6 +14,7 @@ export const routes = [
     path: '/knowledge-graph-editor',
     name: 'knowledge-graph-editor',
     icon: 'link',
+    hideInMenu: true,
     component: './KnowledgeGraphEditor',
     category: 'knowledge-graph'
   },
@@ -40,7 +41,7 @@ export const routes = [
   },
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/knowledge-graph',
   },
   {
     component: './404',

@@ -18,7 +18,7 @@ const Settings: LayoutSettings & {
   description: 'Network Medicine for Disease Mechanism and Treatment Based on AI and knowledge graph.',
   keywords: 'Network Medicine, MultiOmics Data, Treatment, AI, Knowledge Graph',
   pwa: false,
-  logo: '/logo-white.png',
+  logo: '/assets/logo-white.png',
   iconfontUrl: '',
 };
 

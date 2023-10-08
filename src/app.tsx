@@ -14,7 +14,7 @@ const publicPath = window.publicPath || '/';
 const defaultCustomSettings = {
   aboutUrl: `${publicPath}README/about.md`,
   helpUrl: `${publicPath}README/help.md`,
-  websiteTitle: 'Network Medicine',
+  websiteTitle: '',
   websiteLogo: `${publicPath}logo-white.png`,
   websiteDescription: 'Network Medicine for Disease Mechanism and Treatment Based on AI and knowledge graph.',
   websiteKeywords: 'Network Medicine, MultiOmics Data, Treatment, AI, Knowledge Graph',
