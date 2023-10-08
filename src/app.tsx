@@ -28,14 +28,41 @@ const loginPath = '/user/login';
 
 console.log('apiPrefix', process.env, apiPrefix);
 
+const getJwtAccessToken = (): string | null => {
+  let jwtToken = null;
+  // Check if the cookie exists
+  if (document.cookie && document.cookie.includes("jwt_access_token=")) {
+    // Retrieve the cookie value
+    // @ts-ignore
+    const cookieValue = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("jwt_access_token="))
+      .split("=")[1];
+
+    // Parse the JWT token
+    jwtToken = JSON.parse(atob(cookieValue.split(".")[1]));  
+  }
+
+  if (jwtToken) {
+    console.log("JWT access token found in the cookie.");
+    return jwtToken;
+  } else {
+    console.log("JWT access token not found in the cookie.");
+    return null;
+  }
+}
+
 const addHeader = (url: string, options: RequestOptionsInit) => {
   const visitorId = localStorage.getItem('rapex-visitor-id')
+  // How to get a jwt_access_token from the cookie?
+  const jwt_access_token = getJwtAccessToken()
+
   let headers = {}
   if (visitorId) {
     headers = {
       "x-auth-users": visitorId,
       // TODO: Support JWT
-      "Authorization": "Bearer " + visitorId,
+      "Authorization": "Bearer " + jwt_access_token ? jwt_access_token : visitorId
     }
   } else {
     headers = {}
@@ -170,7 +197,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
     // 自定义 403 页面
     // unAccessible: <div>unAccessible</div>,
     // 增加一个 loading 的状态
-    childrenRender: (children, props) => {
+    childrenRender: (children: any, props: any) => {
       // if (initialState?.loading) return <PageLoading />;
       return (
         <>
