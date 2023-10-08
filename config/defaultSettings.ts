@@ -14,11 +14,11 @@ const Settings: LayoutSettings & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: '',
-  description: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
-  keywords: 'RAPEX, transcriptomics, air pollution, knowledge graph',
+  title: 'Network Medicine',
+  description: 'Network Medicine for Disease Mechanism and Treatment Based on AI and knowledge graph.',
+  keywords: 'Network Medicine, MultiOmics Data, Treatment, AI, Knowledge Graph',
   pwa: false,
-  logo: '/logo.png',
+  logo: '/logo-white.png',
   iconfontUrl: '',
 };
 

@@ -14,10 +14,10 @@ const publicPath = window.publicPath || '/';
 const defaultCustomSettings = {
   aboutUrl: `${publicPath}README/about.md`,
   helpUrl: `${publicPath}README/help.md`,
-  websiteTitle: 'RAPEX',
+  websiteTitle: 'Network Medicine',
   websiteLogo: `${publicPath}logo-white.png`,
-  websiteDescription: 'RAPEX: a webserver for discovering response to air pollutant exposure based on transcriptomics data and knowledge graph.',
-  websiteKeywords: 'RAPEX, transcriptomics, air pollution, knowledge graph',
+  websiteDescription: 'Network Medicine for Disease Mechanism and Treatment Based on AI and knowledge graph.',
+  websiteKeywords: 'Network Medicine, MultiOmics Data, Treatment, AI, Knowledge Graph',
   defaultDataset: '000000',
   mode: 'Developer'
 }
@@ -59,7 +59,7 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
     headers = {
       "x-auth-users": visitorId,
       // TODO: Support JWT
-      "Authorization": "Bearer " + jwt_access_token ? jwt_access_token : visitorId
+      "Authorization": "Bearer " + (jwt_access_token ? jwt_access_token : visitorId)
     }
   } else {
     headers = {}
