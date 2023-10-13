@@ -59,7 +59,7 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
     headers = {
       "x-auth-users": visitorId,
       // TODO: Support JWT
-      // "Authorization": "Bearer " + (jwt_access_token ? jwt_access_token : visitorId)
+      "Authorization": "Bearer " + (jwt_access_token ? jwt_access_token : visitorId)
     }
   } else {
     headers = {}
