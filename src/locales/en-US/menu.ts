@@ -22,6 +22,7 @@ export default {
   'menu.dashboard.workplace': 'Workplace',
   'menu.exception.403': '403',
   'menu.exception.404': '404',
+  'menu.not-authorized': 'Not Authorized',
   'menu.exception.500': '500',
   'menu.form': 'Form',
   'menu.form.basic-form': 'Basic Form',

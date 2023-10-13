@@ -59,7 +59,7 @@ const addHeader = (url: string, options: RequestOptionsInit) => {
     headers = {
       "x-auth-users": visitorId,
       // TODO: Support JWT
-      "Authorization": "Bearer " + (jwt_access_token ? jwt_access_token : visitorId)
+      // "Authorization": "Bearer " + (jwt_access_token ? jwt_access_token : visitorId)
     }
   } else {
     headers = {}
@@ -87,7 +87,17 @@ export const request: RequestConfig = {
   },
   middlewares: [],
   requestInterceptors: [addHeader],
-  responseInterceptors: [],
+  responseInterceptors: [
+    (response: Response, options: RequestOptionsInit): Response | Promise<Response> => {
+      if (response.status === 401) {
+        // Redirect to a warning page that its route name is 'not-authorized'.
+        history.push('/not-authorized');
+        return new Promise(() => { });
+      }
+
+      return response;
+    }
+  ],
 };
 
 /** 获取用户信息比较慢的时候会展示一个 loading */

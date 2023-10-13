@@ -40,12 +40,18 @@ export const routes = [
     component: './Help',
   },
   {
+    name: 'not-authorized',
+    hideInMenu: true,
+    path: '/not-authorized',
+    component: './NotAuthorized',
+  },
+  {
     path: '/',
     redirect: '/knowledge-graph',
   },
   {
     component: './404',
-  }
+  },
 ];
 
 export const dynamicRoutesToUsableRoutes = (routes: MenuDataItem[]): MenuDataItem[] => {
