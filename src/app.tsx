@@ -49,6 +49,17 @@ const getJwtAccessToken = (): string | null => {
   }
 }
 
+const getUsername = (): string | undefined => {
+  const accessToken = getJwtAccessToken();
+  if (accessToken) {
+    const payload = accessToken.split('.')[1];
+    const payloadJson = JSON.parse(atob(payload));
+    return payloadJson['username'];
+  } else {
+    return undefined;
+  }
+}
+
 const addHeader = (url: string, options: RequestOptionsInit) => {
   const visitorId = localStorage.getItem('rapex-visitor-id')
   // How to get a jwt_access_token from the cookie?
@@ -171,7 +182,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
     },
     // TODO: Improve the interface for getDatasets.
-    rightContentRender: () => <Header />,
+    rightContentRender: () => <Header usrname={getUsername()} />,
     disableContentMargin: false,
     waterMarkProps: {
       // content: initialState?.currentUser?.name,

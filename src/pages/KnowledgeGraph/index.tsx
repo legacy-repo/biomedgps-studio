@@ -37,9 +37,11 @@ const ChatAI: React.FC = () => {
       ) : null
     }
     <Col xxl={span} xl={span} lg={span} md={24} sm={24} xs={24}>
-      <Button shape="circle" className="chat-button" onClick={() => {
+      <Button shape="default" className="chat-button" onClick={() => {
         setChatBoxVisible(!chatBoxVisible)
-      }} icon={chatBoxVisible ? <MessageOutlined /> : <MessageFilled />} />
+      }} icon={chatBoxVisible ? <MessageOutlined /> : <MessageFilled />}>
+        {chatBoxVisible ? 'Hide Chatbot' : 'Show Chatbot'}
+      </Button>
       <KnowledgeGraph
         apis={{
           GetStatisticsFn: fetchStatistics,

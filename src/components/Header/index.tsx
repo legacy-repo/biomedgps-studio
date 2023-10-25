@@ -1,4 +1,4 @@
-import { QuestionCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
 import { Space, Menu } from 'antd';
 import React, { useState } from 'react';
 import { SelectLang } from 'umi';
@@ -10,13 +10,19 @@ import './extra.less'
 export type SiderTheme = 'light' | 'dark';
 
 export interface GlobalHeaderRightProps {
+  usrname?: string;
 }
 
 const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
-  const [current, setCurrent] = useState('mail');
+  const [current, setCurrent] = useState('user');
   const history = useHistory();
 
   const items: MenuProps['items'] = [
+    {
+      label: props.usrname || 'Anonymous',
+      key: 'user',
+      icon: <UserOutlined />,
+    },
     {
       label: 'About',
       key: 'about',
