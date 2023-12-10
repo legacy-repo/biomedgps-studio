@@ -186,6 +186,21 @@ export async function fetchOneStepLinkedNodes(
   });
 }
 
+/** Call `/api/v1/paths` with query params to fetch paths. GET /api/v1/paths */
+export async function fetchPaths(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.fetchPathsParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.Graph>('/api/v1/paths', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** Call `/api/v1/relation-counts` with query params to fetch relation counts. GET /api/v1/relation-counts */
 export async function fetchRelationCounts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

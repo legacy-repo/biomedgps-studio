@@ -27,6 +27,7 @@ declare namespace API {
     key_sentence: string;
     resource: string;
     pmids: string;
+    dataset: string;
   };
 
   type EdgeKeyShape = {
@@ -126,6 +127,12 @@ declare namespace API {
     page?: number;
     page_size?: number;
     query_str?: string;
+  };
+
+  type fetchPathsParams = {
+    start_node_id: string;
+    end_node_id: string;
+    nhops?: number;
   };
 
   type fetchRelationCountsParams = {
@@ -297,6 +304,7 @@ declare namespace API {
     score?: number;
     key_sentence?: string;
     resource: string;
+    dataset?: string;
     pmids?: string;
   };
 
@@ -315,6 +323,7 @@ declare namespace API {
     relation_count: number;
     start_entity_type: string;
     end_entity_type: string;
+    description?: string;
   };
 
   type Statistics = {

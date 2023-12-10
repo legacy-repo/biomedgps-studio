@@ -4,7 +4,8 @@ import { KnowledgeGraph } from 'biominer-components';
 import React, { useEffect, useState } from 'react';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 import {
-  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchSimilarityNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph
+  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchSimilarityNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph,
+  fetchPaths,
 } from '@/services/swagger/KnowledgeGraph';
 import { getGeneInfo } from '@/plugins4kg/utils';
 import { getItems4GenePanel } from '@/plugins4kg';
@@ -57,6 +58,7 @@ const ChatAI: React.FC = () => {
           GetConnectedNodesFn: fetchEdgesAutoConnectNodes,
           GetEntity2DFn: fetchEntity2d,
           GetEntityColorMapFn: fetchEntityColorMap,
+          GetNStepsLinkedNodesFn: fetchPaths,
         }}
         getGeneInfo={getGeneInfo}
         getItems4GenePanel={getItems4GenePanel}
