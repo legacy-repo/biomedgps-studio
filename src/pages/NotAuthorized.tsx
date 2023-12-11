@@ -13,7 +13,7 @@ const NotAuthorizedPage: React.FC = () => (
     }}
     status="403"
     title="Not Authorized"
-    subTitle="Sorry, you are not authorized to access this page. If you have an account on prophet-studio.3steps.cn, please login first. If you don't have an account, please contact the administrator to get an account"
+    subTitle="Sorry, you are not authorized to access this page. If you have an account on prophet-studio.3steps.cn or this website, please login first. If you don't have an account, please contact the administrator to get an account"
     extra={
       <Button type="primary" onClick={() => {
         window.open("https://www.prophetdb.org/contact/", "_blank")

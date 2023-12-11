@@ -1,7 +1,9 @@
 import ChatBox from '@/components/ChatBox';
+import { history } from 'umi';
 import { Row, Col, Button } from 'antd';
 import { KnowledgeGraph } from 'biominer-components';
 import React, { useEffect, useState } from 'react';
+import { useAuth0 } from "@auth0/auth0-react";
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 import {
   fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchSimilarityNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph,
@@ -17,9 +19,16 @@ const kgFullSpan = 24;
 const kgThreeQuartersSpan = 16;
 
 const ChatAI: React.FC = () => {
+  const { isAuthenticated } = useAuth0();
   const [message, setMessage] = useState<string>('')
   const [chatBoxVisible, setChatBoxVisible] = useState<boolean>(false)
   const [span, setSpan] = useState<number>(kgFullSpan)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      history.push('/not-authorized');
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (chatBoxVisible) {
@@ -29,7 +38,7 @@ const ChatAI: React.FC = () => {
     }
   }, [chatBoxVisible])
 
-  return <Row gutter={8} className="chat-ai-container">
+  return isAuthenticated ? (<Row gutter={8} className="chat-ai-container">
     {
       chatBoxVisible ? (
         <Col xxl={24 - span} xl={24 - span} lg={24 - span} md={24} sm={24} xs={24}>
@@ -67,7 +76,7 @@ const ChatAI: React.FC = () => {
         }}>
       </KnowledgeGraph>
     </Col>
-  </Row>;
+  </Row>) : null
 }
 
 export default ChatAI;

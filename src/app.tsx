@@ -4,6 +4,7 @@ import type { Settings as LayoutSettings } from '@ant-design/pro-components';
 import { PageLoading, SettingDrawer } from '@ant-design/pro-components';
 import type { RunTimeLayoutConfig } from 'umi';
 import { history, RequestConfig } from 'umi';
+import { Auth0Provider } from '@auth0/auth0-react';
 import defaultSettings, { CustomSettings, AppVersion } from '../config/defaultSettings';
 import { RequestOptionsInit } from 'umi-request';
 // TODO: Remove the following line. It's a temporary solution to fix the issue of losing styles of antd components.
@@ -24,7 +25,6 @@ const defaultCustomSettings = {
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : window.location.origin;
-const loginPath = '/user/login';
 
 console.log('apiPrefix', process.env, apiPrefix);
 
@@ -100,6 +100,7 @@ export const request: RequestConfig = {
   requestInterceptors: [addHeader],
   responseInterceptors: [
     (response: Response, options: RequestOptionsInit): Response | Promise<Response> => {
+      console.log("responseInterceptors: ", response, options);
       if (response.status === 401) {
         // Redirect to a warning page that its route name is 'not-authorized'.
         history.push('/not-authorized');
@@ -157,6 +158,21 @@ export async function getInitialState(): Promise<{
   return settings;
 }
 
+export const rootContainer = (container: any) => {
+  // As a standalone application, it needs to be wrapped by Auth0Provider.
+  return (
+    <Auth0Provider
+      domain="biomedgps.jp.auth0.com"
+      clientId="Y08FauV1dAEiocNIZt5LiOifzNgXr6Uo"
+      authorizationParams={{
+        redirect_uri: window.location.origin
+      }}
+    >
+      {container}
+    </Auth0Provider>
+  );
+};
+
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   console.log("initialState: ", initialState);
@@ -182,7 +198,9 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
       },
     },
     // TODO: Improve the interface for getDatasets.
-    rightContentRender: () => <Header usrname={getUsername()} />,
+    rightContentRender: () => {
+      return <Header username={getUsername()} />;
+    },
     disableContentMargin: false,
     waterMarkProps: {
       // content: initialState?.currentUser?.name,
