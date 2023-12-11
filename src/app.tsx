@@ -25,6 +25,8 @@ const defaultCustomSettings = {
 
 const isDev = process.env.NODE_ENV === 'development';
 const apiPrefix = process.env.UMI_APP_API_PREFIX ? process.env.UMI_APP_API_PREFIX : window.location.origin;
+const CLIENT_ID = process.env.UMI_APP_AUTH0_CLIENT_ID ? process.env.UMI_APP_AUTH0_CLIENT_ID : '<your-client-id>';
+const AUTH0_DOMAIN = process.env.UMI_APP_AUTH0_DOMAIN ? process.env.UMI_APP_AUTH0_DOMAIN : '<your-domain>';
 
 console.log('apiPrefix', process.env, apiPrefix);
 
@@ -162,8 +164,8 @@ export const rootContainer = (container: any) => {
   // As a standalone application, it needs to be wrapped by Auth0Provider.
   return (
     <Auth0Provider
-      domain="biomedgps.jp.auth0.com"
-      clientId="Y08FauV1dAEiocNIZt5LiOifzNgXr6Uo"
+      domain={AUTH0_DOMAIN}
+      clientId={CLIENT_ID}
       authorizationParams={{
         redirect_uri: window.location.origin
       }}
