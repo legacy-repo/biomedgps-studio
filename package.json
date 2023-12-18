@@ -32,7 +32,7 @@
     "serve": "umi-serve",
     "start": "cross-env UMI_ENV=dev umi dev",
     "start:local-dev": "cross-env UMI_APP_API_PREFIX=http://localhost:3000 umi dev",
-    "start:remote-dev": "cross-env UMI_APP_API_PREFIX=https://drugs.3steps.cn umi dev",
+    "start:remote-dev": "cross-env UMI_APP_API_PREFIX=https://drugs.3steps.cn UMI_APP_AUTH0_CLIENT_ID=Y08FauV1dAEiocNIZt5LiOifzNgXr6Uo UMI_APP_AUTH0_DOMAIN=biomedgps.jp.auth0.com umi dev",
     "start:dev": "cross-env REACT_APP_ENV=dev MOCK=none UMI_ENV=dev umi dev",
     "start:no-mock": "cross-env MOCK=none UMI_ENV=dev umi dev",
     "start:no-ui": "cross-env UMI_UI=none UMI_ENV=dev umi dev",

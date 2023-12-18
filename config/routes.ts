@@ -4,6 +4,13 @@ import type { MenuDataItem } from '@ant-design/pro-components';
 
 export const routes = [
   {
+    path: '/predict-model',
+    name: 'predict-model',
+    icon: 'history',
+    component: './ModelConfig',
+    category: 'predict-model'
+  },
+  {
     path: '/knowledge-graph',
     name: 'knowledge-graph',
     icon: 'share-alt',
@@ -47,7 +54,7 @@ export const routes = [
   },
   {
     path: '/',
-    redirect: '/knowledge-graph',
+    redirect: '/predict-model',
   },
   {
     component: './404',

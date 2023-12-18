@@ -1,8 +1,9 @@
 export default {
   'menu.welcome': '首页',
+  'menu.predict-model': '预测药物/靶点',
   'menu.quick-start': '快速分析',
   'menu.omics-analyzer': 'Omics分析器',
-  'menu.knowledge-graph': '知识图谱',
+  'menu.knowledge-graph': '解释预测结果',
   'menu.knowledge-graph-editor': '知识编辑器',
   'menu.datasets': '数据集',
   'menu.help': '帮助',

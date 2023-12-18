@@ -32,7 +32,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
 
       document.cookie = `jwt_access_token=${claims.__raw};max-age=86400;path=/`;
 
-      history.push('/knowledge-graph');
+      history.push('/');
     });
   }, [isAuthenticated]);
 

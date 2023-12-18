@@ -192,8 +192,8 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
           return defaultMenuData;
         } else {
           const welcome = defaultMenuData.filter((route: any) => route.path === '/welcome')[0];
-          // Change the redirect route to knowledge-graph, if the default dataset is not set.
-          welcome.redirect = '/knowledge-graph';
+          // Change the redirect route to /, if the default path is not set.
+          welcome.redirect = '/';
           welcome.component = null;
           return defaultMenuData.filter((route: any) => !route.category || route.category !== 'omics-data')
         }
