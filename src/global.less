@@ -46,6 +46,10 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  .knowledge-graph-container {
+    height: calc(100vh - 48px);
+  }
 }
 
 ul,
@@ -76,7 +80,7 @@ ol {
 
 // Compatible with IE11
 @media screen and(-ms-high-contrast: active),
-(-ms-high-contrast: none) {
+  (-ms-high-contrast: none) {
   body .ant-design-pro>.ant-layout {
     min-height: 100vh;
   }

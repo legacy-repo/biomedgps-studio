@@ -104,8 +104,10 @@ export const request: RequestConfig = {
     (response: Response, options: RequestOptionsInit): Response | Promise<Response> => {
       console.log("responseInterceptors: ", response, options);
       if (response.status === 401) {
+        // Save the current hash as the redirect url
+        const redirectUrl = window.location.hash
         // Redirect to a warning page that its route name is 'not-authorized'.
-        history.push('/not-authorized');
+        history.push('/not-authorized?redirectUrl=' + redirectUrl);
         return new Promise(() => { });
       }
 

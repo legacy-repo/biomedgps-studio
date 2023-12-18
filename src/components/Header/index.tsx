@@ -21,6 +21,10 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
   useEffect(() => {
     // If the user is not authenticated, redirect to the login page.
     if (!isAuthenticated) {
+      // Save the current hash as the redirect url
+      const redirectUrl = window.location.hash.replace('#/', '');
+      localStorage.setItem('redirectUrl', redirectUrl);
+      // Redirect to a warning page that its route name is 'not-authorized'.
       history.push('/not-authorized');
     }
 
@@ -32,7 +36,13 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
 
       document.cookie = `jwt_access_token=${claims.__raw};max-age=86400;path=/`;
 
-      history.push('/');
+      // Get the redirectUrl from the query string.
+      const redirectUrl = localStorage.getItem('redirectUrl');
+      if (redirectUrl) {
+        history.push('/' + redirectUrl);
+      } else {
+        history.push('/');
+      }
     });
   }, [isAuthenticated]);
 

@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Form, Input, InputNumber, Button, Select, Empty, Col, Row, Tooltip, message, Spin } from 'antd';
 import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined } from '@ant-design/icons';
 const { Header, Sider } = Layout;
-import GraphTable from 'biominer-components/dist/esm/components/KnowledgeGraph/Components/GraphTable';
+import { KeepAlive } from 'umi';
+import { GraphTable } from 'biominer-components';
 import { makeDataSources } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
 import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER } from 'biominer-components/dist/esm/components/typings';
 import { fetchNodes } from 'biominer-components/dist/esm/components/utils';
@@ -316,7 +317,7 @@ const ModelConfig: React.FC = (props) => {
             setGraphData(data);
           }).catch((error) => {
             console.log('ModelConfig - onConfirm - handler - Error: ', error);
-            message.error("Cannot get the result. Please check your input or try again later.")
+            message.warn("Cannot find any result for the given parameters.")
             setGraphData(error);
           }).finally(() => {
             setLoading(false);
@@ -367,10 +368,10 @@ const ModelConfig: React.FC = (props) => {
           </Form>
         </Col>
         <Col className="model-result" span={24 - leftSpan}>
-          <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources} />
+          <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources} emptyMessage='Please setup related parameters in the left side and generate some predicted result first.' />
         </Col>
       </Row>
-    </Layout >
+    </Layout>
   );
 };
 
