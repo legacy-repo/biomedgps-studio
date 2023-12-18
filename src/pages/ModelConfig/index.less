@@ -5,6 +5,8 @@
 .model-panel {
   width: 100%;
   height: @height;
+  // We must unset the min-height of the body to allow the model panel to take up the full height of the page
+  min-height: unset !important;
   border: @border;
   border-radius: 5px;
 
