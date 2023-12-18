@@ -94,6 +94,12 @@
           border-radius: 0 !important;
           border: unset !important;
         }
+
+        // For fixing the issue where the grid cannot be shown when the right click button is clicked
+        .ag-root-wrapper-body.ag-layout-normal {
+          height: calc(100% - 100px);
+          min-height: unset !important;
+        }
       }
     }
   }
