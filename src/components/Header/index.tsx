@@ -22,8 +22,13 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
     // If the user is not authenticated, redirect to the login page.
     if (!isAuthenticated) {
       // Save the current hash as the redirect url
-      const redirectUrl = window.location.hash.replace('#/', '');
-      localStorage.setItem('redirectUrl', redirectUrl);
+      let redirectUrl = window.location.hash.split("#").pop();
+      if (redirectUrl) {
+        redirectUrl = redirectUrl.replaceAll('/', '')
+        localStorage.setItem('redirectUrl', redirectUrl);
+      } else {
+        localStorage.setItem('redirectUrl', '');
+      }
       // Redirect to a warning page that its route name is 'not-authorized'.
       history.push('/not-authorized');
     }

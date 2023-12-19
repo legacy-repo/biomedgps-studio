@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Form, Input, InputNumber, Button, Select, Empty, Col, Row, Tooltip, message, Spin } from 'antd';
 import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined } from '@ant-design/icons';
 const { Header, Sider } = Layout;
-import { KeepAlive } from 'umi';
+import { history } from 'umi';
+import { useAuth0 } from "@auth0/auth0-react";
 import { GraphTable } from 'biominer-components';
-import { makeDataSources } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
+import { makeDataSources, pushGraphDataToLocalStorage } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
 import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER } from 'biominer-components/dist/esm/components/typings';
 import { fetchNodes } from 'biominer-components/dist/esm/components/utils';
 import { fetchEntities, fetchSimilarityNodes } from '@/services/swagger/KnowledgeGraph';
@@ -89,11 +90,18 @@ type ModelItem = {
 const ModelConfig: React.FC = (props) => {
   const leftSpan = 6;
   const [form] = Form.useForm();
+  const { isAuthenticated } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [currentModel, setCurrentModel] = useState(0);
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
   const [edgeDataSources, setEdgeDataSources] = useState<EdgeAttribute[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<NodeAttribute[]>([]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      history.push('/not-authorized');
+    }
+  }, [isAuthenticated])
 
   useEffect(() => {
     if (graphData && graphData.edges) {
@@ -368,7 +376,16 @@ const ModelConfig: React.FC = (props) => {
           </Form>
         </Col>
         <Col className="model-result" span={24 - leftSpan}>
-          <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources} emptyMessage='Please setup related parameters in the left side and generate some predicted result first.' />
+          <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources}
+            emptyMessage='Please setup related parameters in the left side and generate some predicted result first.'
+            onLoadGraph={(graph) => {
+              console.log('onLoadGraph: ', graph);
+              if (graph && graph.nodes && graph.nodes.length > 0) {
+                pushGraphDataToLocalStorage(graph);
+                history.push('/knowledge-graph');
+              }
+            }}
+          />
         </Col>
       </Row>
     </Layout>

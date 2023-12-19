@@ -105,9 +105,17 @@ export const request: RequestConfig = {
       console.log("responseInterceptors: ", response, options);
       if (response.status === 401) {
         // Save the current hash as the redirect url
-        const redirectUrl = window.location.hash
-        // Redirect to a warning page that its route name is 'not-authorized'.
-        history.push('/not-authorized?redirectUrl=' + redirectUrl);
+        let redirectUrl = window.location.hash.split("#").pop();
+        if (redirectUrl) {
+          redirectUrl = redirectUrl.replaceAll('/', '')
+          localStorage.setItem('redirectUrl', redirectUrl);
+          // Redirect to a warning page that its route name is 'not-authorized'.
+          history.push('/not-authorized?redirectUrl=' + redirectUrl);
+        } else {
+          localStorage.setItem('redirectUrl', '');
+          history.push('/not-authorized');
+        }
+
         return new Promise(() => { });
       }
 
