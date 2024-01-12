@@ -1,6 +1,9 @@
 import { ReactChatPlugin } from 'biominer-components';
-import { filter } from 'lodash';
+import { filter, set } from 'lodash';
+import * as webllm from "@mlc-ai/web-llm";
 import { useEffect, useState } from 'react';
+import { message as AntdMessage } from 'antd';
+
 import './index.less';
 
 const aiAPI = process.env.UMI_APP_AI_API ? process.env.UMI_APP_AI_API : 'https://ai.3steps.cn/run/predict';
@@ -39,9 +42,62 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   };
 
   const [disableInput, setDisableInput] = useState<boolean>(false);
+  const [disabledInputPlaceholder, setDisabledInputPlaceholder] = useState<string>("Processing, wait a moment...");
   const history = JSON.parse(localStorage.getItem('chatai-messages') || "[]")
   const [messages, setMessages] = useState<Message[]>(removeIndicator(history));
+  const [chat, setChat] = useState<webllm.ChatWorkerClient | webllm.ChatModule | null>(null);
 
+  useEffect(() => {
+    if (window.chat) {
+      setChat(window.chat);
+    } else {
+      initChat();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (chat) {
+      AntdMessage.success('Chat AI is ready.');
+      // We must reset the input status after the chat is ready
+      setDisableInput(false);
+      setDisabledInputPlaceholder("Processing, wait a moment...");
+    } else {
+      setDisableInput(true);
+      setDisabledInputPlaceholder("Chat AI is not ready, please wait..")
+    }
+  }, [chat]);
+
+  const initChat = async () => {
+    // const chat = new webllm.ChatWorkerClient(new Worker(
+    //   './assets/web-llm.worker.js',
+    //   { type: 'module' }
+    // ));
+    const chat = new webllm.ChatModule();
+
+    const myAppConfig = {
+      model_list: [
+        {
+          "model_url": "https://huggingface.co/mlc-ai/Mistral-7B-Instruct-v0.2-q4f16_1-MLC/resolve/main/",
+          "local_id": "Mistral-7B-Instruct-v0.2-q4f16_1",
+          "model_lib_url": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/Mistral-7B-Instruct-v0.2/Mistral-7B-Instruct-v0.2-q4f16_1-sw4k_cs1k-webgpu.wasm",
+          "required_features": ["shader-f16"],
+        },
+        // Add your own models here...
+      ]
+    }
+
+    chat.setInitProgressCallback((report: webllm.InitProgressReport) => {
+      setDisableInput(true);
+      setDisabledInputPlaceholder(report.text);
+    });
+
+    console.log("Chat AI is loading...");
+    await chat.reload("Mistral-7B-Instruct-v0.2-q4f16_1", undefined, myAppConfig);
+    console.log("Chat AI is loaded.");
+
+    setChat(chat);
+    window.chat = chat;
+  };
 
   const publishNotification = (message: string, messages: Message[]) => {
     const notification = {
@@ -111,88 +167,39 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     } else {
       return 9606
     }
-  }
+  };
 
-  const predict = async (message: string, messages: Message[]) => {
+  const webLLMPredict = async (message: string, messages: Message[]) => {
+    const generateProgressCallback = (_step: number, message: string) => {
+      console.log("generateProgressCallback: ", message);
+    };
+
     let newMessages = publishNotification('Predicting, wait a moment (it\'s slow, be patient)...', messages);
     setDisableInput(true);
+    setMessages(newMessages);
 
-    // Not smart enough to use the context messages
-    // let allMessages = messages.map((item) => item.text);
-    // let totalLength = allMessages.reduce((acc, curr) => acc + curr.length, 0);
-    // while (totalLength > maxTokens) {
-    //   const sentence = allMessages.shift();
-    //   if (!sentence) {
-    //     break;
-    //   }
+    if (!chat) {
+      AntdMessage.error('Chat AI is not ready, please try again later.');
 
-    //   totalLength -= sentence.length;
-    // }
+      return;
+    };
 
-    // let messagesStr = allMessages.join('\n') + message;
-    // let messagesStr = allMessages.join('\n');
-    let messagesStr = message;
-    let prompt = '\n\nDo you know the above question? please output it as the following format?  {     "entity_type": "xxx",  // One of Gene, Drug or Protein  "entity_name": "xxx", "which_relationships": "xxx", // One of All, Gene-Drug, Gene-Gene, Gene-Protein, Drug-Protein "gene_name": "xxx", "entrez_id": "xxx", "taxid": "xxx",  "which_task": "xxx", // One of KnowledgeGraph, sgRNAs  "which_species": "xxx" // one of rat, mouse and human }'
-    fetch(aiAPI, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Basic c2FtbXk6USlZS3V4RlU4IVkjbihCWg==' },
-      body: JSON.stringify({
-        // data: [messagesStr + `\n${prompt}`, '', 0.1, 0.75, 40, 4, maxTokens],
-        data: [messagesStr],
-      }),
-    })
-      .then(async response => {
-        const data = await response.json();
-        if (data && data.data) {
-          console.log("Alpacas response: ", data.data)
-          try {
-            const resp = JSON.parse(data.data.join(' '));
-            let message = '';
-            if (resp.which_task === 'KnowledgeGraph') {
-              if (resp.entity_type && resp.entity_name) {
-                const entity_type = resp.entity_type;
-                const entity_name = resp.entity_name;
-                message = `Based on my experiences and knowledges, I guess you want to know the following information. For testing, I will output the parameters based on your input.
-\`\`\`json
-{
-  "entity_type": "${entity_type}",
-  "entity_name": "${entity_name}",
-  "which_relationships": "${resp.which_relationships}"
-}
-\`\`\``;
-              }
-            } else if (resp.which_task === 'sgRNAs') {
-              if (resp.gene_name && resp.which_species) {
-                const species = resp.which_species;
-                const taxid = which_taxid(species);
-                const gene = resp.gene_name;
-                message = `Based on my experiences and knowledges, I recommend you to access the following urls for more details.
-- <a target="_blank" href="https://biosolver.cn/index.html#/guider-query-details?geneName=${gene}&taxid=${taxid}">GuideScoper-${gene}-${species}</a>`;
-              }
-            }
+    // Take the first 5 messages as context
+    const context = messages.slice(-5).map((item) => item.text).join('\n');
 
-            if (message === '') {
-              message = data.data.join(' ');
-            }
+    const prompt = `
+    <s> ${context} </s>
 
-            newMessages = publishMarkdownMessage(message, newMessages);
-          } catch (e) {
-            const resp = data.data.join(' ');
-            newMessages = publishMessage(resp, newMessages);
-          }
-        } else {
-          newMessages = publishErrorMessage(newMessages);
-        }
+    <s> ${message} </s>
+    `
 
-        setMessages(removeIndicator(newMessages));
-        setDisableInput(false);
-      })
-      .catch(() => {
-        newMessages = publishErrorMessage(newMessages);
-        setMessages(removeIndicator(newMessages));
-        setDisableInput(false);
-      });
-  };
+    const reply0 = await chat.generate(prompt, generateProgressCallback);
+    newMessages = publishMarkdownMessage(reply0, newMessages);
+    setMessages(removeIndicator(newMessages));
+    setDisableInput(false);
+
+    console.log(await chat.runtimeStatsText());
+  }
 
   const handleOnSendMessage = (message: string) => {
     const newMessage = {
@@ -208,10 +215,9 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
 
     const updatedMessages = [...messages, newMessage];
     setMessages(updatedMessages);
-    predict(message, updatedMessages);
+    // predict(message, updatedMessages);
+    webLLMPredict(message, updatedMessages);
   };
-
-  const disabledInputPlaceholder = "Predicting, wait a moment...";
 
   useEffect(() => {
     localStorage.setItem('chatai-messages', JSON.stringify(messages));

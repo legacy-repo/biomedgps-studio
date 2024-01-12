@@ -1,5 +1,6 @@
 // https://umijs.org/config/
 import { defineConfig } from 'umi';
+import path from 'path';
 
 import defaultSettings from './defaultSettings';
 import proxy from './proxy';
@@ -85,5 +86,19 @@ export default defineConfig({
   nodeModulesTransform: { type: 'none' },
   mfsu: {},
   webpack5: {},
+  chainWebpack: function (config, { webpack }) {
+    config.merge({
+      resolve: {
+        fallback: {
+          'perf_hooks': false,
+        }
+      }
+    });
+
+    // https://github.com/webpack/webpack/discussions/13585
+    config.resolve.alias.set('perf_hooks', path.resolve(__dirname, 'perf_hooks.ts'));
+
+    console.log("Config", config.toConfig());
+  },
   exportStatic: {},
 });
