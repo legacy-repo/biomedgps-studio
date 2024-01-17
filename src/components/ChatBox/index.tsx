@@ -104,7 +104,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       author: {
         id: 2,
         username: 'ChatAI',
-        avatarUrl: '/images/ai.svg',
+        avatarUrl: '/assets/images/ai.svg',
       },
       text: message,
       timestamp: +new Date(),
@@ -120,7 +120,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       author: {
         id: 2,
         username: 'ChatAI',
-        avatarUrl: '/images/ai.svg',
+        avatarUrl: '/assets/images/ai.svg',
       },
       text: message,
       timestamp: +new Date(),
@@ -134,7 +134,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       author: {
         id: 2,
         username: 'ChatAI',
-        avatarUrl: '/images/ai.svg',
+        avatarUrl: '/assets/images/ai.svg',
       },
       text: message,
       timestamp: +new Date(),
@@ -148,7 +148,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       author: {
         id: 2,
         username: 'ChatAI',
-        avatarUrl: '/images/ai.svg',
+        avatarUrl: '/assets/images/ai.svg',
       },
       text: 'Sorry, error occurred, please try again later.',
       timestamp: +new Date(),
@@ -206,7 +206,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       author: {
         id: 1,
         username: 'Me',
-        avatarUrl: '/images/general.svg',
+        avatarUrl: '/assets/images/general.svg',
       },
       text: message,
       timestamp: +new Date(),

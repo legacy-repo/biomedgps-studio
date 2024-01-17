@@ -149,6 +149,7 @@ declare namespace API {
     node_id: string;
     query_str?: string;
     topk?: number;
+    model_name?: string;
   };
 
   type fetchSubgraphsParams = {
@@ -297,6 +298,7 @@ declare namespace API {
   type Relation = {
     id: number;
     relation_type: string;
+    formatted_relation_type?: string;
     source_id: string;
     source_type: string;
     target_id: string;
@@ -319,7 +321,9 @@ declare namespace API {
   type RelationMetadata = {
     id: number;
     resource: string;
+    dataset: string;
     relation_type: string;
+    formatted_relation_type: string;
     relation_count: number;
     start_entity_type: string;
     end_entity_type: string;
