@@ -7,6 +7,7 @@ type SgrnaSelectorProps = {
   geneId: number,
   // Only support 9606(human), 10090(mouse) for now
   taxId?: number
+  url?: string
 }
 
 const SgrnaSelector: React.FC<SgrnaSelectorProps> = (props) => {
@@ -21,7 +22,9 @@ const SgrnaSelector: React.FC<SgrnaSelectorProps> = (props) => {
   }, []);
 
   return (
-    <GuideScoperViewer geneId={`${props.geneId}`} id={rootId}></GuideScoperViewer>
+    <GuideScoperViewer geneId={`${props.geneId}`} id={rootId}
+      url={"https://biosolver.cn/#/guider-query-details?entrezId="}>
+    </GuideScoperViewer>
   )
 }
 
