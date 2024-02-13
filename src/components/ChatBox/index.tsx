@@ -1,5 +1,5 @@
 import { ReactChatPlugin } from 'biominer-components';
-import { filter, set } from 'lodash';
+import { filter } from 'lodash';
 import * as webllm from "@mlc-ai/web-llm";
 import { useEffect, useState } from 'react';
 import { message as AntdMessage } from 'antd';

@@ -18,6 +18,56 @@ export default defineConfig({
   dva: {
     hmr: true,
   },
+  chunks: ['vendors', 'umi'],
+  chainWebpack: (config, { webpack }) => {
+    config.merge({
+      optimization: {
+        splitChunks: {
+          chunks: 'all',
+          minSize: 30000,
+          minChunks: 3,
+          automaticNameDelimiter: '.',
+          cacheGroups: {
+            vendors: {
+              name: 'vendors',
+              test({ resource }: any) {
+                return /[\\/]node_modules[\\/]/.test(resource);
+              },
+              priority: 10,
+            },
+            biominerComponents: {
+              name: 'biominer-components', // 这将是生成的文件名
+              test: /[\\/]node_modules[\\/]biominer-components[\\/]/, // 正则表达式匹配biominer-components库的路径
+              priority: 20 // 优先级，一个数字表示该缓存组的优先级
+            },
+            plotly: {
+              name: 'plotly.js',
+              test: /[\\/]node_modules[\\/]plotly.js[\\/]/,
+              priority: 30,
+            },
+            agGridEnterprise: {
+              name: 'ag-grid',
+              test: /[\\/]node_modules[\\/]ag-grid-enterprise[\\/]/,
+              priority: 40,
+            },
+            agGridCommunity: {
+              name: 'ag-grid',
+              test: /[\\/]node_modules[\\/]ag-grid-community[\\/]/,
+              priority: 50,
+            }
+          }
+        },
+      },
+      resolve: {
+        fallback: {
+          'perf_hooks': false,
+        }
+      }
+    });
+
+    // https://github.com/webpack/webpack/discussions/13585
+    config.resolve.alias.set('perf_hooks', path.resolve(__dirname, 'perf_hooks.ts'));
+  },
   favicon: '/gene.png',
   define: {
     // Whether the frontend is separated from the backend.
@@ -86,19 +136,5 @@ export default defineConfig({
   nodeModulesTransform: { type: 'none' },
   mfsu: {},
   webpack5: {},
-  chainWebpack: function (config, { webpack }) {
-    config.merge({
-      resolve: {
-        fallback: {
-          'perf_hooks': false,
-        }
-      }
-    });
-
-    // https://github.com/webpack/webpack/discussions/13585
-    config.resolve.alias.set('perf_hooks', path.resolve(__dirname, 'perf_hooks.ts'));
-
-    console.log("Config", config.toConfig());
-  },
   exportStatic: {},
 });
