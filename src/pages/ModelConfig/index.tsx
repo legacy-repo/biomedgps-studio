@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Form, Input, InputNumber, Button, Select, Empty, Col, Row, Tooltip, message, Spin } from 'antd';
-import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined } from '@ant-design/icons';
+import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined, BugOutlined } from '@ant-design/icons';
 const { Header, Sider } = Layout;
 import { history } from 'umi';
 import { useAuth0 } from "@auth0/auth0-react";
@@ -124,14 +124,16 @@ const ModelConfig: React.FC = (props) => {
       description: 'Enter a name of disease for which you want to find similar diseases',
       required: true,
       entityType: 'Disease'
-    }, {
-      key: 'similarity',
+    },
+    {
+      key: 'similarity_score_threshold',
       name: 'Similarity',
       type: 'number',
       description: 'Similarity threshold',
       defaultValue: 0.5,
       required: false
-    }, {
+    },
+    {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -140,20 +142,27 @@ const ModelConfig: React.FC = (props) => {
       required: false
     }],
     handler: (param: any) => {
-      const query = {
-        operator: 'in',
-        value: ["Disease"],
-        field: 'entity_type',
-      };
+      // const query = {
+      //   operator: 'in',
+      //   value: ["Disease"],
+      //   field: 'entity_type',
+      // };
+
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'Hetionet::DrD::Disease:Disease';
 
       let params: any = {
         node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
         topk: param.topk || 10,
       };
 
-      if (query) {
-        params['query_str'] = JSON.stringify(query);
-      }
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
 
       return new Promise((resolve, reject) => {
         fetchSimilarityNodes(params).then((data) => {
@@ -165,10 +174,11 @@ const ModelConfig: React.FC = (props) => {
         });
       });
     }
-  }, {
+  },
+  {
     name: 'Predicted Drugs',
     icon: < DribbbleOutlined />,
-    description: 'To predict drugs which are on the market or in clinical trials',
+    description: 'To predict drugs which are on the market or in clinical trials for a given disease.',
     parameters: [{
       key: 'entity_id',
       name: 'Disease',
@@ -176,7 +186,16 @@ const ModelConfig: React.FC = (props) => {
       description: 'Enter a name of disease for which you want to find drugs',
       required: true,
       entityType: 'Disease'
-    }, {
+    },
+    {
+      key: 'score_threshold',
+      name: 'Score',
+      type: 'number',
+      description: 'Score threshold',
+      required: false,
+      defaultValue: 0.5
+    },
+    {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -184,11 +203,38 @@ const ModelConfig: React.FC = (props) => {
       required: false,
       defaultValue: 10
     }],
-    disabled: true
-  }, {
+    handler: (param: any) => {
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'DRUGBANK::treats::Compound:Disease';
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
+
+      return new Promise((resolve, reject) => {
+        fetchSimilarityNodes(params).then((data) => {
+          console.log('Predicted Drugs: ', data);
+          resolve(data);
+        }).catch((error) => {
+          console.log('Predicted Drugs Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
+  },
+  {
     name: 'Predicted Targets',
     icon: <AimOutlined />,
-    description: 'To predict targets for a given disease',
+    description: 'To predict targets for a given disease, which means the genes might play a role in the pathogenesis of the disease',
     parameters: [{
       key: 'entity_id',
       name: 'Disease',
@@ -204,8 +250,91 @@ const ModelConfig: React.FC = (props) => {
       required: false,
       defaultValue: 10
     }],
-    disabled: true
-  }, {
+    handler: (param: any) => {
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'GNBR::J::Gene:Disease';
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
+
+      return new Promise((resolve, reject) => {
+        fetchSimilarityNodes(params).then((data) => {
+          console.log('Predicted Drugs: ', data);
+          resolve(data);
+        }).catch((error) => {
+          console.log('Predicted Drugs Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
+  },
+  {
+    name: 'Predicted Indications',
+    icon: <BugOutlined />,
+    description: 'To predict indications for a given drug',
+    parameters: [{
+      key: 'entity_id',
+      name: 'Compound',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of drug for which you want to find indications',
+      required: true,
+      entityType: 'Compound'
+    },
+    {
+      key: 'score_threshold',
+      name: 'Score',
+      type: 'number',
+      description: 'Score threshold',
+      required: false,
+      defaultValue: 0.5
+    },
+    {
+      key: 'topk',
+      name: 'TopK',
+      type: 'number',
+      description: 'Number of results to return',
+      required: false,
+      defaultValue: 10
+    }],
+    handler: (param: any) => {
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'DRUGBANK::treats::Compound:Disease';
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
+
+      return new Promise((resolve, reject) => {
+        fetchSimilarityNodes(params).then((data) => {
+          console.log('Predicted Drugs: ', data);
+          resolve(data);
+        }).catch((error) => {
+          console.log('Predicted Drugs Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
+  },
+  {
     name: 'Predicted MOAs',
     icon: <BranchesOutlined />,
     description: 'To predict MOAs for a given drug and disease',

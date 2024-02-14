@@ -147,6 +147,7 @@ declare namespace API {
 
   type fetchSimilarityNodesParams = {
     node_id: string;
+    relation_type: string;
     query_str?: string;
     topk?: number;
     model_name?: string;
