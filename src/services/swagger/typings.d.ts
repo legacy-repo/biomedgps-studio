@@ -135,6 +135,14 @@ declare namespace API {
     nhops?: number;
   };
 
+  type fetchPredictedNodesParams = {
+    node_id: string;
+    relation_type: string;
+    query_str?: string;
+    topk?: number;
+    model_name?: string;
+  };
+
   type fetchRelationCountsParams = {
     query_str?: string;
   };
@@ -143,14 +151,6 @@ declare namespace API {
     page?: number;
     page_size?: number;
     query_str?: string;
-  };
-
-  type fetchPredictedNodesParams = {
-    node_id: string;
-    relation_type: string;
-    query_str?: string;
-    topk?: number;
-    model_name?: string;
   };
 
   type fetchSubgraphsParams = {
