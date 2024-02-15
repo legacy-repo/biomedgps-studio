@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Form, Input, InputNumber, Button, Select, Empty, Col, Row, Tooltip, message, Spin } from 'antd';
 import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined, BugOutlined } from '@ant-design/icons';
-const { Header, Sider } = Layout;
 import { history } from 'umi';
+// import { createFromIconfontCN } from '@ant-design/icons';
 import { useAuth0 } from "@auth0/auth0-react";
 import { GraphTable } from 'biominer-components';
 import { makeDataSources, pushGraphDataToLocalStorage } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
@@ -10,10 +10,16 @@ import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER } from 'biominer-components/
 import { fetchNodes } from 'biominer-components/dist/esm/components/utils';
 import { fetchEntities, fetchPredictedNodes } from '@/services/swagger/KnowledgeGraph';
 import { EdgeAttribute } from 'biominer-components/dist/esm/components/EdgeTable/index.t';
-
-import './index.less';
 import { NodeAttribute } from 'biominer-components/dist/esm/components/NodeTable/index.t';
 import { sortBy } from 'lodash';
+
+import './index.less';
+
+const { Header, Sider } = Layout;
+
+// const IconFont = createFromIconfontCN({
+//   scriptUrl: '//at.alicdn.com/t/c/font_3865804_no8ogbfj0q.js',
+// });
 
 type NodeIdSearcherProps = {
   placeholder?: string;
@@ -80,6 +86,7 @@ type ModelParameter = {
 }
 
 type ModelItem = {
+  shortName: string;
   name: string;
   icon: React.ReactNode;
   description: string;
@@ -142,6 +149,7 @@ const ModelConfig: React.FC = (props) => {
   }
 
   const [models, setModels] = useState<ModelItem[]>([{
+    shortName: 'SimDises',
     name: 'Similar Diseases',
     icon: <DotChartOutlined />,
     description: 'To find TopK similar diseases with a given disease',
@@ -207,6 +215,7 @@ const ModelConfig: React.FC = (props) => {
     }
   },
   {
+    shortName: 'Drg4Dises',
     name: 'Predicted Drugs',
     icon: < DribbbleOutlined />,
     description: 'To predict drugs which are on the market or in clinical trials for a given disease.',
@@ -266,6 +275,7 @@ const ModelConfig: React.FC = (props) => {
     }
   },
   {
+    shortName: 'Tgt4Dises',
     name: 'Predicted Targets',
     icon: <AimOutlined />,
     description: 'To predict targets for a given disease, which means the genes might play a role in the pathogenesis of the disease',
@@ -316,6 +326,7 @@ const ModelConfig: React.FC = (props) => {
     }
   },
   {
+    shortName: 'Ind4Drgs',
     name: 'Predicted Indications',
     icon: <BugOutlined />,
     description: 'To predict indications for a given drug',
@@ -375,6 +386,67 @@ const ModelConfig: React.FC = (props) => {
     }
   },
   {
+    shortName: 'SimDrgs',
+    name: 'Predicted Similar Drugs',
+    icon: <DotChartOutlined />,
+    description: 'To predict similar drugs for a given drug',
+    parameters: [{
+      key: 'entity_id',
+      name: 'Drug Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of drug for which you want to find similar drugs',
+      required: true,
+      entityType: 'Compound'
+    },
+    // {
+    //   key: 'score_threshold',
+    //   name: 'Score',
+    //   type: 'number',
+    //   description: 'Score threshold',
+    //   required: false,
+    //   defaultValue: 0.5
+    // },
+    {
+      key: 'topk',
+      name: 'TopK',
+      type: 'number',
+      description: 'Number of results to return',
+      required: false,
+      defaultValue: 10
+    }],
+    handler: (param: any) => {
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'Hetionet::CrC::Compound:Compound';
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
+
+      return new Promise((resolve, reject) => {
+        fetchPredictedNodes(params).then((data) => {
+          console.log('Predicted Drugs: ', params, data);
+          resolve({
+            params,
+            data
+          });
+        }).catch((error) => {
+          console.log('Predicted Drugs Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
+  },
+  {
+    shortName: 'MOA',
     name: 'Predicted MOAs',
     icon: <BranchesOutlined />,
     description: 'To predict MOAs for a given drug and disease',
@@ -525,13 +597,14 @@ const ModelConfig: React.FC = (props) => {
 
   return (
     <Layout className='model-panel' key={currentModel}>
-      <Sider width={80}>
+      <Sider width={100}>
         <Menu mode="inline" defaultSelectedKeys={['0']} style={{ height: '100%' }} onClick={handleMenuClick} selectedKeys={[currentModel.toString()]}>
           {models.map((model, index) => (
             <Menu.Item key={index} icon={null} disabled={model.disabled}>
               <Tooltip title={`${model.disabled ? 'Disabled' : ''} > ${model.name} | ${model.description}`} placement="right" key={index}>
                 <Button icon={model.icon} shape='circle' size='large' style={{ color: detectColor(model.name) }}></Button>
               </Tooltip>
+              <span>{model.shortName}</span>
             </Menu.Item>
           ))}
         </Menu>
