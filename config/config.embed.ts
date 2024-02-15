@@ -1,5 +1,6 @@
 // https://umijs.org/config/
 import { defineConfig } from 'umi';
+import path from 'path';
 
 export default defineConfig({
   outputPath: '../assets',
@@ -50,6 +51,13 @@ export default defineConfig({
           }
         },
       },
+      resolve: {
+        fallback: {
+          'perf_hooks': false,
+        }
+      }
     });
+
+    config.resolve.alias.set('perf_hooks', path.resolve(__dirname, 'perf_hooks.ts'));
   },
 });
