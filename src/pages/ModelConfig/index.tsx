@@ -498,6 +498,8 @@ const ModelConfig: React.FC = (props) => {
         style={{ width: '100%' }}
         onChange={(value) => onChange(value)}
         placeholder={item.description}
+        min={1}
+        max={500}
       />
     } else {
       return <Input
