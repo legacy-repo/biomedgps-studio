@@ -8,7 +8,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 // import { KeepAlive } from 'umi';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 import {
-  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchSimilarityNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph,
+  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchPredictedNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph,
   fetchPaths,
 } from '@/services/swagger/KnowledgeGraph';
 import { getGeneInfo } from '@/plugins4kg/utils';
@@ -65,7 +65,7 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
             PostGraphHistoryFn: postSubgraph,
             DeleteGraphHistoryFn: deleteSubgraph,
             GetNodesFn: fetchNodes,
-            GetSimilarityNodesFn: fetchSimilarityNodes,
+            GetPredictedNodesFn: fetchPredictedNodes,
             GetOneStepLinkedNodesFn: fetchOneStepLinkedNodes,
             GetConnectedNodesFn: fetchEdgesAutoConnectNodes,
             GetEntity2DFn: fetchEntity2d,

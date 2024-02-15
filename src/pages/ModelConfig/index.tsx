@@ -8,7 +8,7 @@ import { GraphTable } from 'biominer-components';
 import { makeDataSources, pushGraphDataToLocalStorage } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
 import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER } from 'biominer-components/dist/esm/components/typings';
 import { fetchNodes } from 'biominer-components/dist/esm/components/utils';
-import { fetchEntities, fetchSimilarityNodes } from '@/services/swagger/KnowledgeGraph';
+import { fetchEntities, fetchPredictedNodes } from '@/services/swagger/KnowledgeGraph';
 import { EdgeAttribute } from 'biominer-components/dist/esm/components/EdgeTable/index.t';
 
 import './index.less';
@@ -165,7 +165,7 @@ const ModelConfig: React.FC = (props) => {
       // TODO: How to use similarity_score_threshold?
 
       return new Promise((resolve, reject) => {
-        fetchSimilarityNodes(params).then((data) => {
+        fetchPredictedNodes(params).then((data) => {
           console.log('Similar Diseases: ', data);
           resolve(data);
         }).catch((error) => {
@@ -221,7 +221,7 @@ const ModelConfig: React.FC = (props) => {
       // TODO: How to use similarity_score_threshold?
 
       return new Promise((resolve, reject) => {
-        fetchSimilarityNodes(params).then((data) => {
+        fetchPredictedNodes(params).then((data) => {
           console.log('Predicted Drugs: ', data);
           resolve(data);
         }).catch((error) => {
@@ -268,7 +268,7 @@ const ModelConfig: React.FC = (props) => {
       // TODO: How to use similarity_score_threshold?
 
       return new Promise((resolve, reject) => {
-        fetchSimilarityNodes(params).then((data) => {
+        fetchPredictedNodes(params).then((data) => {
           console.log('Predicted Drugs: ', data);
           resolve(data);
         }).catch((error) => {
@@ -324,7 +324,7 @@ const ModelConfig: React.FC = (props) => {
       // TODO: How to use similarity_score_threshold?
 
       return new Promise((resolve, reject) => {
-        fetchSimilarityNodes(params).then((data) => {
+        fetchPredictedNodes(params).then((data) => {
           console.log('Predicted Drugs: ', data);
           resolve(data);
         }).catch((error) => {

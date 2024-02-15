@@ -145,7 +145,7 @@ declare namespace API {
     query_str?: string;
   };
 
-  type fetchSimilarityNodesParams = {
+  type fetchPredictedNodesParams = {
     node_id: string;
     relation_type: string;
     query_str?: string;
