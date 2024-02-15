@@ -13,6 +13,7 @@ import { EdgeAttribute } from 'biominer-components/dist/esm/components/EdgeTable
 
 import './index.less';
 import { NodeAttribute } from 'biominer-components/dist/esm/components/NodeTable/index.t';
+import { sortBy } from 'lodash';
 
 type NodeIdSearcherProps = {
   placeholder?: string;
@@ -83,7 +84,10 @@ type ModelItem = {
   icon: React.ReactNode;
   description: string;
   parameters: ModelParameter[];
-  handler?: (params: any) => Promise<GraphData>;
+  handler?: (params: any) => Promise<{
+    params: any;
+    data: GraphData;
+  }>;
   disabled?: boolean;
 }
 
@@ -93,6 +97,7 @@ const ModelConfig: React.FC = (props) => {
   const { isAuthenticated } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [currentModel, setCurrentModel] = useState(0);
+  const [params, setParams] = useState({});
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
   const [edgeDataSources, setEdgeDataSources] = useState<EdgeAttribute[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<NodeAttribute[]>([]);
@@ -103,9 +108,20 @@ const ModelConfig: React.FC = (props) => {
     }
   }, [isAuthenticated])
 
+  const formatScore = (score: number) => {
+    // Keep 3 decimal places
+    return score.toFixed(3);
+  }
+
   useEffect(() => {
     if (graphData && graphData.edges) {
-      setEdgeDataSources(makeDataSources(graphData.edges));
+      const data = makeDataSources(graphData.edges).map((edge) => {
+        return {
+          ...edge,
+          score: formatScore(edge.score)
+        }
+      });
+      setEdgeDataSources(sortBy(data, ['score']).reverse());
     }
 
     if (graphData && graphData.nodes) {
@@ -113,26 +129,38 @@ const ModelConfig: React.FC = (props) => {
     }
   }, [graphData]);
 
+  useEffect(() => {
+    cleanup();
+  }, [currentModel]);
+
+  const cleanup = () => {
+    form.resetFields();
+    setParams({});
+    setGraphData({ nodes: [], edges: [] });
+    setEdgeDataSources([]);
+    setNodeDataSources([]);
+  }
+
   const [models, setModels] = useState<ModelItem[]>([{
     name: 'Similar Diseases',
     icon: <DotChartOutlined />,
     description: 'To find TopK similar diseases with a given disease',
     parameters: [{
       key: 'entity_id',
-      name: 'Disease',
+      name: 'Disease Name',
       type: 'NodeIdSearcher',
       description: 'Enter a name of disease for which you want to find similar diseases',
       required: true,
       entityType: 'Disease'
     },
-    {
-      key: 'similarity_score_threshold',
-      name: 'Similarity',
-      type: 'number',
-      description: 'Similarity threshold',
-      defaultValue: 0.5,
-      required: false
-    },
+    // {
+    //   key: 'similarity_score_threshold',
+    //   name: 'Similarity',
+    //   type: 'number',
+    //   description: 'Similarity threshold',
+    //   defaultValue: 0.5,
+    //   required: false
+    // },
     {
       key: 'topk',
       name: 'TopK',
@@ -166,8 +194,11 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Similar Diseases: ', data);
-          resolve(data);
+          console.log('Similar Diseases: ', params, data);
+          resolve({
+            params,
+            data
+          });
         }).catch((error) => {
           console.log('Similar Diseases Error: ', error);
           reject({ nodes: [], edges: [], error: error })
@@ -181,20 +212,20 @@ const ModelConfig: React.FC = (props) => {
     description: 'To predict drugs which are on the market or in clinical trials for a given disease.',
     parameters: [{
       key: 'entity_id',
-      name: 'Disease',
+      name: 'Disease Name',
       type: 'NodeIdSearcher',
       description: 'Enter a name of disease for which you want to find drugs',
       required: true,
       entityType: 'Disease'
     },
-    {
-      key: 'score_threshold',
-      name: 'Score',
-      type: 'number',
-      description: 'Score threshold',
-      required: false,
-      defaultValue: 0.5
-    },
+    // {
+    //   key: 'score_threshold',
+    //   name: 'Score',
+    //   type: 'number',
+    //   description: 'Score threshold',
+    //   required: false,
+    //   defaultValue: 0.5
+    // },
     {
       key: 'topk',
       name: 'TopK',
@@ -222,8 +253,11 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Predicted Drugs: ', data);
-          resolve(data);
+          console.log('Predicted Drugs: ', params, data);
+          resolve({
+            params,
+            data
+          });
         }).catch((error) => {
           console.log('Predicted Drugs Error: ', error);
           reject({ nodes: [], edges: [], error: error })
@@ -237,7 +271,7 @@ const ModelConfig: React.FC = (props) => {
     description: 'To predict targets for a given disease, which means the genes might play a role in the pathogenesis of the disease',
     parameters: [{
       key: 'entity_id',
-      name: 'Disease',
+      name: 'Disease Name',
       type: 'NodeIdSearcher',
       description: 'Enter a name of disease for which you want to find targets',
       required: true,
@@ -269,8 +303,11 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Predicted Drugs: ', data);
-          resolve(data);
+          console.log('Predicted Drugs: ', params, data);
+          resolve({
+            params,
+            data
+          });
         }).catch((error) => {
           console.log('Predicted Drugs Error: ', error);
           reject({ nodes: [], edges: [], error: error })
@@ -284,20 +321,20 @@ const ModelConfig: React.FC = (props) => {
     description: 'To predict indications for a given drug',
     parameters: [{
       key: 'entity_id',
-      name: 'Compound',
+      name: 'Drug Name',
       type: 'NodeIdSearcher',
       description: 'Enter a name of drug for which you want to find indications',
       required: true,
       entityType: 'Compound'
     },
-    {
-      key: 'score_threshold',
-      name: 'Score',
-      type: 'number',
-      description: 'Score threshold',
-      required: false,
-      defaultValue: 0.5
-    },
+    // {
+    //   key: 'score_threshold',
+    //   name: 'Score',
+    //   type: 'number',
+    //   description: 'Score threshold',
+    //   required: false,
+    //   defaultValue: 0.5
+    // },
     {
       key: 'topk',
       name: 'TopK',
@@ -325,8 +362,11 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Predicted Drugs: ', data);
-          resolve(data);
+          console.log('Predicted Drugs: ', params, data);
+          resolve({
+            params,
+            data
+          });
         }).catch((error) => {
           console.log('Predicted Drugs Error: ', error);
           reject({ nodes: [], edges: [], error: error })
@@ -364,7 +404,10 @@ const ModelConfig: React.FC = (props) => {
   }])
 
   const handleMenuClick = (e: any) => {
-    setCurrentModel(e.key);
+    console.log('handleMenuClick: ', e);
+    if (models[e.key]) {
+      setCurrentModel(e.key);
+    }
   };
 
   const detectComponent = (item: ModelParameter, onChange: (value: any) => void): React.ReactNode => {
@@ -449,12 +492,15 @@ const ModelConfig: React.FC = (props) => {
 
         const model = models[currentModel];
         if (model && model.handler) {
-          model.handler(updatedValues).then((data) => {
-            console.log('ModelConfig - onConfirm - handler: ', data);
+          model.handler(updatedValues).then((resp) => {
+            const { params, data } = resp;
+            console.log('ModelConfig - onConfirm - handler: ', params, data);
+            setParams(params);
             setGraphData(data);
           }).catch((error) => {
             console.log('ModelConfig - onConfirm - handler - Error: ', error);
             message.warn("Cannot find any result for the given parameters.")
+            setParams({});
             setGraphData(error);
           }).finally(() => {
             setLoading(false);
@@ -478,9 +524,9 @@ const ModelConfig: React.FC = (props) => {
   }
 
   return (
-    <Layout className='model-panel'>
+    <Layout className='model-panel' key={currentModel}>
       <Sider width={80}>
-        <Menu mode="inline" defaultSelectedKeys={['0']} style={{ height: '100%' }} onClick={handleMenuClick}>
+        <Menu mode="inline" defaultSelectedKeys={['0']} style={{ height: '100%' }} onClick={handleMenuClick} selectedKeys={[currentModel.toString()]}>
           {models.map((model, index) => (
             <Menu.Item key={index} icon={null} disabled={model.disabled}>
               <Tooltip title={`${model.disabled ? 'Disabled' : ''} > ${model.name} | ${model.description}`} placement="right" key={index}>
@@ -505,16 +551,22 @@ const ModelConfig: React.FC = (props) => {
           </Form>
         </Col>
         <Col className="model-result" span={24 - leftSpan}>
-          <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources}
-            emptyMessage='Please setup related parameters in the left side and generate some predicted result first.'
-            onLoadGraph={(graph) => {
-              console.log('onLoadGraph: ', graph);
-              if (graph && graph.nodes && graph.nodes.length > 0) {
-                pushGraphDataToLocalStorage(graph);
-                history.push('/knowledge-graph');
-              }
-            }}
-          />
+          {loading ?
+            <Empty description='Predicting using the given parameters...'
+              style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', flexDirection: 'column' }}>
+              <Spin size="large" />
+            </Empty> :
+            <GraphTable edgeDataSources={edgeDataSources} nodeDataSources={nodeDataSources} key={JSON.stringify(params)}
+              emptyMessage='Please setup related parameters in the left side and generate some predicted result first.'
+              onLoadGraph={(graph) => {
+                console.log('onLoadGraph: ', graph);
+                if (graph && graph.nodes && graph.nodes.length > 0) {
+                  pushGraphDataToLocalStorage(graph);
+                  history.push('/knowledge-graph');
+                }
+              }}
+            />
+          }
         </Col>
       </Row>
     </Layout>
