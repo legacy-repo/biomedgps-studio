@@ -8,7 +8,7 @@ const Footer: React.FC = () => {
   const intl = useIntl();
   const defaultMessage = intl.formatMessage({
     id: 'app.copyright.produced',
-    defaultMessage: 'Rapex Team',
+    defaultMessage: 'OpenProphetDB Team',
   });
 
   const currentYear = new Date().getFullYear();
@@ -19,21 +19,21 @@ const Footer: React.FC = () => {
         copyright={`${currentYear} ${defaultMessage}`}
         links={[
           {
-            key: 'gliomarker',
-            title: 'GlioMarker',
+            key: 'open-prophetdb',
+            title: 'OpenProphetDB',
             href: 'http://www.prophetdb.org/',
             blankTarget: true,
           },
           {
             key: 'github',
             title: <GithubOutlined />,
-            href: 'https://github.com/rapex-lab/rapex',
+            href: 'https://github.com/open-prophetdb',
             blankTarget: true,
           },
           {
-            key: 'biominer',
-            title: 'BioMiner',
-            href: 'http://biominer.3steps.cn/',
+            key: 'chinese-quartet',
+            title: 'Chinese Quartet',
+            href: 'https://chinese-quartet.org',
             blankTarget: true,
           },
         ]}

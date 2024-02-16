@@ -1,4 +1,4 @@
-<h2 align="center">BioMedGPS Platform</h2>
+<h2 align="center">Network Medicine Platform</h2>
 <p align="center">A network medicine platform with biomedical knowledge graph and graph neural network for drug repurposing and disease mechanism.</p>
 
 <p align="center">
