@@ -201,6 +201,21 @@ export async function fetchPaths(
   });
 }
 
+/** Call `/api/v1/predicted-nodes` with query params to fetch predicted nodes. GET /api/v1/predicted-nodes */
+export async function fetchPredictedNodes(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.fetchPredictedNodesParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.Graph>('/api/v1/predicted-nodes', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
 /** Call `/api/v1/relation-counts` with query params to fetch relation counts. GET /api/v1/relation-counts */
 export async function fetchRelationCounts(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -231,21 +246,6 @@ export async function fetchRelations(
   options?: { [key: string]: any },
 ) {
   return request<API.RecordResponseRelation>('/api/v1/relations', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
-/** Call `/api/v1/predicted-nodes` with query params to fetch predicted nodes. GET /api/v1/predicted-nodes */
-export async function fetchPredictedNodes(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.fetchPredictedNodesParams,
-  options?: { [key: string]: any },
-) {
-  return request<API.Graph>('/api/v1/predicted-nodes', {
     method: 'GET',
     params: {
       ...params,
