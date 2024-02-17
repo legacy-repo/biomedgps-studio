@@ -16,7 +16,7 @@ const Help: React.FC = () => {
 
   return (
     <Card className="help">
-      <MarkdownViewer markdown={markdown} enableRaw enableSlug />
+      <MarkdownViewer markdown={markdown} enableRaw />
     </Card>
   );
 };

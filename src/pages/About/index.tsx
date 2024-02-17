@@ -16,7 +16,7 @@ const About: React.FC = () => {
 
   return (
     <Card className="about">
-      <MarkdownViewer markdown={markdown} enableRaw enableSlug />
+      <MarkdownViewer markdown={markdown} enableRaw />
     </Card>
   );
 };

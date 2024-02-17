@@ -11,7 +11,7 @@
 
 ## Features
 
-### Predict Drug/Target Module
+### <a href="https://drugs.3steps.cn/#/predict-model">Predict Drug/Target</a> Module
 
 - [x] Predict known drugs for your queried disease (Drug Repurposing).
 - [x] Predict new indications for your queried drug.
@@ -21,7 +21,7 @@
 
 <p></p>
 
-### Explain Your Results Module
+### <a href="https://drugs.3steps.cn/#/knowledge-graph">Explain Your Results</a> Module
 
 - [x] Knowledge graph studio for graph query, visualization and analysis.
 - [x] Graph neural network for drug discovery, disease mechanism, biomarker screening and discovering response to toxicant exposure.
