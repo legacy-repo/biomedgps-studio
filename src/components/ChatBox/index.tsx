@@ -1,6 +1,7 @@
 import { ReactChatPlugin } from 'biominer-components';
-import { filter } from 'lodash';
+import { filter, set } from 'lodash';
 import * as webllm from "@mlc-ai/web-llm";
+import { initChat } from '@/components/util';
 import { useEffect, useState } from 'react';
 import { message as AntdMessage } from 'antd';
 
@@ -48,11 +49,16 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   const [chat, setChat] = useState<webllm.ChatWorkerClient | webllm.ChatModule | null>(null);
 
   useEffect(() => {
-    if (window.chat) {
-      setChat(window.chat);
-    } else {
-      initChat();
-    }
+    const initChatBox = async () => {
+      if (window.chat) {
+        setChat(window.chat);
+      } else {
+        const chat = await initChat();
+        setChat(chat);
+      }
+    };
+
+    initChatBox();
   }, []);
 
   useEffect(() => {
@@ -61,43 +67,16 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       // We must reset the input status after the chat is ready
       setDisableInput(false);
       setDisabledInputPlaceholder("Processing, wait a moment...");
+
+      chat.setInitProgressCallback((report: webllm.InitProgressReport) => {
+        setDisableInput(true);
+        setDisabledInputPlaceholder(report.text);
+      });
     } else {
       setDisableInput(true);
       setDisabledInputPlaceholder("Chat AI is not ready, please wait..")
     }
   }, [chat]);
-
-  const initChat = async () => {
-    // const chat = new webllm.ChatWorkerClient(new Worker(
-    //   './assets/web-llm.worker.js',
-    //   { type: 'module' }
-    // ));
-    const chat = new webllm.ChatModule();
-
-    const myAppConfig = {
-      model_list: [
-        {
-          "model_url": "https://huggingface.co/mlc-ai/Mistral-7B-Instruct-v0.2-q4f16_1-MLC/resolve/main/",
-          "local_id": "Mistral-7B-Instruct-v0.2-q4f16_1",
-          "model_lib_url": "https://raw.githubusercontent.com/mlc-ai/binary-mlc-llm-libs/main/Mistral-7B-Instruct-v0.2/Mistral-7B-Instruct-v0.2-q4f16_1-sw4k_cs1k-webgpu.wasm",
-          "required_features": ["shader-f16"],
-        },
-        // Add your own models here...
-      ]
-    }
-
-    chat.setInitProgressCallback((report: webllm.InitProgressReport) => {
-      setDisableInput(true);
-      setDisabledInputPlaceholder(report.text);
-    });
-
-    console.log("Chat AI is loading...");
-    await chat.reload("Mistral-7B-Instruct-v0.2-q4f16_1", undefined, myAppConfig);
-    console.log("Chat AI is loaded.");
-
-    setChat(chat);
-    window.chat = chat;
-  };
 
   const publishNotification = (message: string, messages: Message[]) => {
     const notification = {

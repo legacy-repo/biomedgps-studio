@@ -1,9 +1,10 @@
 import ChatBox from '@/components/ChatBox';
 import { history } from 'umi';
-import { Row, Col, Button } from 'antd';
+import { Row, Col, Button, message as AntMessage } from 'antd';
 import { KnowledgeGraph } from 'biominer-components';
 import React, { useEffect, useState, memo } from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
+import { initChat } from '@/components/util';
 // TODO: KeepAlive will cause some bugs, so we disable it for now.
 // import { KeepAlive } from 'umi';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
@@ -25,6 +26,10 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
   const [message, setMessage] = useState<string>('')
   const [chatBoxVisible, setChatBoxVisible] = useState<boolean>(false)
   const [span, setSpan] = useState<number>(kgFullSpan)
+
+  useEffect(() => {
+    initChat();
+  }, [])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -75,7 +80,11 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
           getGeneInfo={getGeneInfo}
           getItems4GenePanel={getItems4GenePanel}
           postMessage={(message: string) => {
-            setMessage(message)
+            if (chatBoxVisible) {
+              setMessage(message)
+            } else {
+              AntMessage.warning('Please open the chatbot first.')
+            }
           }}>
         </KnowledgeGraph>
       </Col>

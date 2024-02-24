@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Form, Input, InputNumber, Button, Select, Empty, Col, Row, Tooltip, message, Spin } from 'antd';
-import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined, BugOutlined } from '@ant-design/icons';
+import { DotChartOutlined, DribbbleOutlined, AimOutlined, BranchesOutlined, BugOutlined, ZoomInOutlined } from '@ant-design/icons';
 import { history } from 'umi';
 // import { createFromIconfontCN } from '@ant-design/icons';
 import { useAuth0 } from "@auth0/auth0-react";
@@ -276,7 +276,7 @@ const ModelConfig: React.FC = (props) => {
   },
   {
     shortName: 'Tgt4Dises',
-    name: 'Predicted Targets',
+    name: 'Predicted Targets for Diseases',
     icon: <AimOutlined />,
     description: 'To predict targets for a given disease, which means the genes might play a role in the pathogenesis of the disease',
     parameters: [{
@@ -297,6 +297,66 @@ const ModelConfig: React.FC = (props) => {
     handler: (param: any) => {
       // TODO: Need to update the relation_type automatically
       const relation_type = 'GNBR::J::Gene:Disease';
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      // TODO: Do we need to add a query string?
+      // if (query) {
+      //   params['query_str'] = JSON.stringify(query);
+      // }
+
+      // TODO: How to use similarity_score_threshold?
+
+      return new Promise((resolve, reject) => {
+        fetchPredictedNodes(params).then((data) => {
+          console.log('Predicted Targets: ', params, data);
+          resolve({
+            params,
+            data
+          });
+        }).catch((error) => {
+          console.log('Predicted Targets Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
+  },
+  {
+    shortName: 'SimDrgs',
+    name: 'Predicted Similar Drugs',
+    icon: <DotChartOutlined />,
+    description: 'To predict similar drugs for a given drug',
+    parameters: [{
+      key: 'entity_id',
+      name: 'Drug Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of drug for which you want to find similar drugs',
+      required: true,
+      entityType: 'Compound'
+    },
+    // {
+    //   key: 'score_threshold',
+    //   name: 'Score',
+    //   type: 'number',
+    //   description: 'Score threshold',
+    //   required: false,
+    //   defaultValue: 0.5
+    // },
+    {
+      key: 'topk',
+      name: 'TopK',
+      type: 'number',
+      description: 'Number of results to return',
+      required: false,
+      defaultValue: 10
+    }],
+    handler: (param: any) => {
+      // TODO: Need to update the relation_type automatically
+      const relation_type = 'Hetionet::CrC::Compound:Compound';
 
       let params: any = {
         node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
@@ -373,40 +433,31 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Predicted Drugs: ', params, data);
+          console.log('Predicted Indications: ', params, data);
           resolve({
             params,
             data
           });
         }).catch((error) => {
-          console.log('Predicted Drugs Error: ', error);
+          console.log('Predicted Indications Error: ', error);
           reject({ nodes: [], edges: [], error: error })
         });
       });
     }
   },
   {
-    shortName: 'SimDrgs',
-    name: 'Predicted Similar Drugs',
-    icon: <DotChartOutlined />,
-    description: 'To predict similar drugs for a given drug',
+    shortName: 'Tgt4Drgs',
+    name: 'Predicted Targets for Drugs',
+    icon: <ZoomInOutlined />,
+    description: 'To predict targets for a given drug, which means the genes might be affected by the drug.',
     parameters: [{
       key: 'entity_id',
       name: 'Drug Name',
       type: 'NodeIdSearcher',
-      description: 'Enter a name of drug for which you want to find similar drugs',
+      description: 'Enter a name of drug for which you want to find targets',
       required: true,
       entityType: 'Compound'
-    },
-    // {
-    //   key: 'score_threshold',
-    //   name: 'Score',
-    //   type: 'number',
-    //   description: 'Score threshold',
-    //   required: false,
-    //   defaultValue: 0.5
-    // },
-    {
+    }, {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -416,7 +467,7 @@ const ModelConfig: React.FC = (props) => {
     }],
     handler: (param: any) => {
       // TODO: Need to update the relation_type automatically
-      const relation_type = 'Hetionet::CrC::Compound:Compound';
+      const relation_type = 'DRUGBANK::target::Compound:Gene';
 
       let params: any = {
         node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
@@ -433,13 +484,13 @@ const ModelConfig: React.FC = (props) => {
 
       return new Promise((resolve, reject) => {
         fetchPredictedNodes(params).then((data) => {
-          console.log('Predicted Drugs: ', params, data);
+          console.log('Predicted Targets: ', params, data);
           resolve({
             params,
             data
           });
         }).catch((error) => {
-          console.log('Predicted Drugs Error: ', error);
+          console.log('Predicted Targets Error: ', error);
           reject({ nodes: [], edges: [], error: error })
         });
       });
