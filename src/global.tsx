@@ -25,12 +25,15 @@ const { pwa } = defaultSettings;
 const isHttps = document.location.protocol === 'https:';
 
 const clearCache = () => {
-  // remove all caches
+  // Remove all caches but not the webllm caches
+  const cachedKeys = ['webllm/config', 'webllm/wasm', 'webllm/model']
   if (window.caches) {
     caches
       .keys()
       .then((keys) => {
         keys.forEach((key) => {
+          if (cachedKeys.includes(key)) return;
+          console.log('clear caches', keys);
           caches.delete(key);
         });
       })
