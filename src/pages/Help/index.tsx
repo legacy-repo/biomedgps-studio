@@ -1,6 +1,7 @@
 import { Card } from 'antd';
 import React, { useEffect } from 'react';
 import { MarkdownViewer } from 'biominer-components';
+import RehypeRaw from 'rehype-raw';
 
 import './index.less';
 
@@ -16,7 +17,7 @@ const Help: React.FC = () => {
 
   return (
     <Card className="help">
-      <MarkdownViewer markdown={markdown} enableRaw />
+      <MarkdownViewer markdown={markdown} rehypePlugins={[RehypeRaw]} />
     </Card>
   );
 };

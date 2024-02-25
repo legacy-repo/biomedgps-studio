@@ -77,13 +77,23 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     }
   }, [chat]);
 
-  const publishNotification = (key: string, message: string, messages: Message[]): Message[] => {
-    const matched = filter(messages, (item) => item.key === key);
+  const findLastMatchedMessage = (key: string, messages: Message[]): Message | null => {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].key === key) {
+        return messages[i];
+      }
+    }
 
-    if (matched.length > 0) {
-      const newMsg = set(matched[0], 'text', message);
+    return null;
+  };
+
+  const publishNotification = (key: string, message: string, messages: Message[]): Message[] => {
+    const matchedMessage = findLastMatchedMessage(key, messages);
+
+    if (matchedMessage) {
+      const newMsg = set(matchedMessage, 'text', message);
       const newMessages = [...messages];
-      newMessages[messages.indexOf(matched[0])] = newMsg;
+      newMessages[messages.indexOf(matchedMessage)] = newMsg;
       return newMessages;
     } else {
       const notification = {
@@ -103,12 +113,12 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   };
 
   const publishMessage = (key: string, message: string, messages: Message[]) => {
-    const matched = filter(messages, (item) => item.key === key);
+    const matchedMessage = findLastMatchedMessage(key, messages);
 
-    if (matched.length > 0) {
-      const newMsg = set(matched[0], 'text', message);
+    if (matchedMessage) {
+      const newMsg = set(matchedMessage, 'text', message);
       const newMessages = [...messages];
-      newMessages[messages.indexOf(matched[0])] = newMsg;
+      newMessages[messages.indexOf(matchedMessage)] = newMsg;
       return newMessages;
     } else {
       const newMessage = {
@@ -126,12 +136,12 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   };
 
   const publishMarkdownMessage = (key: string, message: string, messages: Message[]) => {
-    const matched = filter(messages, (item) => item.key === key);
+    const matchedMessage = findLastMatchedMessage(key, messages);
 
-    if (matched.length > 0) {
-      const newMsg = set(matched[0], 'text', message);
+    if (matchedMessage) {
+      const newMsg = set(matchedMessage, 'text', message);
       const newMessages = [...messages];
-      newMessages[messages.indexOf(matched[0])] = newMsg;
+      newMessages[messages.indexOf(matchedMessage)] = newMsg;
       return newMessages;
     } else {
       const newMessage = {
@@ -163,10 +173,21 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     return [...messages, newMessage];
   }
 
+  const string2base64 = (utf8String: string) => {
+    // Encode the string into UTF-8 using a TextEncoder
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(utf8String);
+
+    // Convert the Uint8Array to a string using built-in btoa function
+    const binaryString = String.fromCharCode(...encoded);
+    return btoa(binaryString);
+  }
+
   const webLLMPredict = async (question: string, messages: Message[]) => {
     const generateProgressCallback = (_step: number, message: string) => {
       console.log("generateProgressCallback: ", message);
-      let base64string = btoa(question);
+      let length = messages.length;
+      let base64string = string2base64(`${question}-${length}`);
       setQuestion(base64string);
       setQuestionAnswers({ ...questionAnswers, [base64string]: message });
     };
@@ -221,11 +242,15 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   }, [messages]);
 
   useEffect(() => {
-    if (props.message && disableInput === false) {
-      handleOnSendMessage(props.message);
-    } else {
-      console.log('Chat AI is processing, please wait...');
-      AntdMessage.warning('Chat AI is processing, please wait...', 5)
+    // How to know if the message contains any non-english characters?
+
+    if (props.message) {
+      if (disableInput === false) {
+        handleOnSendMessage(props.message);
+      } else {
+        console.log('Chat AI is processing, please wait...');
+        AntdMessage.warning('Chat AI is processing, please wait...', 5)
+      }
     }
   }, [props.message]);
 

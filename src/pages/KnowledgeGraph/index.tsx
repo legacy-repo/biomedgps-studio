@@ -56,6 +56,10 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
       }
       <Col xxl={span} xl={span} lg={span} md={24} sm={24} xs={24}>
         <Button shape="default" className="chat-button" onClick={() => {
+          if (chatBoxVisible) {
+            // Clear the message when chatbot is closed, otherwise it will activate the chat ai again when chatbot is opened.
+            setMessage('')
+          }
           setChatBoxVisible(!chatBoxVisible)
         }} icon={chatBoxVisible ? <MessageOutlined /> : <MessageFilled />}>
           {chatBoxVisible ? 'Hide Chatbot' : 'Show Chatbot'}
