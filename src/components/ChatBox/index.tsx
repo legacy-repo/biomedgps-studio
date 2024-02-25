@@ -7,8 +7,6 @@ import { message as AntdMessage } from 'antd';
 
 import './index.less';
 
-const aiAPI = process.env.UMI_APP_AI_API ? process.env.UMI_APP_AI_API : 'https://ai.3steps.cn/run/predict';
-
 interface Author {
   id: number
   username?: string
@@ -22,6 +20,7 @@ interface Button {
 }
 
 export interface Message {
+  key?: string;
   text: string;
   timestamp: number;
   type: string;
@@ -36,8 +35,6 @@ interface ChatBoxProps {
 
 const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   const notificationType = 'indicator'
-  const textType = 'text'
-  const maxTokens = 300;
   const removeIndicator = (messages: Message[]) => {
     return filter(messages, (item) => item.type !== notificationType);
   };
@@ -47,6 +44,8 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   const history = JSON.parse(localStorage.getItem('chatai-messages') || "[]")
   const [messages, setMessages] = useState<Message[]>(removeIndicator(history));
   const [chat, setChat] = useState<webllm.ChatWorkerClient | webllm.ChatModule | null>(null);
+  const [question, setQuestion] = useState<string>('');
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const initChatBox = async () => {
@@ -78,48 +77,76 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     }
   }, [chat]);
 
-  const publishNotification = (message: string, messages: Message[]) => {
-    const notification = {
-      author: {
-        id: 2,
-        username: 'ChatAI',
-        avatarUrl: '/assets/images/ai.svg',
-      },
-      text: message,
-      timestamp: +new Date(),
-      type: notificationType
-    };
-    const newMessages = [...messages, notification];
-    setMessages(newMessages);
-    return newMessages
+  const publishNotification = (key: string, message: string, messages: Message[]): Message[] => {
+    const matched = filter(messages, (item) => item.key === key);
+
+    if (matched.length > 0) {
+      const newMsg = set(matched[0], 'text', message);
+      const newMessages = [...messages];
+      newMessages[messages.indexOf(matched[0])] = newMsg;
+      return newMessages;
+    } else {
+      const notification = {
+        key: key,
+        author: {
+          id: 2,
+          username: 'ChatAI',
+          avatarUrl: '/assets/images/ai.svg',
+        },
+        text: message,
+        timestamp: +new Date(),
+        type: notificationType
+      };
+      const newMessages = [...messages, notification];
+      return newMessages;
+    }
   };
 
-  const publishMessage = (message: string, messages: Message[]) => {
-    const newMessage = {
-      author: {
-        id: 2,
-        username: 'ChatAI',
-        avatarUrl: '/assets/images/ai.svg',
-      },
-      text: message,
-      timestamp: +new Date(),
-      type: textType
-    };
-    return [...messages, newMessage];
+  const publishMessage = (key: string, message: string, messages: Message[]) => {
+    const matched = filter(messages, (item) => item.key === key);
+
+    if (matched.length > 0) {
+      const newMsg = set(matched[0], 'text', message);
+      const newMessages = [...messages];
+      newMessages[messages.indexOf(matched[0])] = newMsg;
+      return newMessages;
+    } else {
+      const newMessage = {
+        author: {
+          id: 2,
+          username: 'ChatAI',
+          avatarUrl: '/assets/images/ai.svg',
+        },
+        text: message,
+        timestamp: +new Date(),
+        type: 'text'
+      };
+      return [...messages, newMessage];
+    }
   };
 
-  const publishMarkdownMessage = (message: string, messages: Message[]) => {
-    const newMessage = {
-      author: {
-        id: 2,
-        username: 'ChatAI',
-        avatarUrl: '/assets/images/ai.svg',
-      },
-      text: message,
-      timestamp: +new Date(),
-      type: 'markdown'
-    };
-    return [...messages, newMessage];
+  const publishMarkdownMessage = (key: string, message: string, messages: Message[]) => {
+    const matched = filter(messages, (item) => item.key === key);
+
+    if (matched.length > 0) {
+      const newMsg = set(matched[0], 'text', message);
+      const newMessages = [...messages];
+      newMessages[messages.indexOf(matched[0])] = newMsg;
+      return newMessages;
+    } else {
+      const newMessage = {
+        key: key,
+        author: {
+          id: 2,
+          username: 'ChatAI',
+          avatarUrl: '/assets/images/ai.svg',
+        },
+        text: message,
+        timestamp: +new Date(),
+        type: 'markdown'
+      };
+      return [...messages, newMessage];
+    }
   };
 
   const publishErrorMessage = (messages: Message[]) => {
@@ -131,29 +158,20 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: 'Sorry, error occurred, please try again later.',
       timestamp: +new Date(),
-      type: textType
+      type: 'text',
     };
     return [...messages, newMessage];
   }
 
-  const which_taxid = (species: string) => {
-    if (species === 'human') {
-      return 9606
-    } else if (species === 'mouse') {
-      return 10090
-    } else if (species === 'rat') {
-      return 10116
-    } else {
-      return 9606
-    }
-  };
-
-  const webLLMPredict = async (message: string, messages: Message[]) => {
+  const webLLMPredict = async (question: string, messages: Message[]) => {
     const generateProgressCallback = (_step: number, message: string) => {
       console.log("generateProgressCallback: ", message);
+      let base64string = btoa(question);
+      setQuestion(base64string);
+      setQuestionAnswers({ ...questionAnswers, [base64string]: message });
     };
 
-    let newMessages = publishNotification('Predicting, wait a moment (it\'s slow, be patient)...', messages);
+    let newMessages = publishNotification('notification', 'Predicting, wait a moment (it\'s slow, be patient)...', messages);
     setDisableInput(true);
     setMessages(newMessages);
 
@@ -169,13 +187,13 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     const prompt = `
     <s> ${context} </s>
 
-    <s> ${message} </s>
+    <s> ${question} </s>
     `
 
     const reply0 = await chat.generate(prompt, generateProgressCallback);
-    newMessages = publishMarkdownMessage(reply0, newMessages);
-    setMessages(removeIndicator(newMessages));
+    // The replying is done, we can enable the input again
     setDisableInput(false);
+    console.log("reply0: ", reply0);
 
     console.log(await chat.runtimeStatsText());
   }
@@ -189,7 +207,7 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       },
       text: message,
       timestamp: +new Date(),
-      type: textType
+      type: 'text'
     };
 
     const updatedMessages = [...messages, newMessage];
@@ -203,10 +221,20 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
   }, [messages]);
 
   useEffect(() => {
-    if (props.message) {
+    if (props.message && disableInput === false) {
       handleOnSendMessage(props.message);
+    } else {
+      console.log('Chat AI is processing, please wait...');
+      AntdMessage.warning('Chat AI is processing, please wait...', 5)
     }
   }, [props.message]);
+
+  useEffect(() => {
+    if (question && questionAnswers[question]) {
+      const newMessages = publishMarkdownMessage(question, questionAnswers[question], messages);
+      setMessages(removeIndicator(newMessages));
+    }
+  }, [questionAnswers]);
 
   return <ReactChatPlugin
     messages={messages}
