@@ -105,6 +105,8 @@ type ModelItem = {
 const ModelConfig: React.FC = (props) => {
   const leftSpan = 6;
   const [form] = Form.useForm();
+  const predictionType = Form.useWatch('prediction_type', form);
+
   const { isAuthenticated } = useAuth0();
   const [loading, setLoading] = useState(false);
   const [currentModel, setCurrentModel] = useState(0);
@@ -173,6 +175,19 @@ const ModelConfig: React.FC = (props) => {
       description: 'Enter a name of disease for which you want to find similar diseases, drugs or targets',
       required: true,
       entityType: 'Disease'
+    },
+    {
+      key: 'prediction_type',
+      name: 'Prediction Type',
+      type: 'select',
+      description: 'Select a type for predicting the result, e.g. SimilarDisease is for predicting similar diseases for a given disease.',
+      required: true,
+      options: [
+        { label: 'Similar Diseases', value: 'Disease' },
+        { label: 'Predicted Drugs', value: 'Compound' },
+        { label: 'Predicted Targets', value: 'Gene' }
+      ],
+      defaultValue: 'Disease'
     },
     {
       key: 'relation_type',
@@ -255,6 +270,19 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Compound'
     },
     {
+      key: 'prediction_type',
+      name: 'Prediction Type',
+      type: 'select',
+      description: 'Select a type for predicting the result, e.g. SimilarDrug is for predicting similar drugs for a given drug.',
+      required: true,
+      options: [
+        { label: 'Similar Drugs', value: 'Compound' },
+        { label: 'Predicted Indications', value: 'Disease' },
+        { label: 'Predicted Targets', value: 'Gene' }
+      ],
+      defaultValue: 'Compound'
+    },
+    {
       key: 'relation_type',
       name: 'Relation Type for Prediction',
       type: 'RelationTypeSearcher',
@@ -329,6 +357,18 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Gene'
     },
     {
+      key: 'prediction_type',
+      name: 'Prediction Type',
+      type: 'select',
+      description: 'Select a type for predicting the result, e.g. PredictedDrugs is for predicting drugs for a given gene.',
+      required: true,
+      options: [
+        { label: 'Predicted Drugs', value: 'Compound' },
+        { label: 'Predicted Diseases', value: 'Disease' }
+      ],
+      defaultValue: 'Compound'
+    },
+    {
       key: 'relation_type',
       name: 'Relation Type for Prediction',
       type: 'RelationTypeSearcher',
@@ -384,6 +424,17 @@ const ModelConfig: React.FC = (props) => {
       description: 'Enter a name of symptom for which you want to find similar drugs',
       required: true,
       entityType: 'Symptom'
+    },
+    {
+      key: 'prediction_type',
+      name: 'Prediction Type',
+      type: 'select',
+      description: 'Select a type for predicting the result, e.g. Disease is for predicting diseases for a given symptom.',
+      required: true,
+      options: [
+        { label: 'Predicted Diseases', value: 'Disease' }
+      ],
+      defaultValue: 'Disease'
     },
     {
       key: 'relation_type',
@@ -473,10 +524,33 @@ const ModelConfig: React.FC = (props) => {
         getEntities={fetchEntities}
       />
     } else if (item.type === 'RelationTypeSearcher') {
+      console.log("RelationTypeSearcher: ", item, relationTypeOptions, form.getFieldValue('entity_type'), predictionType);
+      const DefaultRelationTypeMap: Record<string, string> = {
+        'Disease:Disease': 'Hetionet::DrD::Disease:Disease',
+        'Disease:Compound': 'DRUGBANK::treats::Compound:Disease',
+        'Disease:Gene': 'GNBR::J::Gene:Disease',
+        'Compound:Disease': 'DRUGBANK::treats::Compound:Disease',
+        'Compound:Gene': 'DRUGBANK::target::Compound:Gene',
+        'Gene:Disease': 'GNBR::J::Gene:Disease',
+        // TODO: the relation type is non-standard
+        'Symptom:Disease': 'HSDN::has_symptom:Disease:Symptom'
+      };
+
       // TODO: Need to improve the regex to match the standard format of relation type.
-      const filteredRelationTypeOptions = relationTypeOptions.filter((option) => {
+      let filteredRelationTypeOptions = relationTypeOptions.filter((option) => {
         return item.entityType ? option.value.indexOf(item.entityType) !== -1 && option.value.match(/[a-zA-Z\+_\-]+::[a-zA-Z\+_\-]+::?[a-zA-Z]+:[a-zA-Z]+/g) : true;
       });
+
+      let defaultRelationType = filteredRelationTypeOptions[0]?.value;
+      if (predictionType) {
+        filteredRelationTypeOptions = filteredRelationTypeOptions.filter((option) => {
+          return option.value.indexOf(predictionType) !== -1;
+        })
+
+        const entityType = form.getFieldValue('entity_type') ? form.getFieldValue('entity_type') : 'Disease';
+        const entityPair = `${entityType}:${predictionType}`;
+        defaultRelationType = DefaultRelationTypeMap[entityPair] || filteredRelationTypeOptions[0]?.value;
+      };
 
       return <Select
         filterOption={(input, option) => {
@@ -489,6 +563,7 @@ const ModelConfig: React.FC = (props) => {
         }}
         showSearch
         allowClear
+        defaultValue={defaultRelationType}
         autoClearSearchValue={false}
         placeholder="Please select relation type for predicting the result"
         onSelect={(value) => onChange(value)}
@@ -637,7 +712,7 @@ const ModelConfig: React.FC = (props) => {
             <h3>{models[currentModel].name}</h3>
             <p>{models[currentModel].description}</p>
           </Header>
-          <Form layout="vertical" onFinish={handleSubmit} className='model-parameter-body' form={form}>
+          <Form layout="vertical" onFinish={handleSubmit} className='model-parameter-body' form={form} key={predictionType}>
             {renderForm()}
             <Button type="primary" htmlType="submit" className='model-parameter-button'
               size='large' loading={loading}>
