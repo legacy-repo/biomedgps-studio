@@ -12,6 +12,9 @@ import { fetchEntities, fetchPredictedNodes } from '@/services/swagger/Knowledge
 import { EdgeAttribute } from 'biominer-components/dist/esm/components/EdgeTable/index.t';
 import { NodeAttribute } from 'biominer-components/dist/esm/components/NodeTable/index.t';
 import { sortBy } from 'lodash';
+import { fetchStatistics } from '@/services/swagger/KnowledgeGraph';
+import { makeRelationTypes } from 'biominer-components/dist/esm/components/utils';
+import type { OptionType } from 'biominer-components/dist/esm/components/typings';
 
 import './index.less';
 
@@ -109,6 +112,15 @@ const ModelConfig: React.FC = (props) => {
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], edges: [] });
   const [edgeDataSources, setEdgeDataSources] = useState<EdgeAttribute[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<NodeAttribute[]>([]);
+  const [relationTypeOptions, setRelationTypeOptions] = useState<OptionType[]>([]);
+
+  useEffect(() => {
+    fetchStatistics().then((data) => {
+      const relationStats = data.relation_stat;
+      const relationTypes = makeRelationTypes(relationStats);
+      setRelationTypeOptions(relationTypes);
+    });
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -163,17 +175,12 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Disease'
     },
     {
-      key: 'prediction_type',
-      name: 'Prediction Type',
-      type: 'select',
-      description: 'Select a prediction type',
+      key: 'relation_type',
+      name: 'Relation Type for Prediction',
+      type: 'RelationTypeSearcher',
+      description: 'Select a relation type for predicting the result, e.g. Hetionet::DrD::Disease:Disease is for predicting similar diseases for a given disease. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
       required: true,
-      defaultValue: 'SimilarDisease',
-      options: [
-        { label: 'Similar Diseases', value: 'SimilarDisease' },
-        { label: 'Predicted Drugs', value: 'PredictedDrugs' },
-        { label: 'Predicted Targets', value: 'PredictedTargets' }
-      ]
+      entityType: 'Disease'
     },
     // {
     //   key: 'similarity_score_threshold',
@@ -198,14 +205,14 @@ const ModelConfig: React.FC = (props) => {
       //   field: 'entity_type',
       // };
 
-      const relation_type_map: Record<string, any> = {
-        SimilarDisease: 'Hetionet::DrD::Disease:Disease',
-        PredictedDrugs: 'DRUGBANK::treats::Compound:Disease',
-        PredictedTargets: 'GNBR::J::Gene:Disease'
-      }
+      // const relation_type_map: Record<string, any> = {
+      //   SimilarDisease: 'Hetionet::DrD::Disease:Disease',
+      //   PredictedDrugs: 'DRUGBANK::treats::Compound:Disease',
+      //   PredictedTargets: 'GNBR::J::Gene:Disease'
+      // }
 
       // TODO: Need to update the relation_type automatically
-      const relation_type = relation_type_map[param.prediction_type];
+      const relation_type = param.relation_type;
 
       let params: any = {
         node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
@@ -248,17 +255,12 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Compound'
     },
     {
-      key: 'prediction_type',
-      name: 'Prediction Type',
-      type: 'select',
-      description: 'Select a prediction type',
+      key: 'relation_type',
+      name: 'Relation Type for Prediction',
+      type: 'RelationTypeSearcher',
+      description: 'Select a relation type for predicting the result, e.g. DRUGBANK::treats::Compound:Disease is for predicting diseases for a given drug. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
       required: true,
-      defaultValue: 'SimilarDrug',
-      options: [
-        { label: 'Similar Drugs', value: 'SimilarDrug' },
-        { label: 'Predicted Indications', value: 'PredictedIndications' },
-        { label: 'Predicted Targets', value: 'PredictedTargets' }
-      ]
+      entityType: 'Compound'
     },
     // {
     //   key: 'score_threshold',
@@ -277,14 +279,14 @@ const ModelConfig: React.FC = (props) => {
       defaultValue: 10
     }],
     handler: (param: any) => {
-      const relation_type_map: Record<string, any> = {
-        SimilarDrug: 'Hetionet::CrC::Compound:Compound',
-        PredictedIndications: 'DRUGBANK::treats::Compound:Disease',
-        PredictedTargets: 'DRUGBANK::target::Compound:Gene'
-      }
+      // const relation_type_map: Record<string, any> = {
+      //   SimilarDrug: 'Hetionet::CrC::Compound:Compound',
+      //   PredictedIndications: 'DRUGBANK::treats::Compound:Disease',
+      //   PredictedTargets: 'DRUGBANK::target::Compound:Gene'
+      // }
 
       // TODO: Need to update the relation_type automatically
-      const relation_type = relation_type_map[param.prediction_type];
+      const relation_type = param.relation_type;
 
       let params: any = {
         node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
@@ -327,6 +329,14 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Gene'
     },
     {
+      key: 'relation_type',
+      name: 'Relation Type for Prediction',
+      type: 'RelationTypeSearcher',
+      description: 'Select a relation type for predicting the result, e.g. DRUGBANK::target::Compound:Gene is for predicting drugs for a given gene. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
+      required: true,
+      entityType: 'Gene'
+    },
+    {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -334,7 +344,33 @@ const ModelConfig: React.FC = (props) => {
       required: false,
       defaultValue: 10
     }],
-    disabled: true
+    handler: (param: any) => {
+      // const relation_type_map: Record<string, any> = {
+      //   PredictedDrugs: 'DRUGBANK::target::Compound:Gene',
+      //   PredictedDiseases: 'GNBR::J::Gene:Disease'
+      // }
+
+      const relation_type = param.relation_type;
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      return new Promise((resolve, reject) => {
+        fetchPredictedNodes(params).then((data) => {
+          console.log('Genes: ', params, data);
+          resolve({
+            params,
+            data
+          });
+        }).catch((error) => {
+          console.log('Genes Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
   },
   {
     shortName: 'Symptom',
@@ -350,6 +386,14 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Symptom'
     },
     {
+      key: 'relation_type',
+      name: 'Relation Type for Prediction',
+      type: 'RelationTypeSearcher',
+      description: 'Select a relation type for predicting the result, e.g. HSDN::has_symptom::Disease:Symptom is for predicting diseases for a given symptom. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
+      required: true,
+      entityType: 'Symptom'
+    },
+    {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -357,7 +401,28 @@ const ModelConfig: React.FC = (props) => {
       required: false,
       defaultValue: 10
     }],
-    disabled: true
+    handler: (param: any) => {
+      const relation_type = param.relation_type;
+
+      let params: any = {
+        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        relation_type: relation_type,
+        topk: param.topk || 10,
+      };
+
+      return new Promise((resolve, reject) => {
+        fetchPredictedNodes(params).then((data) => {
+          console.log('Symptoms: ', params, data);
+          resolve({
+            params,
+            data
+          });
+        }).catch((error) => {
+          console.log('Symptoms Error: ', error);
+          reject({ nodes: [], edges: [], error: error })
+        });
+      });
+    }
   },
   {
     shortName: 'MOA',
@@ -407,6 +472,40 @@ const ModelConfig: React.FC = (props) => {
         handleSearchNode={(entityType, value) => console.log(entityType, value)}
         getEntities={fetchEntities}
       />
+    } else if (item.type === 'RelationTypeSearcher') {
+      // TODO: Need to improve the regex to match the standard format of relation type.
+      const filteredRelationTypeOptions = relationTypeOptions.filter((option) => {
+        return item.entityType ? option.value.indexOf(item.entityType) !== -1 && option.value.match(/[a-zA-Z\+_\-]+::[a-zA-Z\+_\-]+::?[a-zA-Z]+:[a-zA-Z]+/g) : true;
+      });
+
+      return <Select
+        filterOption={(input, option) => {
+          console.log('filterOption: ', input, option);
+          // @ts-ignore
+          return option?.key.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+        }}
+        getPopupContainer={(triggerNode) => {
+          return triggerNode.parentNode;
+        }}
+        showSearch
+        allowClear
+        autoClearSearchValue={false}
+        placeholder="Please select relation type for predicting the result"
+        onSelect={(value) => onChange(value)}
+      >
+        {filteredRelationTypeOptions.map((item: OptionType) => {
+          return (
+            <Select.Option key={item.value} value={item.value}>
+              <Tooltip title={item.description} placement="right">
+                <div className="option-container">
+                  <div className="option-label">{item.label}</div>
+                  <div className="option-description">{item.description}</div>
+                </div>
+              </Tooltip>
+            </Select.Option>
+          );
+        })}
+      </Select >
     } else if (item.type === 'number') {
       return <InputNumber
         style={{ width: '100%' }}
