@@ -28,13 +28,12 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
   const [span, setSpan] = useState<number>(kgFullSpan)
 
   useEffect(() => {
-    initChat();
-  }, [])
-
-  useEffect(() => {
     if (!isAuthenticated) {
       history.push('/not-authorized');
     }
+
+    // Initialize the chatbot
+    initChat();
   }, [isAuthenticated])
 
   useEffect(() => {

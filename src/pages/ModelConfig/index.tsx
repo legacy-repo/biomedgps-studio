@@ -25,6 +25,7 @@ const { Header, Sider } = Layout;
 // });
 
 type NodeIdSearcherProps = {
+  allowMultiple?: boolean;
   placeholder?: string;
   entityType: string;
   handleSearchNode?: (entityType: string, value: string) => void;
@@ -49,6 +50,7 @@ const NodeIdSearcher = (props: NodeIdSearcherProps) => {
   };
 
   return <Select
+    mode={props.allowMultiple ? 'multiple' : undefined}
     showSearch
     allowClear
     defaultActiveFirstOption={false}
@@ -87,6 +89,7 @@ type ModelParameter = {
   defaultValue?: any;
   entityType?: string;
   options?: any[];
+  allowMultiple?: boolean;
 }
 
 type ModelItem = {
@@ -125,6 +128,15 @@ const ModelConfig: React.FC = (props) => {
   }, []);
 
   useEffect(() => {
+    const entityType = form.getFieldValue('entity_type');
+    const defaultRelationType = getDefaultRelationType(entityType, predictionType);
+    form.setFieldsValue({ relation_type: defaultRelationType });
+
+    // Reset the entity_id field when the prediction type is changed, because the change of prediction type may lead to the component of entity_id missing.
+    form.setFieldsValue({ entity_id: undefined });
+  }, [predictionType]);
+
+  useEffect(() => {
     if (!isAuthenticated) {
       history.push('/not-authorized');
     }
@@ -132,7 +144,7 @@ const ModelConfig: React.FC = (props) => {
 
   const formatScore = (score: number) => {
     // Keep 3 decimal places
-    return score.toFixed(3);
+    return parseFloat(score.toFixed(3));
   }
 
   useEffect(() => {
@@ -169,14 +181,6 @@ const ModelConfig: React.FC = (props) => {
     icon: <BugOutlined />,
     description: 'To find TopK similar diseases, drugs or targets with a given disease',
     parameters: [{
-      key: 'entity_id',
-      name: 'Disease Name',
-      type: 'NodeIdSearcher',
-      description: 'Enter a name of disease for which you want to find similar diseases, drugs or targets',
-      required: true,
-      entityType: 'Disease'
-    },
-    {
       key: 'prediction_type',
       name: 'Prediction Type',
       type: 'select',
@@ -187,13 +191,21 @@ const ModelConfig: React.FC = (props) => {
         { label: 'Predicted Drugs', value: 'Compound' },
         { label: 'Predicted Targets', value: 'Gene' }
       ],
-      defaultValue: 'Disease'
+      // defaultValue: 'Disease'
     },
     {
       key: 'relation_type',
       name: 'Relation Type for Prediction',
       type: 'RelationTypeSearcher',
       description: 'Select a relation type for predicting the result, e.g. Hetionet::DrD::Disease:Disease is for predicting similar diseases for a given disease. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
+      required: true,
+      entityType: 'Disease'
+    },
+    {
+      key: 'entity_id',
+      name: 'Disease Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of disease for which you want to find similar diseases, drugs or targets',
       required: true,
       entityType: 'Disease'
     },
@@ -262,14 +274,6 @@ const ModelConfig: React.FC = (props) => {
     icon: <AimOutlined />,
     description: 'To predict similar drugs, indications or targets for a given drug',
     parameters: [{
-      key: 'entity_id',
-      name: 'Drug Name',
-      type: 'NodeIdSearcher',
-      description: 'Enter a name of drug for which you want to find similar drugs, indications or targets',
-      required: true,
-      entityType: 'Compound'
-    },
-    {
       key: 'prediction_type',
       name: 'Prediction Type',
       type: 'select',
@@ -280,13 +284,21 @@ const ModelConfig: React.FC = (props) => {
         { label: 'Predicted Indications', value: 'Disease' },
         { label: 'Predicted Targets', value: 'Gene' }
       ],
-      defaultValue: 'Compound'
+      // defaultValue: 'Compound'
     },
     {
       key: 'relation_type',
       name: 'Relation Type for Prediction',
       type: 'RelationTypeSearcher',
       description: 'Select a relation type for predicting the result, e.g. DRUGBANK::treats::Compound:Disease is for predicting diseases for a given drug. The number in the prefix of the relation type is the number of knowledges using to train the model. The larger the number may means the more reliable the prediction.',
+      required: true,
+      entityType: 'Compound'
+    },
+    {
+      key: 'entity_id',
+      name: 'Drug Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of drug for which you want to find similar drugs, indications or targets',
       required: true,
       entityType: 'Compound'
     },
@@ -349,14 +361,6 @@ const ModelConfig: React.FC = (props) => {
     icon: <ZoomInOutlined />,
     description: 'To predict drugs/diseases for a given gene/protein',
     parameters: [{
-      key: 'entity_id',
-      name: 'Gene/Protein Name',
-      type: 'NodeIdSearcher',
-      description: 'Enter a name of gene for which you want to find drugs/diseases',
-      required: true,
-      entityType: 'Gene'
-    },
-    {
       key: 'prediction_type',
       name: 'Prediction Type',
       type: 'select',
@@ -366,7 +370,15 @@ const ModelConfig: React.FC = (props) => {
         { label: 'Predicted Drugs', value: 'Compound' },
         { label: 'Predicted Diseases', value: 'Disease' }
       ],
-      defaultValue: 'Compound'
+      // defaultValue: 'Compound'
+    },
+    {
+      key: 'entity_id',
+      name: 'Gene/Protein Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of gene for which you want to find drugs/diseases',
+      required: true,
+      entityType: 'Gene'
     },
     {
       key: 'relation_type',
@@ -418,23 +430,16 @@ const ModelConfig: React.FC = (props) => {
     icon: <DribbbleOutlined />,
     description: 'To predict drugs for a given group of symptoms',
     parameters: [{
-      key: 'entity_id',
-      name: 'Symptom Name',
-      type: 'NodeIdSearcher',
-      description: 'Enter a name of symptom for which you want to find similar drugs',
-      required: true,
-      entityType: 'Symptom'
-    },
-    {
       key: 'prediction_type',
       name: 'Prediction Type',
       type: 'select',
       description: 'Select a type for predicting the result, e.g. Disease is for predicting diseases for a given symptom.',
       required: true,
       options: [
-        { label: 'Predicted Diseases', value: 'Disease' }
+        { label: 'Predicted Diseases', value: 'Disease' },
+        { label: 'Predicted Drugs', value: 'Compound' }
       ],
-      defaultValue: 'Disease'
+      // defaultValue: 'Disease'
     },
     {
       key: 'relation_type',
@@ -445,6 +450,15 @@ const ModelConfig: React.FC = (props) => {
       entityType: 'Symptom'
     },
     {
+      key: 'entity_id',
+      name: 'Symptom Name',
+      type: 'NodeIdSearcher',
+      description: 'Enter a name of symptom for which you want to find similar drugs',
+      required: true,
+      entityType: 'Symptom',
+      allowMultiple: true
+    },
+    {
       key: 'topk',
       name: 'TopK',
       type: 'number',
@@ -453,10 +467,24 @@ const ModelConfig: React.FC = (props) => {
       defaultValue: 10
     }],
     handler: (param: any) => {
+      console.log('Symptoms Parameters: ', param)
       const relation_type = param.relation_type;
 
+      let node_id = '';
+      if (param.entity_id.length > 1) {
+        let node_ids = [];
+        for (let i = 0; i < param.entity_id.length; i++) {
+          node_ids.push(`${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id[i]}`);
+        }
+
+        console.log("node_ids: ", node_ids)
+        node_id = node_ids.join(',');
+      } else {
+        node_id = `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`;
+      }
+
       let params: any = {
-        node_id: `${param.entity_type}${COMPOSED_ENTITY_DELIMITER}${param.entity_id}`,
+        node_id: node_id,
         relation_type: relation_type,
         topk: param.topk || 10,
       };
@@ -473,7 +501,7 @@ const ModelConfig: React.FC = (props) => {
           reject({ nodes: [], edges: [], error: error })
         });
       });
-    }
+    },
   },
   {
     shortName: 'MOA',
@@ -512,6 +540,24 @@ const ModelConfig: React.FC = (props) => {
     }
   };
 
+  const getDefaultRelationType = (entityType: string, predictionType: string) => {
+    const DefaultRelationTypeMap: Record<string, string> = {
+      'Disease:Disease': 'Hetionet::DrD::Disease:Disease',
+      'Disease:Compound': 'DRUGBANK::treats::Compound:Disease',
+      'Disease:Gene': 'GNBR::J::Gene:Disease',
+      'Compound:Disease': 'DRUGBANK::treats::Compound:Disease',
+      'Compound:Gene': 'DRUGBANK::target::Compound:Gene',
+      'Gene:Disease': 'GNBR::J::Gene:Disease',
+      // TODO: the relation type is non-standard
+      'Symptom:Disease': 'HSDN::has_symptom:Disease:Symptom',
+      'Symptom:Compound': 'DrugBank::treats::Compound:Symptom',
+    };
+
+    const entityPair = `${entityType}:${predictionType}`;
+    return DefaultRelationTypeMap[entityPair]
+  }
+
+
   const detectComponent = (item: ModelParameter, onChange: (value: any) => void): React.ReactNode => {
     if (item.type === 'NodeIdSearcher') {
       return <NodeIdSearcher
@@ -520,36 +566,33 @@ const ModelConfig: React.FC = (props) => {
         onSelect={(value) => {
           onChange(value);
         }}
+        allowMultiple={item.allowMultiple}
         handleSearchNode={(entityType, value) => console.log(entityType, value)}
         getEntities={fetchEntities}
       />
     } else if (item.type === 'RelationTypeSearcher') {
       console.log("RelationTypeSearcher: ", item, relationTypeOptions, form.getFieldValue('entity_type'), predictionType);
-      const DefaultRelationTypeMap: Record<string, string> = {
-        'Disease:Disease': 'Hetionet::DrD::Disease:Disease',
-        'Disease:Compound': 'DRUGBANK::treats::Compound:Disease',
-        'Disease:Gene': 'GNBR::J::Gene:Disease',
-        'Compound:Disease': 'DRUGBANK::treats::Compound:Disease',
-        'Compound:Gene': 'DRUGBANK::target::Compound:Gene',
-        'Gene:Disease': 'GNBR::J::Gene:Disease',
-        // TODO: the relation type is non-standard
-        'Symptom:Disease': 'HSDN::has_symptom:Disease:Symptom'
-      };
 
       // TODO: Need to improve the regex to match the standard format of relation type.
       let filteredRelationTypeOptions = relationTypeOptions.filter((option) => {
         return item.entityType ? option.value.indexOf(item.entityType) !== -1 && option.value.match(/[a-zA-Z\+_\-]+::[a-zA-Z\+_\-]+::?[a-zA-Z]+:[a-zA-Z]+/g) : true;
       });
 
-      let defaultRelationType = filteredRelationTypeOptions[0]?.value;
+      let defaultRelationType = undefined;
       if (predictionType) {
-        filteredRelationTypeOptions = filteredRelationTypeOptions.filter((option) => {
-          return option.value.indexOf(predictionType) !== -1;
-        })
+        if (predictionType === item.entityType) {
+          filteredRelationTypeOptions = filteredRelationTypeOptions.filter((option) => {
+            return option.value.indexOf(`${predictionType}:${predictionType}`) !== -1;
+          })
+        } else {
+          filteredRelationTypeOptions = filteredRelationTypeOptions.filter((option) => {
+            return option.value.indexOf(predictionType) !== -1;
+          })
+        }
 
-        const entityType = form.getFieldValue('entity_type') ? form.getFieldValue('entity_type') : 'Disease';
-        const entityPair = `${entityType}:${predictionType}`;
-        defaultRelationType = DefaultRelationTypeMap[entityPair] || filteredRelationTypeOptions[0]?.value;
+        if (item.entityType) {
+          defaultRelationType = getDefaultRelationType(item.entityType, predictionType) || filteredRelationTypeOptions[0]?.value;
+        }
       };
 
       return <Select

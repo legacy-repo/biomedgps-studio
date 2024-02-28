@@ -4,6 +4,8 @@ import * as webllm from "@mlc-ai/web-llm";
 import { initChat } from '@/components/util';
 import { useEffect, useState } from 'react';
 import { message as AntdMessage } from 'antd';
+import rehypeRaw from 'rehype-raw';
+import rehypeHighlight from 'rehype-highlight';
 
 import './index.less';
 
@@ -202,12 +204,20 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
       return;
     };
 
+    // Drop the messages that are not from the user
+    const filteredMessages = messages.filter((item) => item.author?.id !== 1);
     // Take the first 5 messages as context
-    const context = messages.slice(-5).map((item) => item.text).join('\n');
+    const context = filteredMessages.slice(-5).map((item) => item.text).join('\n');
 
     const prompt = `
+    Context:
+    """
     <s> ${context} </s>
+    """
 
+    The above is the context, please use the context to answer the following question if the context is relevant. If the context is not relevant, please ignore the context and answer the question directly.
+
+    Question:
     <s> ${question} </s>
     `
 
@@ -274,6 +284,14 @@ const ChatBoxWrapper: React.FC<ChatBoxProps> = (props) => {
     }}
     width={'100%'}
     height={'calc(100vh - 58px)'}
+    onSendKey={"shiftKey"}
+    rehypePlugins={[rehypeRaw, rehypeHighlight]}
+    deleteHandler={(message: Message) => {
+      console.log('deleteHandler: ', message);
+      const newMessages = messages.filter((item) => item.timestamp !== message.timestamp);
+      setMessages(newMessages);
+      localStorage.setItem('chatai-messages', JSON.stringify(newMessages));
+    }}
   />;
 }
 
