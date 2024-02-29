@@ -1,4 +1,14 @@
 declare namespace API {
+  type askLLMParams = {
+    prompt_template_id: string;
+  };
+
+  type Context = {
+    entity?: Entity;
+    expanded_relation?: ExpandedRelation;
+    symptoms_with_disease_ctx?: SymptomsWithDiseaseCtx;
+  };
+
   type deleteCuratedKnowledgeParams = {
     id: number;
   };
@@ -78,6 +88,12 @@ declare namespace API {
 
   type ErrorMessage = {
     msg: string;
+  };
+
+  type ExpandedRelation = {
+    relation: Relation;
+    source: Entity;
+    target: Entity;
   };
 
   type fetchCuratedGraphParams = {
@@ -194,6 +210,12 @@ declare namespace API {
     fontSize: number;
     offset: number;
     position: string;
+  };
+
+  type LlmResponse = {
+    prompt: string;
+    response: string;
+    created_at: string;
   };
 
   type Node = {
@@ -346,5 +368,11 @@ declare namespace API {
     version: string;
     db_version: string;
     parent?: string;
+  };
+
+  type SymptomsWithDiseaseCtx = {
+    disease_name: string;
+    subgraph: string;
+    symptoms: string[];
   };
 }

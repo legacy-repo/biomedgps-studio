@@ -9,8 +9,7 @@ import { initChat } from '@/components/util';
 // import { KeepAlive } from 'umi';
 import { MessageFilled, MessageOutlined } from '@ant-design/icons';
 import {
-  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchPredictedNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph,
-  fetchPaths,
+  fetchEdgesAutoConnectNodes, fetchEntities, fetchEntity2d, fetchEntityColorMap, fetchOneStepLinkedNodes, fetchRelationCounts, fetchStatistics, fetchSubgraphs, fetchPredictedNodes, fetchNodes, fetchRelations, postSubgraph, deleteSubgraph, fetchPaths, askLLM
 } from '@/services/swagger/KnowledgeGraph';
 import { getGeneInfo } from '@/plugins4kg/utils';
 import { getItems4GenePanel } from '@/plugins4kg';
@@ -79,6 +78,7 @@ const KnowledgeGraphWithChatBot: React.FC = () => {
             GetEntity2DFn: fetchEntity2d,
             GetEntityColorMapFn: fetchEntityColorMap,
             GetNStepsLinkedNodesFn: fetchPaths,
+            AskLlmFn: askLLM,
           }}
           getGeneInfo={getGeneInfo}
           getItems4GenePanel={getItems4GenePanel}

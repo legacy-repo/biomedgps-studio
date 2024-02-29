@@ -156,6 +156,26 @@ export async function fetchEntity2d(
   });
 }
 
+/** Call `/api/v1/llm` with query params to get answer from LLM. POST /api/v1/llm */
+export async function askLLM(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.askLLMParams,
+  body: API.Context,
+  options?: { [key: string]: any },
+) {
+  return request<API.LlmResponse>('/api/v1/llm', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    params: {
+      ...params,
+    },
+    data: body,
+    ...(options || {}),
+  });
+}
+
 /** Call `/api/v1/nodes` with query params to fetch nodes. GET /api/v1/nodes */
 export async function fetchNodes(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
