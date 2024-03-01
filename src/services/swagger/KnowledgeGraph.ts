@@ -17,21 +17,6 @@ export async function fetchEdgesAutoConnectNodes(
   });
 }
 
-/** Call `/api/v1/common-nodes` with query params to fetch common nodes. GET /api/v1/common-nodes */
-export async function fetchCommonNodes(
-  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
-  params: API.fetchCommonNodesParams,
-  options?: { [key: string]: any },
-) {
-  return request<API.Graph>('/api/v1/common-nodes', {
-    method: 'GET',
-    params: {
-      ...params,
-    },
-    ...(options || {}),
-  });
-}
-
 /** Call `/api/v1/curated-graph` with query params to fetch curated graph. GET /api/v1/curated-graph */
 export async function fetchCuratedGraph(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -281,6 +266,21 @@ export async function fetchRelations(
   options?: { [key: string]: any },
 ) {
   return request<API.RecordResponseRelation>('/api/v1/relations', {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}
+
+/** Call `/api/v1/shared-nodes` with query params to fetch shared nodes. GET /api/v1/shared-nodes */
+export async function fetchSharedNodes(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.fetchSharedNodesParams,
+  options?: { [key: string]: any },
+) {
+  return request<API.Graph>('/api/v1/shared-nodes', {
     method: 'GET',
     params: {
       ...params,
