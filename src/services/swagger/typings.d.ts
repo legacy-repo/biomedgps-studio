@@ -96,6 +96,14 @@ declare namespace API {
     target: Entity;
   };
 
+  type fetchCommonNodesParams = {
+    node_ids: string;
+    target_node_types?: string;
+    topk?: number;
+    nhops?: number;
+    nums_shared_by?: number;
+  };
+
   type fetchCuratedGraphParams = {
     curator: string;
     project_id?: string;

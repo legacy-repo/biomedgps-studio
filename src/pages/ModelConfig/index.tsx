@@ -840,6 +840,8 @@ const ModelConfig: React.FC = (props) => {
                 if (graph && graph.nodes && graph.nodes.length > 0) {
                   pushGraphDataToLocalStorage(graph);
                   history.push('/knowledge-graph');
+                } else {
+                  message.warn("You need to generate some predicted result and pick up the interested rows first.", 5)
                 }
               }}
             />
