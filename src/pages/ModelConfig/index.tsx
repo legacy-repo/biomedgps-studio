@@ -6,11 +6,11 @@ import { history } from 'umi';
 import { useAuth0 } from "@auth0/auth0-react";
 import { GraphTable } from 'biominer-components';
 import { makeDataSources, pushGraphDataToLocalStorage } from 'biominer-components/dist/esm/components/KnowledgeGraph/utils';
-import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER } from 'biominer-components/dist/esm/components/typings';
-import { fetchNodes } from 'biominer-components/dist/esm/components/utils';
+import { APIs, GraphData, COMPOSED_ENTITY_DELIMITER, Entity } from 'biominer-components/dist/esm/components/typings';
 import { fetchEntities, fetchPredictedNodes } from '@/services/swagger/KnowledgeGraph';
 import { EdgeAttribute } from 'biominer-components/dist/esm/components/EdgeTable/index.t';
 import { NodeAttribute } from 'biominer-components/dist/esm/components/NodeTable/index.t';
+import { makeQueryEntityStr } from 'biominer-components/dist/esm/components/utils';
 import { sortBy } from 'lodash';
 import { fetchStatistics } from '@/services/swagger/KnowledgeGraph';
 import { makeRelationTypes } from 'biominer-components/dist/esm/components/utils';
@@ -32,6 +32,70 @@ type NodeIdSearcherProps = {
   getEntities: APIs['GetEntitiesFn'];
   onSelect?: (value: string) => void;
 }
+
+let timeout: ReturnType<typeof setTimeout> | null;
+// This function is used to fetch the entities of the selected entity type.
+// All the nodes will be added to the options as a dropdown list.
+export const fetchNodes = async (
+  getEntities: APIs['GetEntitiesFn'],
+  entityType: string,
+  value: string,
+  callback: (any: any) => void,
+) => {
+  // We might not get good results when the value is short than 3 characters.
+  if (value.length < 3) {
+    callback([]);
+    return;
+  }
+
+  if (timeout) {
+    clearTimeout(timeout);
+    timeout = null;
+  }
+
+  // TODO: Check if the value is a valid id.
+
+  let queryMap = {};
+  let order: string[] = [];
+  // If the value is a number, then maybe it is an id or xref but not for name or synonyms.
+  if (value && !isNaN(Number(value))) {
+    queryMap = { id: value, xrefs: value, label: entityType };
+    order = ['id', 'xrefs'];
+  } else {
+    queryMap = { name: value, synonyms: value, xrefs: value, id: value, label: entityType };
+    order = ['name', 'synonyms', 'xrefs', 'id'];
+  }
+
+  // TODO: Need to add a prefix for the model table. In the future, we may allow users to select the model to confirm the model_table_prefix.
+
+  const fetchData = () => {
+    getEntities({
+      query_str: makeQueryEntityStr(queryMap, order),
+      // @ts-ignore, it will be fixed after installing the latest version of biominer-components
+      model_table_prefix: 'biomedgps',
+      page: 1,
+      page_size: 50,
+    })
+      .then((response) => {
+        const { records } = response;
+        const options: OptionType[] = records.map((item: Entity, index: number) => ({
+          order: index,
+          value: item['id'],
+          label: `${item['id']} | ${item['name']}`,
+          description: item['description'],
+          metadata: item,
+        }));
+        console.log('getLabels results: ', options);
+        callback(options);
+      })
+      .catch((error) => {
+        console.log('requestNodes Error: ', error);
+        callback([]);
+      });
+  };
+
+  timeout = setTimeout(fetchData, 300);
+};
 
 const NodeIdSearcher = (props: NodeIdSearcherProps) => {
   const [entityOptions, setEntityOptions] = useState(undefined);
@@ -205,7 +269,7 @@ const ModelConfig: React.FC = (props) => {
       key: 'entity_id',
       name: 'Disease Name',
       type: 'NodeIdSearcher',
-      description: 'Enter a name of disease for which you want to find similar diseases, drugs or targets',
+      description: 'Enter a name of disease for which you want to find similar diseases, drugs or targets. If you find multiple items, you might need to select the most relevant one.',
       required: true,
       entityType: 'Disease'
     },
@@ -298,7 +362,7 @@ const ModelConfig: React.FC = (props) => {
       key: 'entity_id',
       name: 'Drug Name',
       type: 'NodeIdSearcher',
-      description: 'Enter a name of drug for which you want to find similar drugs, indications or targets',
+      description: 'Enter a name of drug for which you want to find similar drugs, indications or targets. If you find multiple items, you might need to select the most relevant one.',
       required: true,
       entityType: 'Compound'
     },
@@ -376,7 +440,7 @@ const ModelConfig: React.FC = (props) => {
       key: 'entity_id',
       name: 'Gene/Protein Name',
       type: 'NodeIdSearcher',
-      description: 'Enter a name of gene for which you want to find drugs/diseases',
+      description: 'Enter a name of gene for which you want to find drugs/diseases. If you find multiple items, you might need to select the most relevant one.',
       required: true,
       entityType: 'Gene'
     },
@@ -453,7 +517,7 @@ const ModelConfig: React.FC = (props) => {
       key: 'entity_id',
       name: 'Symptom Name',
       type: 'NodeIdSearcher',
-      description: 'Enter a name of symptom for which you want to find similar drugs',
+      description: 'Enter a name of symptom for which you want to find similar drugs. If you find multiple items, you might need to select the most relevant one or select multiple items.',
       required: true,
       entityType: 'Symptom',
       allowMultiple: true
@@ -543,6 +607,7 @@ const ModelConfig: React.FC = (props) => {
   const getDefaultRelationType = (entityType: string, predictionType: string) => {
     const DefaultRelationTypeMap: Record<string, string> = {
       'Disease:Disease': 'Hetionet::DrD::Disease:Disease',
+      'Compound:Compound': 'Hetionet::CrC::Compound:Compound',
       'Disease:Compound': 'DRUGBANK::treats::Compound:Disease',
       'Disease:Gene': 'GNBR::J::Gene:Disease',
       'Compound:Disease': 'DRUGBANK::treats::Compound:Disease',
@@ -711,7 +776,7 @@ const ModelConfig: React.FC = (props) => {
             setGraphData(data);
           }).catch((error) => {
             console.log('ModelConfig - onConfirm - handler - Error: ', error);
-            message.warn("Cannot find any result for the given parameters.")
+            message.warn("Cannot find any result for the given parameters.", 5)
             setParams({});
             setGraphData(error);
           }).finally(() => {
@@ -777,6 +842,18 @@ const ModelConfig: React.FC = (props) => {
                   pushGraphDataToLocalStorage(graph);
                   history.push('/knowledge-graph');
                 }
+              }}
+              // We need to make sure only the selected nodes will be loaded into the graph.
+              onSelectedNodes={(nodes) => {
+                return new Promise((resolve, reject) => {
+                  resolve();
+                });
+              }}
+              // We need to make sure only the selected nodes and edges will be loaded into the graph.
+              onSelectedEdges={(edges) => {
+                return new Promise((resolve, reject) => {
+                  resolve();
+                });
               }}
             />
           }

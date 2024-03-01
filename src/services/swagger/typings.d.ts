@@ -127,6 +127,7 @@ declare namespace API {
     page?: number;
     page_size?: number;
     query_str?: string;
+    model_table_prefix?: string;
   };
 
   type fetchEntity2dParams = {
