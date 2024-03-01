@@ -71,7 +71,6 @@ export const fetchNodes = async (
   const fetchData = () => {
     getEntities({
       query_str: makeQueryEntityStr(queryMap, order),
-      // @ts-ignore, it will be fixed after installing the latest version of biominer-components
       model_table_prefix: 'biomedgps',
       page: 1,
       page_size: 50,
@@ -500,8 +499,8 @@ const ModelConfig: React.FC = (props) => {
       description: 'Select a type for predicting the result, e.g. Disease is for predicting diseases for a given symptom.',
       required: true,
       options: [
+        { label: 'Predicted Drugs', value: 'Compound' },
         { label: 'Predicted Diseases', value: 'Disease' },
-        { label: 'Predicted Drugs', value: 'Compound' }
       ],
       // defaultValue: 'Disease'
     },
@@ -842,18 +841,6 @@ const ModelConfig: React.FC = (props) => {
                   pushGraphDataToLocalStorage(graph);
                   history.push('/knowledge-graph');
                 }
-              }}
-              // We need to make sure only the selected nodes will be loaded into the graph.
-              onSelectedNodes={(nodes) => {
-                return new Promise((resolve, reject) => {
-                  resolve();
-                });
-              }}
-              // We need to make sure only the selected nodes and edges will be loaded into the graph.
-              onSelectedEdges={(edges) => {
-                return new Promise((resolve, reject) => {
-                  resolve();
-                });
               }}
             />
           }
