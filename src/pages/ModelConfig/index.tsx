@@ -14,7 +14,7 @@ import { makeQueryEntityStr } from 'biominer-components/dist/esm/components/util
 import { sortBy } from 'lodash';
 import { fetchStatistics } from '@/services/swagger/KnowledgeGraph';
 import { makeRelationTypes } from 'biominer-components/dist/esm/components/utils';
-import type { OptionType } from 'biominer-components/dist/esm/components/typings';
+import type { OptionType, RelationStat } from 'biominer-components/dist/esm/components/typings';
 
 import './index.less';
 
@@ -181,10 +181,13 @@ const ModelConfig: React.FC = (props) => {
   const [edgeDataSources, setEdgeDataSources] = useState<EdgeAttribute[]>([]);
   const [nodeDataSources, setNodeDataSources] = useState<NodeAttribute[]>([]);
   const [relationTypeOptions, setRelationTypeOptions] = useState<OptionType[]>([]);
+  const [relationStat, setRelationStat] = useState<RelationStat[] | undefined>([]);
 
   useEffect(() => {
     fetchStatistics().then((data) => {
       const relationStats = data.relation_stat;
+      setRelationStat(relationStats);
+
       const relationTypes = makeRelationTypes(relationStats);
       setRelationTypeOptions(relationTypes);
     });
@@ -844,6 +847,7 @@ const ModelConfig: React.FC = (props) => {
                   message.warn("You need to generate some predicted result and pick up the interested rows first.", 5)
                 }
               }}
+              edgeStat={relationStat}
             />
           }
         </Col>
