@@ -1,4 +1,4 @@
-import { QuestionCircleOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { QuestionCircleOutlined, InfoCircleOutlined, UserOutlined, FieldTimeOutlined } from '@ant-design/icons';
 import { Space, Menu, Button, message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { SelectLang, history } from 'umi';
@@ -74,6 +74,11 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
       label: 'Help',
       key: 'help',
       icon: <QuestionCircleOutlined />,
+    },
+    {
+      label: 'Change Log',
+      key: 'changelog',
+      icon: <FieldTimeOutlined />
     },
   ]
 
