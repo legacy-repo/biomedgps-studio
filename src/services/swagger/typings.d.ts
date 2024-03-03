@@ -249,6 +249,10 @@ declare namespace API {
     name: string;
     description?: string;
     resource: string;
+    xrefs?: string;
+    pmids?: string;
+    taxid?: string;
+    synonyms?: string;
   };
 
   type NodeKeyShape = {
