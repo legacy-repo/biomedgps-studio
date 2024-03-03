@@ -76,7 +76,7 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
       icon: <QuestionCircleOutlined />,
     },
     {
-      label: 'Change Log',
+      label: 'ChangeLog',
       key: 'changelog',
       icon: <FieldTimeOutlined />
     },
@@ -87,6 +87,8 @@ const GlobalHeaderRight: React.FC<GlobalHeaderRightProps> = (props) => {
       history.push('/about')
     } else if (item.key === 'help') {
       history.push('/help')
+    } else if (item.key === 'changelog') {
+      history.push('/changelog')
     }
   };
 

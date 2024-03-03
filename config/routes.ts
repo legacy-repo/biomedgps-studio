@@ -47,6 +47,13 @@ export const routes = [
     component: './Help',
   },
   {
+    name: 'changelog',
+    icon: 'field-time',
+    path: '/changelog',
+    hideInMenu: true,
+    component: './ChangeLog',
+  },
+  {
     name: 'not-authorized',
     hideInMenu: true,
     path: '/not-authorized',
