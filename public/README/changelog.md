@@ -1,7 +1,8 @@
 ## BioMedGPS
 
 - 2024-03-03
-  - 17:07:38 -0500 Cannot redirect to the changelog page. ([f2dc228](https://github.com/open-prophetdb/biomedgps/commit/f2dc228))
+  - 17:16:35 -0500 Improve the styles for the changelog page. ([3809c7c](https://github.com/open-prophetdb/biomedgps/commit/3809c7c))
+  - 17:07:38 -0500  Cannot redirect to the changelog page. ([f2dc228](https://github.com/open-prophetdb/biomedgps/commit/f2dc228))
   - 16:49:26 -0500  Add a changelog page. ([d2965a5](https://github.com/open-prophetdb/biomedgps/commit/d2965a5))
   - 15:31:47 -0500  Upgrade biominer-components to 0.2.69. ([d82e1ad](https://github.com/open-prophetdb/biomedgps/commit/d82e1ad))
   - 12:26:55 -0500  Update the prompt. ([0f43330](https://github.com/open-prophetdb/biomedgps/commit/0f43330))

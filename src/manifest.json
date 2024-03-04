@@ -1,6 +1,6 @@
 {
-  "name": "Rapex",
-  "short_name": "rapex",
+  "name": "BioMedGPS",
+  "short_name": "biomedgps",
   "display": "standalone",
   "start_url": "./?utm_source=homescreen",
   "theme_color": "#002140",
