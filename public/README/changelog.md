@@ -1,7 +1,10 @@
 ## BioMedGPS
 
+- 2024-03-04
+  - 00:06:43 -0500 Add an icon area for doing something conveniently. ([dc9858c](https://github.com/open-prophetdb/biomedgps/commit/dc9858c))
+
 - 2024-03-03
-  - 17:16:35 -0500 Improve the styles for the changelog page. ([3809c7c](https://github.com/open-prophetdb/biomedgps/commit/3809c7c))
+  - 17:16:35 -0500  Improve the styles for the changelog page. ([3809c7c](https://github.com/open-prophetdb/biomedgps/commit/3809c7c))
   - 17:07:38 -0500  Cannot redirect to the changelog page. ([f2dc228](https://github.com/open-prophetdb/biomedgps/commit/f2dc228))
   - 16:49:26 -0500  Add a changelog page. ([d2965a5](https://github.com/open-prophetdb/biomedgps/commit/d2965a5))
   - 15:31:47 -0500  Upgrade biominer-components to 0.2.69. ([d82e1ad](https://github.com/open-prophetdb/biomedgps/commit/d82e1ad))
@@ -272,8 +275,11 @@
 
 ## BioMedGPS UI
 
+- 2024-03-04
+  - 00:05:25 -0500 Add an icon area for doing something conveniently. ([4210654](https://github.com/open-prophetdb/biominer-components/commit/4210654))
+
 - 2024-03-03
-  - 16:01:11 -0500 [Fix Bug] Cannot switch to other page from the knowledge graph page. ([8183f8f](https://github.com/open-prophetdb/biominer-components/commit/8183f8f))
+  - 16:01:11 -0500  [Fix Bug] Cannot switch to other page from the knowledge graph page. ([8183f8f](https://github.com/open-prophetdb/biominer-components/commit/8183f8f))
   - 15:49:35 -0500  [Fix Bug] Cannot show the graph correctly after batch deleting several edges. ([bad97f7](https://github.com/open-prophetdb/biominer-components/commit/bad97f7))
   - 15:30:42 -0500  [Fix Bug] Allow to delete records from the graph table. ([702e4a6](https://github.com/open-prophetdb/biominer-components/commit/702e4a6))
   - 13:37:01 -0500  [Fix Bug] Cannot show multiple relation types correctly. ([57a303c](https://github.com/open-prophetdb/biominer-components/commit/57a303c))
