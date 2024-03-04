@@ -16,7 +16,6 @@ yarn-error.log
 
 /coverage
 .idea
-yarn.lock
 package-lock.json
 pnpm-lock.yaml
 *bak
@@ -39,5 +38,3 @@ screenshot
 
 build
 node_modules
-.yalc
-yalc.lock
